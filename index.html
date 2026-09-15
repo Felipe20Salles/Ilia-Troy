@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Guerra de Troia — Duelo local</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guerra de Troia — Duelo online</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -11,7 +12,7 @@
     --gold:#B8935A; --gold-dim:#7A6440;
     --troia:#4C7A6C; --troia-dim:#2E4A41; --troia-light:#A9CBBE;
     --gregos:#9A4235; --gregos-dim:#63241C; --gregos-light:#E3B2A6;
-    --cream:#E8E3D3; --muted:#8B8B7E;
+    --cream:#E8E3D3; --muted:#8B8B7E; --error:#C85C4B;
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--cream);font-family:'IBM Plex Sans',sans-serif;padding:28px 20px;max-width:760px;margin:0 auto;}
@@ -21,10 +22,15 @@
   .spear-rule{height:1px;background:linear-gradient(to right,transparent,var(--gold-dim),transparent);margin:16px 0;}
   .setup{text-align:center;padding:16px 0;}
   .setup p{color:var(--muted);line-height:1.6;max-width:520px;margin:0 auto 20px;}
+  input.code-input{
+    font-family:'IBM Plex Sans',sans-serif;font-size:20px;letter-spacing:4px;text-align:center;text-transform:uppercase;
+    padding:12px;border-radius:3px;border:1px solid var(--gold-dim);background:var(--panel);color:var(--cream);width:180px;max-width:100%;
+  }
   button.act, button.advance, button.restart, button.wide{
     padding:13px 18px;border-radius:3px;border:1px solid var(--gold-dim);background:var(--panel);color:var(--cream);
     font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .15s ease;
   }
+  button:disabled{opacity:0.5;cursor:default;}
   button.act:hover, button.wide:hover{background:#262C2E;border-color:var(--gold);}
   button.advance{border-color:var(--gold);background:var(--gold-dim);color:#14181A;font-weight:600;}
   button.advance:hover{background:var(--gold);}
@@ -33,6 +39,7 @@
   .pass-icon{font-size:56px;margin-bottom:18px;}
   .pass-screen h2{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold);margin:0 0 10px;}
   .pass-screen p{color:var(--muted);margin:0 0 26px;}
+  .room-code{font-size:34px;letter-spacing:8px;font-weight:600;color:var(--gold);margin:14px 0;font-family:'Cormorant Garamond',serif;}
   .cycle-header{text-align:center;margin-bottom:16px;}
   .cycle-header .label{font-size:13px;color:var(--muted);letter-spacing:0.5px;}
   .cycle-header .phase{font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;font-weight:600;}
@@ -85,396 +92,277 @@
   .role-pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;letter-spacing:0.4px;margin-bottom:10px;}
   .role-pill.troia{background:var(--troia-dim);color:var(--troia-light);}
   .role-pill.gregos{background:var(--gregos-dim);color:var(--gregos-light);}
+  .error-banner{background:var(--error);color:#fff;padding:10px 14px;border-radius:3px;font-size:13px;margin-bottom:16px;text-align:center;}
+  .share-hint{font-size:13px;color:var(--muted);margin-top:8px;}
+  .divider-or{color:var(--muted);font-size:12px;margin:18px 0;text-align:center;}
 </style>
 </head>
 <body>
 <h1>Guerra de Troia</h1>
-<p class="subtitle">duelo local — revezem o mesmo aparelho a cada escolha</p>
+<p class="subtitle">duelo online — cada jogador no seu próprio aparelho</p>
 <div class="spear-rule"></div>
 <div id="app"></div>
 <script>
+const API = '/.netlify/functions/room';
 const KIND_ICON = {
   'Construção':'🏛️','Recurso':'🍎','Recrutamento':'⚔️','Sabedoria':'📜',
   'Equipamento':'🔥','Armadilha':'🕳️','Favor divino':'✨','Ritual':'🌊','Estratégia':'🧭'
 };
-
-const DECKS = {
-  troia: {
-    era1: [
-      {kind:'Construção', name:'Muralha de pedra', effect:'+2 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=2;}},
-      {kind:'Construção', name:'Torres de vigia', effect:'+2 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=2;}},
-      {kind:'Construção', name:'Fosso de contenção', effect:'+1 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=1;}},
-      {kind:'Construção', name:'Pedras do alto', effect:'+1 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=1;}},
-      {kind:'Recurso', name:'Celeiros reais', effect:'+6 suprimento em estoque', apply:s=>{s.suprimentoTroia+=6;}},
-      {kind:'Recurso', name:'Poços internos', effect:'+4 suprimento em estoque', apply:s=>{s.suprimentoTroia+=4;}},
-      {kind:'Recrutamento', name:'Guarnição da cidade', effect:'+3 tropas', apply:s=>{s.tropasTroia+=3;}},
-      {kind:'Sabedoria', name:'Conselho dos sábios', effect:'Estratagema mais eficaz durante o cerco', apply:s=>{s.estratagemaForteTroia=true;}},
-      {kind:'Estratégia', name:'Racionamento estrito', effect:'Consumo de suprimento reduzido em 30% durante todo o cerco', apply:s=>{s.racionamentoAtivo=true;}}
-    ],
-    era2: [
-      {kind:'Armadilha', name:'Armadilhas na praia', effect:'Gregos perdem 2 tropas na travessia', apply:s=>{s.tropasGregos=Math.max(0,s.tropasGregos-2);}},
-      {kind:'Favor divino', name:'Favor de Apolo', effect:'+1 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=1;}},
-      {kind:'Armadilha', name:'Emboscada noturna', effect:'Gregos perdem 1 tropa, Troia ganha 2 suprimento', apply:s=>{s.tropasGregos=Math.max(0,s.tropasGregos-1); s.suprimentoTroia+=2;}}
-    ]
-  },
-  gregos: {
-    era1: [
-      {kind:'Recrutamento', name:'Recrutas de Micenas', effect:'+3 tropas', apply:s=>{s.tropasGregos+=3;}},
-      {kind:'Recurso', name:'Grão de Ftia', effect:'+5 suprimento em estoque', apply:s=>{s.suprimentoGregos+=5;}},
-      {kind:'Sabedoria', name:'Conselho de Nestor', effect:'Estratagema mais eficaz durante o cerco', apply:s=>{s.estratagemaForteGregos=true;}},
-      {kind:'Recrutamento', name:'Mirmidões de Ftia', effect:'+4 tropas', apply:s=>{s.tropasGregos+=4;}},
-      {kind:'Equipamento', name:'Forjas de bronze', effect:'+1 bônus de ataque permanente', apply:s=>{s.bonusAtaqueGregos+=1;}},
-      {kind:'Recrutamento', name:'Contingente de Salamina', effect:'+2 tropas', apply:s=>{s.tropasGregos+=2;}}
-    ],
-    era2: [
-      {kind:'Equipamento', name:'Aríete de guerra', effect:'+1 bônus de ataque adicional', apply:s=>{s.bonusAtaqueGregos+=1;}},
-      {kind:'Equipamento', name:'Torres de cerco', effect:'Reduz a resistência estrutural de Troia em 1', apply:s=>{s.resistenciaEstrutural=Math.max(0,s.resistenciaEstrutural-1);}},
-      {kind:'Ritual', name:'Sacrifício a Posêidon', effect:'+2 tropas (travessia segura)', apply:s=>{s.tropasGregos+=2;}},
-      {kind:'Favor divino', name:'Marés favoráveis', effect:'+1 determinação inicial', apply:s=>{s.determinacao=(s.determinacao||2)+1;}},
-      {kind:'Favor divino', name:'Aquiles retorna ao combate', effect:'+2 determinação inicial', apply:s=>{s.determinacao=(s.determinacao||2)+2;}}
-    ]
-  }
-};
-
-const ERA_ROUNDS = {era1:5, era2:3};
-const TROIA_ACTIONS = ['atacar','reforcar','estratagema'];
-const GREGOS_ACTIONS = ['atacar','reforcar','buscar','estratagema'];
 const ACTION_LABEL = {atacar:'Atacar', reforcar:'Reforçar', buscar:'Buscar recursos', estratagema:'Estratagema'};
 
-function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-function otherSide(s){ return s==='troia'?'gregos':'troia'; }
-function dmgTroops(){ return 2+Math.floor(Math.random()*2); }
+let session = null; // {code, role, token}
+let view = null;
+let localScreen = 'intro'; // intro | create | join | game
+let errorMsg = null;
+let pollTimer = null;
 
-let state = {
-  eraStage:'era1', eraRound:1,
-  eraStats:{resistenciaEstrutural:0,estratagemaForteTroia:false,racionamentoAtivo:false,tropasTroia:8,suprimentoTroia:4,bonusAtaqueGregos:0,estratagemaForteGregos:false,tropasGregos:8,suprimentoGregos:4,determinacao:2}
-};
-const deckUsed = {troia:[], gregos:[]};
-let screen = 'intro';
-let turn = 'troia';
-let hand = [];
-let tempEraPick = null;
-let tempAction = null;
-
-function drawHand(side){
-  const era = state.eraStage;
-  const size = era==='era1' ? 3 : 2;
-  const pool = DECKS[side][era].filter(c=>!deckUsed[side].includes(c.name));
-  const shuffled = [...pool].sort(()=>Math.random()-0.5);
-  hand = shuffled.slice(0, Math.min(size, shuffled.length));
+function loadSession(){
+  try {
+    const raw = localStorage.getItem('troia-session');
+    if(raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+function saveSession(s){
+  try { localStorage.setItem('troia-session', JSON.stringify(s)); } catch(e) {}
+}
+function clearSession(){
+  try { localStorage.removeItem('troia-session'); } catch(e) {}
 }
 
-function goPass(nextTurn, nextScreen){
-  turn = nextTurn;
-  screen = 'pass';
-  window._afterPass = nextScreen;
+async function api(action, opts){
+  opts = opts || {};
+  const method = opts.method || 'GET';
+  let url = API + '?action=' + encodeURIComponent(action);
+  const fetchOpts = { method };
+  if(method === 'GET'){
+    const qs = new URLSearchParams(opts.params || {});
+    url += '&' + qs.toString();
+  } else {
+    fetchOpts.headers = {'Content-Type':'application/json'};
+    fetchOpts.body = JSON.stringify(opts.body || {});
+  }
+  const res = await fetch(url, fetchOpts);
+  const data = await res.json().catch(()=>({error:'Resposta inválida do servidor.'}));
+  if(!res.ok) throw new Error(data.error || 'Erro na requisição.');
+  return data;
+}
+
+async function refreshState(){
+  if(!session) return;
+  try {
+    const data = await api('state', { params:{ code:session.code, role:session.role, token:session.token } });
+    view = data;
+    errorMsg = null;
+    render();
+  } catch(e){
+    errorMsg = e.message;
+    render();
+  }
+}
+
+function startPolling(){
+  stopPolling();
+  pollTimer = setInterval(refreshState, 1800);
+  refreshState();
+}
+function stopPolling(){
+  if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+}
+
+async function criarSala(){
+  errorMsg = null;
+  try {
+    const data = await api('create', { method:'POST', body:{} });
+    session = { code:data.code, role:data.role, token:data.token };
+    saveSession(session);
+    localScreen = 'game';
+    startPolling();
+  } catch(e){ errorMsg = e.message; render(); }
+}
+
+async function entrarSala(code){
+  errorMsg = null;
+  try {
+    const data = await api('join', { method:'POST', body:{ code } });
+    session = { code:data.code, role:data.role, token:data.token };
+    saveSession(session);
+    localScreen = 'game';
+    startPolling();
+  } catch(e){ errorMsg = e.message; render(); }
+}
+
+async function sairSala(){
+  stopPolling();
+  session = null; view = null; errorMsg = null;
+  clearSession();
+  localScreen = 'intro';
   render();
 }
-function afterPass(){
-  screen = window._afterPass;
-  if(screen === 'era-pick') drawHand(turn);
-  render();
+
+async function iniciarDuelo(){
+  try { await api('start', { method:'POST', body: session }); refreshState(); }
+  catch(e){ errorMsg = e.message; render(); }
 }
-
-function startGame(){
-  goPass('troia', 'era-pick');
+async function escolherCartaEra(idx){
+  try { await api('pick-era', { method:'POST', body: Object.assign({index:idx}, session) }); refreshState(); }
+  catch(e){ errorMsg = e.message; render(); }
 }
-
-function pickEraCard(idx){
-  const card = hand[idx];
-  deckUsed[turn].push(card.name);
-  if(turn === 'troia'){
-    tempEraPick = card;
-    goPass('gregos', 'era-pick');
-  } else {
-    const troiaCard = tempEraPick;
-    troiaCard.apply(state.eraStats);
-    card.apply(state.eraStats);
-    window._lastEraReveal = {troia:troiaCard, gregos:card};
-    tempEraPick = null;
-    screen = 'era-reveal';
-    render();
-  }
+async function continuarEra(){
+  try { await api('advance-era', { method:'POST', body: session }); refreshState(); }
+  catch(e){ errorMsg = e.message; render(); }
 }
-
-function advanceEraRound(){
-  if(state.eraRound < ERA_ROUNDS[state.eraStage]){
-    state.eraRound += 1;
-    goPass('troia', 'era-pick');
-  } else if(state.eraStage === 'era1'){
-    state.eraStage = 'era2';
-    state.eraRound = 1;
-    goPass('troia', 'era-pick');
-  } else {
-    initSiege(state);
-    goPass('troia', 'siege-pick');
-  }
+async function escolherAcao(choice){
+  try { await api('pick-action', { method:'POST', body: Object.assign({choice}, session) }); refreshState(); }
+  catch(e){ errorMsg = e.message; render(); }
 }
-
-function addLog(r, html){ r.log.unshift({html}); if(r.log.length>30) r.log.pop(); }
-
-function initSiege(r){
-  const s = r.eraStats;
-  r.resistenciaEstrutural = s.resistenciaEstrutural;
-  r.estratagemaForteTroia = s.estratagemaForteTroia;
-  r.racionamentoAtivo = s.racionamentoAtivo;
-  r.tropasTroia = s.tropasTroia;
-  r.suprimentoTroia = s.suprimentoTroia;
-  r.bonusAtaqueGregos = s.bonusAtaqueGregos;
-  r.estratagemaForteGregos = s.estratagemaForteGregos;
-  r.tropasGregos = s.tropasGregos;
-  r.suprimentoGregos = s.suprimentoGregos;
-  r.determinacao = clamp(s.determinacao, 0, 16);
-  r.determinacaoMax = 16;
-  r.ociosidadeGregos = 0;
-  r.cycle = 1;
-  r.log = [];
-  r.gameOver = null; r.reason = null;
-
-  if(r.tropasGregos >= r.tropasTroia*2){
-    r.determinacao = clamp(r.determinacao+1, 0, r.determinacaoMax);
-    addLog(r, `<span class="tag gregos">Gregos</span> — o exército reunido é esmagadoramente superior; a confiança sobe antes mesmo do primeiro combate.`);
-  }
-  addLog(r, `As primeiras tropas gregas tocam a praia. O cerco de Troia começa — resistência estrutural fixada em ${r.resistenciaEstrutural}.`);
-  resolveSupply(r);
-  r.tropasTroiaMax = r.tropasTroia;
-  r.tropasGregosMax = r.tropasGregos;
-  r.fim = checkCollapse(r);
+async function resolverCiclo(){
+  try { await api('resolve-cycle', { method:'POST', body: session }); refreshState(); }
+  catch(e){ errorMsg = e.message; render(); }
 }
-
-function checkCollapse(r){
-  if(r.tropasTroia<=0){ r.gameOver='gregos'; r.reason='tropas'; return true; }
-  if(r.tropasGregos<=0){ r.gameOver='troia'; r.reason='tropas'; return true; }
-  if(r.determinacao<=0){ r.gameOver='troia'; r.reason='moral'; return true; }
-  return false;
-}
-
-function resolveSupply(r){
-  let consumoT = Math.ceil(r.tropasTroia/3);
-  const consumoG = Math.ceil(r.tropasGregos/3);
-  if(r.racionamentoAtivo) consumoT = Math.ceil(consumoT*0.7);
-  r.suprimentoGregos += 1;
-  if(r.suprimentoTroia < consumoT){
-    const deficit = consumoT - r.suprimentoTroia;
-    r.tropasTroia = Math.max(0, r.tropasTroia-deficit);
-    r.suprimentoTroia = 0;
-    addLog(r, `<span class="tag troia">Troia</span> — o estoque não é mais reabastecido de fora; a fome cobra ${deficit} soldado(s).`);
-  } else {
-    r.suprimentoTroia -= consumoT;
-    addLog(r, `<span class="tag troia">Troia</span> — a cidade ainda vive do que armazenou antes do cerco começar.`);
-  }
-  if(r.suprimentoGregos < consumoG){
-    const deficit = consumoG - r.suprimentoGregos;
-    r.tropasGregos = Math.max(0, r.tropasGregos-deficit);
-    r.determinacao = clamp(r.determinacao-1, 0, r.determinacaoMax);
-    r.suprimentoGregos = 0;
-    addLog(r, `<span class="tag gregos">Gregos</span> — falta suprimento mesmo com os navios de reforço; ${deficit} homem(ns) perdido(s), a moral cai.`);
-  } else {
-    r.suprimentoGregos -= consumoG;
-    addLog(r, `<span class="tag gregos">Gregos</span> — os navios seguem trazendo o mínimo necessário.`);
-  }
-  if(r.ociosidadeGregos>=2){
-    r.determinacao = clamp(r.determinacao-1,0,r.determinacaoMax);
-    addLog(r, `<span class="tag gregos">Gregos</span> — homens longe de casa, sem combate há tempos, começam a duvidar da guerra.`);
-  }
-}
-
-function affordReforcar(r, side){
-  const field = side==='troia' ? 'suprimentoTroia' : 'suprimentoGregos';
-  if(r[field]>=1){ r[field]-=1; return true; }
-  return false;
-}
-
-function resolveActions(r, troiaAct, gregosAct){
-  const troiaReforcou = troiaAct==='reforcar' && affordReforcar(r,'troia');
-  const gregosReforcou = gregosAct==='reforcar' && affordReforcar(r,'gregos');
-  if(troiaAct==='reforcar' && !troiaReforcou) addLog(r, `<span class="tag troia">Troia</span> tenta reforçar, mas não há suprimento — a fortificação não melhora este ciclo.`);
-  if(gregosAct==='reforcar' && !gregosReforcou) addLog(r, `<span class="tag gregos">Gregos</span> tentam consolidar posição, mas faltam recursos.`);
-
-  if(gregosAct==='atacar'){
-    const tempBonus = troiaReforcou ? 1 : 0;
-    if(troiaAct==='estratagema'){
-      const anulado = r.estratagemaForteTroia ? Math.random()<0.75 : Math.random()<0.5;
-      if(anulado){
-        r.determinacao = clamp(r.determinacao-1,0,r.determinacaoMax);
-        addLog(r, `Espiões troianos previram o ataque grego — o assalto se dissolve, e o fracasso abala a moral do acampamento.`);
-      } else {
-        const lt = dmgTroops();
-        r.tropasTroia = Math.max(0, r.tropasTroia-lt);
-        addLog(r, `A previsão falha — o ataque grego ainda causa ${lt} baixa(s) troiana(s).`);
-      }
-    } else {
-      const mult = 1 + (r.resistenciaEstrutural + tempBonus)*0.2;
-      const defesaEfetiva = r.tropasTroia * mult;
-      const ratio = defesaEfetiva>0 ? r.tropasGregos/defesaEfetiva : 99;
-      if(ratio>=1.5){
-        const dano = dmgTroops()+r.bonusAtaqueGregos+2;
-        r.tropasTroia = Math.max(0, r.tropasTroia-dano);
-        r.resistenciaEstrutural = Math.max(0, r.resistenciaEstrutural-1);
-        r.determinacao = clamp(r.determinacao+1,0,r.determinacaoMax);
-        addLog(r, `Com força esmagadora, os gregos rompem um trecho da muralha — ${dano} baixa(s) troiana(s), a estrutura se degrada permanentemente.`);
-      } else if(ratio>=0.8){
-        const dano = Math.max(1, Math.floor((dmgTroops()+r.bonusAtaqueGregos)/2));
-        r.tropasTroia = Math.max(0, r.tropasTroia-dano);
-        addLog(r, `Um assalto equilibrado contra as defesas troianas — ${dano} baixa(s), mas a estrutura resiste.`);
-      } else {
-        const contraDano = dmgTroops()+tempBonus;
-        r.tropasGregos = Math.max(0, r.tropasGregos-contraDano);
-        r.determinacao = clamp(r.determinacao-1,0,r.determinacaoMax);
-        addLog(r, `"Um homem na muralha vale por dez" — o ataque grego é repelido com ${contraDano} baixa(s) e um golpe na moral.`);
-      }
-    }
-  }
-
-  if(troiaAct==='atacar'){
-    let dano = dmgTroops(); let saque=0;
-    if(gregosReforcou){
-      dano = Math.max(1, dano-1);
-      addLog(r, `Troia avança contra o acampamento reforçado — ${dano} baixa(s) grega(s).`);
-    } else if(gregosAct==='buscar'){
-      dano += 2;
-      saque = Math.floor(r.suprimentoGregos/3);
-      r.suprimentoGregos -= saque; r.suprimentoTroia += saque;
-      r.determinacao = clamp(r.determinacao-1,0,r.determinacaoMax);
-      addLog(r, `Com metade do exército grego fora buscando recursos, Troia ataca o acampamento exposto — ${dano} baixa(s) e saque de ${saque} suprimento(s).`);
-    } else if(gregosAct==='estratagema'){
-      const anulado = r.estratagemaForteGregos ? Math.random()<0.75 : Math.random()<0.5;
-      if(anulado){
-        dano=0;
-        r.determinacao = clamp(r.determinacao+1,0,r.determinacaoMax);
-        addLog(r, `Odisseu antecipa a manobra troiana — a investida se perde, e a confiança do acampamento cresce.`);
-      } else { addLog(r, `A antecipação grega falha — o ataque troiano causa ${dano} baixa(s).`); }
-    } else if(gregosAct==='atacar'){
-      addLog(r, `Enquanto os gregos avançam, uma investida troiana atinge suas linhas por trás — ${dano} baixa(s) grega(s) adicionais.`);
-    }
-    if(dano>0) r.tropasGregos = Math.max(0, r.tropasGregos-dano);
-  }
-
-  if(troiaAct!=='atacar' && gregosAct!=='atacar'){
-    if(troiaAct==='reforcar' && gregosAct==='reforcar'){
-      addLog(r, `Ciclo sem confronto direto — os dois lados recuperam o fôlego.`);
-    } else if(gregosAct==='buscar'){
-      const ganho = Math.ceil(r.tropasGregos/2);
-      r.suprimentoGregos += ganho;
-      addLog(r, `Navios gregos retornam da costa com +${ganho} suprimento.`);
-    } else {
-      addLog(r, `Ciclo tenso, sem grandes movimentos.`);
-    }
-  }
-  r.ociosidadeGregos = gregosAct==='atacar' ? 0 : r.ociosidadeGregos+1;
-}
-
-function pickAction(action){
-  if(turn === 'troia'){
-    tempAction = action;
-    goPass('gregos', 'siege-pick');
-  } else {
-    window._lastActions = {troia:tempAction, gregos:action};
-    tempAction = null;
-    screen = 'siege-reveal';
-    render();
-  }
-}
-
-function resolverCiclo(){
-  const r = state;
-  resolveActions(r, window._lastActions.troia, window._lastActions.gregos);
-  if(checkCollapse(r)){
-    r.fim = true;
-    screen = 'fim';
-    render();
-    return;
-  }
-  r.cycle += 1;
-  resolveSupply(r);
-  if(checkCollapse(r)){ r.fim = true; screen = 'fim'; render(); return; }
-  goPass('troia', 'siege-pick');
-}
-
-function novoDuelo(){
-  state = {
-    eraStage:'era1', eraRound:1,
-    eraStats:{resistenciaEstrutural:0,estratagemaForteTroia:false,racionamentoAtivo:false,tropasTroia:8,suprimentoTroia:4,bonusAtaqueGregos:0,estratagemaForteGregos:false,tropasGregos:8,suprimentoGregos:4,determinacao:2}
-  };
-  deckUsed.troia = []; deckUsed.gregos = [];
-  startGame();
+async function novoDuelo(){
+  try { await api('restart', { method:'POST', body: session }); refreshState(); }
+  catch(e){ errorMsg = e.message; render(); }
 }
 
 function statsHTML(){
-  const r = state;
+  const s = view.siege;
+  if(!s) return '';
   return `
   <div class="fronts">
-    <div class="front troia ${turn==='troia'&&(screen==='era-pick'||screen==='siege-pick')?'active':''}">
+    <div class="front troia ${view.role==='troia' && view.phase==='siege-pick' && !view.picked ? 'active':''}">
       <h3>🏛️ Troia</h3>
       <div class="stat-row">
-        <div class="stat-label"><span>Tropas</span><span>${r.tropasTroia}/${r.tropasTroiaMax||'-'}</span></div>
-        <div class="bar-track"><div class="bar-fill troia" style="width:${r.tropasTroiaMax? r.tropasTroia/r.tropasTroiaMax*100:0}%"></div></div>
+        <div class="stat-label"><span>Tropas</span><span>${s.tropasTroia}/${s.tropasTroiaMax||'-'}</span></div>
+        <div class="bar-track"><div class="bar-fill troia" style="width:${s.tropasTroiaMax? s.tropasTroia/s.tropasTroiaMax*100:0}%"></div></div>
       </div>
       <div class="small-stats">
-        <span><b>🍎 Suprimento</b>${r.suprimentoTroia}</span>
-        <span><b>🏰 Resistência</b>${r.resistenciaEstrutural||0}</span>
+        <span><b>🍎 Suprimento</b>${s.suprimentoTroia}</span>
+        <span><b>🏰 Resistência</b>${s.resistenciaEstrutural||0}</span>
       </div>
     </div>
     <div class="divider"></div>
-    <div class="front gregos ${turn==='gregos'&&(screen==='era-pick'||screen==='siege-pick')?'active':''}">
+    <div class="front gregos ${view.role==='gregos' && view.phase==='siege-pick' && !view.picked ? 'active':''}">
       <h3>⛺ Gregos</h3>
       <div class="stat-row">
-        <div class="stat-label"><span>Determinação</span><span>${r.determinacao}/${r.determinacaoMax||16}</span></div>
-        <div class="bar-track"><div class="bar-fill gregos" style="width:${r.determinacaoMax? r.determinacao/r.determinacaoMax*100:0}%"></div></div>
+        <div class="stat-label"><span>Determinação</span><span>${s.determinacao}/${s.determinacaoMax||16}</span></div>
+        <div class="bar-track"><div class="bar-fill gregos" style="width:${s.determinacaoMax? s.determinacao/s.determinacaoMax*100:0}%"></div></div>
       </div>
       <div class="small-stats">
-        <span><b>⚔️ Tropas</b>${r.tropasGregos}</span>
-        <span><b>🍎 Suprimento</b>${r.suprimentoGregos}</span>
-        <span><b>🔥 Ataque</b>+${r.bonusAtaqueGregos}</span>
+        <span><b>⚔️ Tropas</b>${s.tropasGregos}</span>
+        <span><b>🍎 Suprimento</b>${s.suprimentoGregos}</span>
+        <span><b>🔥 Ataque</b>+${s.bonusAtaqueGregos}</span>
       </div>
     </div>
   </div>`;
 }
 
 function chronicleHTML(){
-  if(!state.log || state.log.length===0) return '';
-  return `<div class="chronicle-box">${state.log.map(e=>`<div class="entry">${e.html}</div>`).join('')}</div>`;
+  const s = view.siege;
+  if(!s || !s.log || s.log.length===0) return '';
+  return `<div class="chronicle-box">${s.log.map(e=>`<div class="entry">${e.html}</div>`).join('')}</div>`;
+}
+
+function errorHTML(){
+  return errorMsg ? `<div class="error-banner">${errorMsg}</div>` : '';
 }
 
 function render(){
   const app = document.getElementById('app');
 
-  if(screen === 'intro'){
+  if(localScreen === 'intro'){
     app.innerHTML = `
+      ${errorHTML()}
       <div class="setup">
-        <p>Vocês dois vão revezar este mesmo aparelho. A cada escolha, o app vai pedir pra passar
-        o celular pra outra pessoa antes de mostrar as opções — assim ninguém vê a jogada do
-        adversário antes da hora.</p>
-        <button class="advance wide" style="max-width:280px;margin:0 auto;" onclick="startGame()">Começar duelo</button>
+        <p>Cada jogador entra pelo próprio celular ou computador — não precisa mais revezar o mesmo aparelho.
+        Um dos lados cria a sala e manda o código pro outro entrar.</p>
+        <button class="advance wide" style="max-width:280px;margin:0 auto;" onclick="window._go('create')">Criar sala</button>
+        <div class="divider-or">ou</div>
+        <button class="wide" style="max-width:280px;margin:0 auto;" onclick="window._go('join')">Entrar com um código</button>
       </div>`;
     return;
   }
 
-  if(screen === 'pass'){
-    const nome = turn==='troia' ? 'quem vai jogar de Troia' : 'quem vai jogar dos Gregos';
+  if(localScreen === 'create'){
     app.innerHTML = `
+      ${errorHTML()}
+      <div class="setup">
+        <p>Você vai jogar como <b>Troia</b>. Clique abaixo pra gerar o código da sala e compartilhar com quem vai jogar dos Gregos.</p>
+        <button class="advance wide" style="max-width:280px;margin:0 auto;" onclick="criarSala()">Gerar código da sala</button>
+        <p class="share-hint"><a href="#" onclick="window._go('intro');return false;" style="color:var(--muted);">voltar</a></p>
+      </div>`;
+    return;
+  }
+
+  if(localScreen === 'join'){
+    app.innerHTML = `
+      ${errorHTML()}
+      <div class="setup">
+        <p>Você vai jogar como os <b>Gregos</b>. Digite o código de 5 letras que o outro jogador te passou.</p>
+        <input class="code-input" id="join-code" maxlength="5" placeholder="XXXXX" autofocus>
+        <div style="margin-top:16px;">
+          <button class="advance" onclick="window._joinFromInput()">Entrar na sala</button>
+        </div>
+        <p class="share-hint"><a href="#" onclick="window._go('intro');return false;" style="color:var(--muted);">voltar</a></p>
+      </div>`;
+    return;
+  }
+
+  if(localScreen === 'game'){
+    if(!view){
+      app.innerHTML = `${errorHTML()}<div class="setup"><p>Carregando sala...</p></div>`;
+      return;
+    }
+    renderGame(app);
+    return;
+  }
+}
+
+function renderGame(app){
+  const v = view;
+
+  if(v.phase === 'lobby'){
+    app.innerHTML = `
+      ${errorHTML()}
       <div class="pass-screen">
-        <div class="pass-icon">${turn==='troia'?'🏛️':'⛺'}</div>
-        <h2>Passe o celular</h2>
-        <p>Entregue o aparelho para ${nome}.</p>
-        <button class="advance" onclick="afterPass()">Estou com o celular</button>
+        <div class="pass-icon">${v.role==='troia'?'🏛️':'⛺'}</div>
+        <h2>Sala ${v.code}</h2>
+        <div class="role-pill ${v.role}">Você é ${v.role==='troia'?'Troia':'os Gregos'}</div>
+        ${v.roomFull
+          ? `<p>Os dois lados estão prontos.</p><button class="advance" onclick="iniciarDuelo()">Começar duelo</button>`
+          : `<div class="room-code">${v.code}</div><p>Compartilhe esse código com o outro jogador. Aguardando ele entrar...</p>`}
+        <p class="share-hint"><a href="#" onclick="sairSala();return false;" style="color:var(--muted);">sair da sala</a></p>
       </div>`;
     return;
   }
 
-  if(screen === 'era-pick'){
-    const handClass = hand.length===2 ? 'hand two' : 'hand';
+  if(v.phase === 'era-pick'){
+    if(v.picked){
+      app.innerHTML = `
+        ${errorHTML()}
+        <span class="role-pill ${v.role}">Você é ${v.role==='troia'?'Troia':'os Gregos'}</span>
+        <div class="era-banner">
+          <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
+          <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
+        </div>
+        <div class="pass-screen" style="padding:30px 20px;">
+          <p>Carta escolhida. Aguardando o adversário decidir a dele...</p>
+        </div>`;
+      return;
+    }
+    const handClass = v.myHand.length===2 ? 'hand two' : 'hand';
     app.innerHTML = `
-      <span class="role-pill ${turn}">Vez de ${turn==='troia'?'Troia':'os Gregos'}</span>
+      ${errorHTML()}
+      <span class="role-pill ${v.role}">Você é ${v.role==='troia'?'Troia':'os Gregos'}</span>
       <div class="era-banner">
-        <div class="tag">Rodada ${state.eraRound} de ${ERA_ROUNDS[state.eraStage]}</div>
-        <div class="title">${state.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
+        <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
+        <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
       </div>
       <div class="actions">
         <div class="action-prompt">Escolha uma carta desta rodada:</div>
         <div class="${handClass}">
-          ${hand.map((c,i)=>`
-            <div class="card" onclick="pickEraCard(${i})">
+          ${v.myHand.map((c,i)=>`
+            <div class="card" onclick="escolherCartaEra(${i})">
               <div class="kind">${KIND_ICON[c.kind]||''} ${c.kind}</div>
               <div class="name">${c.name}</div>
               <div class="effect">${c.effect}</div>
@@ -484,42 +372,56 @@ function render(){
     return;
   }
 
-  if(screen === 'era-reveal'){
-    const rv = window._lastEraReveal;
+  if(v.phase === 'era-reveal'){
+    const rv = v.reveal;
     app.innerHTML = `
+      ${errorHTML()}
       <div class="era-banner">
-        <div class="tag">Rodada ${state.eraRound} de ${ERA_ROUNDS[state.eraStage]}</div>
-        <div class="title">${state.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
+        <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
+        <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
       </div>
       <div class="reveal-box">
         <div class="reveal-item troia"><div class="who">Troia</div><div class="act-name">${rv.troia.name}</div></div>
         <div class="reveal-item gregos"><div class="who">Gregos</div><div class="act-name">${rv.gregos.name}</div></div>
       </div>
-      <div style="text-align:center;"><button class="advance" onclick="advanceEraRound()">Continuar</button></div>
+      <div style="text-align:center;"><button class="advance" onclick="continuarEra()">Continuar</button></div>
     `;
     return;
   }
 
-  if(screen === 'siege-pick'){
-    const actions = turn==='troia' ? TROIA_ACTIONS : GREGOS_ACTIONS;
+  if(v.phase === 'siege-pick'){
+    if(v.picked){
+      app.innerHTML = `
+        ${errorHTML()}
+        <div class="cycle-header"><div class="label">Cerco — ciclo ${v.siege.cycle}</div><div class="phase">Fase de planejamento</div></div>
+        ${statsHTML()}
+        ${chronicleHTML()}
+        <div class="pass-screen" style="padding:20px;">
+          <p>Ação escolhida. Aguardando o adversário...</p>
+        </div>`;
+      return;
+    }
+    const actions = v.actions;
     app.innerHTML = `
-      <span class="role-pill ${turn}">Vez de ${turn==='troia'?'Troia':'os Gregos'}</span>
-      <div class="cycle-header"><div class="label">Cerco — ciclo ${state.cycle}</div><div class="phase">Fase de planejamento</div></div>
+      ${errorHTML()}
+      <span class="role-pill ${v.role}">Você é ${v.role==='troia'?'Troia':'os Gregos'}</span>
+      <div class="cycle-header"><div class="label">Cerco — ciclo ${v.siege.cycle}</div><div class="phase">Fase de planejamento</div></div>
       ${statsHTML()}
       ${chronicleHTML()}
       <div class="actions">
         <div class="action-prompt">Escolha sua ação deste ciclo:</div>
         <div class="action-grid ${actions.length===3?'three':''}">
-          ${actions.map(a=>`<button class="act" onclick="pickAction('${a}')">${ACTION_LABEL[a]}</button>`).join('')}
+          ${actions.map(a=>`<button class="act" onclick="escolherAcao('${a}')">${ACTION_LABEL[a]}</button>`).join('')}
         </div>
       </div>`;
     return;
   }
 
-  if(screen === 'siege-reveal'){
-    const la = window._lastActions;
+  if(v.phase === 'siege-reveal'){
+    const la = v.lastActions;
     app.innerHTML = `
-      <div class="cycle-header"><div class="label">Cerco — ciclo ${state.cycle}</div><div class="phase">Revelação</div></div>
+      ${errorHTML()}
+      <div class="cycle-header"><div class="label">Cerco — ciclo ${v.siege.cycle}</div><div class="phase">Revelação</div></div>
       ${statsHTML()}
       <div class="reveal-box">
         <div class="reveal-item troia"><div class="who">Troia</div><div class="act-name">${ACTION_LABEL[la.troia]}</div></div>
@@ -530,26 +432,44 @@ function render(){
     return;
   }
 
-  if(screen === 'fim'){
-    const venceu = state.gameOver;
+  if(v.phase === 'fim'){
+    const venceu = v.siege.gameOver;
     const textos = {
       tropas: venceu==='troia' ? 'O exército grego se dissolveu por completo — sem homens, o cerco não pode continuar.' : 'A guarnição de Troia foi reduzida a nada — a cidade não tem mais quem a defenda.',
       moral: 'Sem vitórias suficientes para justificar mais um ano longe de casa, o acampamento grego se desfaz.'
     };
     app.innerHTML = `
-      <div class="cycle-header"><div class="label">Ciclo ${state.cycle} — fim do cerco</div></div>
+      ${errorHTML()}
+      <div class="cycle-header"><div class="label">Ciclo ${v.siege.cycle} — fim do cerco</div></div>
       ${statsHTML()}
       ${chronicleHTML()}
       <div class="endgame">
         <h2>${venceu==='troia' ? 'Troia resiste' : 'O cerco vence'}</h2>
-        <p>${textos[state.reason]||''}</p>
+        <p>${textos[v.siege.reason]||''}</p>
         <button class="restart" onclick="novoDuelo()">Novo duelo</button>
       </div>`;
     return;
   }
 }
 
-render();
+window._go = function(screen){ errorMsg = null; localScreen = screen; render(); };
+window._joinFromInput = function(){
+  const input = document.getElementById('join-code');
+  const code = (input.value || '').trim();
+  if(!code){ errorMsg = 'Digite o código da sala.'; render(); return; }
+  entrarSala(code);
+};
+
+(function init(){
+  const saved = loadSession();
+  if(saved){
+    session = saved;
+    localScreen = 'game';
+    startPolling();
+  } else {
+    render();
+  }
+})();
 </script>
 </body>
 </html>

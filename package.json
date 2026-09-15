@@ -1,0 +1,9 @@
+{
+  "name": "ilia-troy",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Guerra de Troia — duelo online (Netlify Functions + Blobs)",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

@@ -1,4 +1,4 @@
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectLambda } = require('@netlify/blobs');
 const logic = require('./game-logic');
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -77,6 +77,7 @@ exports.handler = async (event) => {
   const action = params.action;
 
   try {
+    connectLambda(event);
     const store = getStore('guerra-de-troia-rooms');
     if(event.httpMethod === 'POST' && action === 'create'){
       let code;

@@ -37,6 +37,17 @@ function sanitize(room, role){
     eraRound: room.eraRound,
     eraRoundsTotal: logic.ERA_ROUNDS[room.eraStage]
   };
+  if(room.phase === 'era-pick' || room.phase === 'era-reveal'){
+    const s = room.eraStats;
+    out.resources = {
+      resistenciaEstrutural: s.resistenciaEstrutural,
+      tropasTroia: s.tropasTroia,
+      suprimentoTroia: s.suprimentoTroia,
+      bonusAtaqueGregos: s.bonusAtaqueGregos,
+      tropasGregos: s.tropasGregos,
+      suprimentoGregos: s.suprimentoGregos
+    };
+  }
   if(room.phase === 'era-pick'){
     out.picked = !!room.eraPicks[role];
     out.opponentPicked = !!room.eraPicks[opponent];
@@ -56,7 +67,8 @@ function sanitize(room, role){
       bonusAtaqueGregos: s.bonusAtaqueGregos,
       determinacao: s.determinacao, determinacaoMax: s.determinacaoMax,
       cycle: s.cycle,
-      log: s.log,
+      cycleLogs: s.cycleLogs,
+      lastLocation: s.lastLocation,
       gameOver: s.gameOver,
       reason: s.reason
     };
@@ -68,6 +80,7 @@ function sanitize(room, role){
   }
   if(room.phase === 'siege-reveal'){
     out.lastActions = room.lastActions;
+    out.location = logic.determineLocation(room.lastActions.troia, room.lastActions.gregos);
   }
   return out;
 }

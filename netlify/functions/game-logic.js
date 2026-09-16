@@ -40,6 +40,14 @@ const ERA_ROUNDS = {era1:5, era2:3};
 const TROIA_ACTIONS = ['atacar','reforcar','estratagema'];
 const GREGOS_ACTIONS = ['atacar','reforcar','buscar','estratagema'];
 const ACTION_LABEL = {atacar:'Atacar', reforcar:'Reforçar', buscar:'Buscar recursos', estratagema:'Estratagema'};
+const LOCATION_LABEL = {muralhas:'Muralhas de Troia', planicie:'Planície', acampamento:'Acampamento Grego'};
+
+function determineLocation(troiaAct, gregosAct){
+  if(troiaAct==='atacar' && gregosAct==='atacar') return 'planicie';
+  if(gregosAct==='atacar') return 'muralhas';
+  if(troiaAct==='atacar') return 'acampamento';
+  return null;
+}
 
 function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function dmgTroops(){ return 2+Math.floor(Math.random()*2); }
@@ -99,23 +107,21 @@ function pickEraCard(room, side, index){
   const card = hand[index];
   if(!card) return;
   room.deckUsed[side].push(card.name);
-  room.eraPicks[side] = card;
+  const def = findCardDef(side, room.eraStage, card.name);
+  def.apply(room.eraStats);
+  room.eraPicks[side] = {kind:def.kind, name:def.name, effect:def.effect};
   if(room.eraPicks.troia && room.eraPicks.gregos){
-    const era = room.eraStage;
-    const tDef = findCardDef('troia', era, room.eraPicks.troia.name);
-    const gDef = findCardDef('gregos', era, room.eraPicks.gregos.name);
-    tDef.apply(room.eraStats);
-    gDef.apply(room.eraStats);
-    room.lastEraReveal = {
-      troia: {kind:tDef.kind, name:tDef.name, effect:tDef.effect},
-      gregos: {kind:gDef.kind, name:gDef.name, effect:gDef.effect}
-    };
+    room.lastEraReveal = { troia: room.eraPicks.troia, gregos: room.eraPicks.gregos };
     room.hands = { troia:[], gregos:[] };
     room.phase = 'era-reveal';
   }
 }
 
-function addLog(siege, html){ siege.log.unshift({html}); if(siege.log.length>30) siege.log.pop(); }
+function addLog(siege, html){
+  const c = siege.cycle;
+  if(!siege.cycleLogs[c]) siege.cycleLogs[c] = [];
+  siege.cycleLogs[c].push({html});
+}
 
 function resolveSupply(siege){
   let consumoT = Math.ceil(siege.tropasTroia/3);
@@ -163,7 +169,8 @@ function initSiege(room){
     determinacaoMax: 16,
     ociosidadeGregos: 0,
     cycle: 1,
-    log: [],
+    cycleLogs: {},
+    lastLocation: null,
     gameOver: null,
     reason: null
   };
@@ -193,23 +200,44 @@ function affordReforcar(siege, side){
   return false;
 }
 
+function assaultCamp(siege, ratio, bonusDano){
+  bonusDano = bonusDano || 0;
+  if(ratio >= 1.5){
+    const dano = dmgTroops()+2+bonusDano;
+    siege.tropasGregos = Math.max(0, siege.tropasGregos-dano);
+    return `Com ampla superioridade numérica, Troia arrasa o acampamento grego — ${dano} baixa(s) grega(s).`;
+  }
+  if(ratio >= 0.8){
+    const dano = Math.max(0, dmgTroops()+bonusDano);
+    siege.tropasGregos = Math.max(0, siege.tropasGregos-dano);
+    return `Troia ataca o acampamento grego em um confronto parelho — ${dano} baixa(s) grega(s).`;
+  }
+  const contraDano = dmgTroops();
+  siege.tropasTroia = Math.max(0, siege.tropasTroia-contraDano);
+  siege.determinacao = clamp(siege.determinacao-1,0,siege.determinacaoMax);
+  return `Em menor número mesmo atacando, Troia é repelida do acampamento grego — ${contraDano} baixa(s) troiana(s).`;
+}
+
 function resolveActionsLogic(siege, troiaAct, gregosAct){
   const troiaReforcou = troiaAct==='reforcar' && affordReforcar(siege,'troia');
   const gregosReforcou = gregosAct==='reforcar' && affordReforcar(siege,'gregos');
   if(troiaAct==='reforcar' && !troiaReforcou) addLog(siege, `<span class="tag troia">Troia</span> tenta reforçar, mas não há suprimento — a fortificação não melhora este ciclo.`);
   if(gregosAct==='reforcar' && !gregosReforcou) addLog(siege, `<span class="tag gregos">Gregos</span> tentam consolidar posição, mas faltam recursos.`);
 
-  if(gregosAct==='atacar'){
+  const location = determineLocation(troiaAct, gregosAct);
+  siege.lastLocation = location;
+
+  if(location === 'muralhas'){
     const tempBonus = troiaReforcou ? 1 : 0;
     if(troiaAct==='estratagema'){
       const anulado = siege.estratagemaForteTroia ? Math.random()<0.75 : Math.random()<0.5;
       if(anulado){
         siege.determinacao = clamp(siege.determinacao-1,0,siege.determinacaoMax);
-        addLog(siege, `Espiões troianos previram o ataque grego — o assalto se dissolve, e o fracasso abala a moral do acampamento.`);
+        addLog(siege, `Espiões troianos previram o ataque grego às muralhas — o assalto se dissolve, e o fracasso abala a moral do acampamento.`);
       } else {
         const lt = dmgTroops();
         siege.tropasTroia = Math.max(0, siege.tropasTroia-lt);
-        addLog(siege, `A previsão falha — o ataque grego ainda causa ${lt} baixa(s) troiana(s).`);
+        addLog(siege, `A previsão falha — o ataque grego às muralhas ainda causa ${lt} baixa(s) troiana(s).`);
       }
     } else {
       const mult = 1 + (siege.resistenciaEstrutural + tempBonus)*0.2;
@@ -224,7 +252,7 @@ function resolveActionsLogic(siege, troiaAct, gregosAct){
       } else if(ratio>=0.8){
         const dano = Math.max(1, Math.floor((dmgTroops()+siege.bonusAtaqueGregos)/2));
         siege.tropasTroia = Math.max(0, siege.tropasTroia-dano);
-        addLog(siege, `Um assalto equilibrado contra as defesas troianas — ${dano} baixa(s), mas a estrutura resiste.`);
+        addLog(siege, `Um assalto equilibrado contra as muralhas troianas — ${dano} baixa(s), mas a estrutura resiste.`);
       } else {
         const contraDano = dmgTroops()+tempBonus;
         siege.tropasGregos = Math.max(0, siege.tropasGregos-contraDano);
@@ -232,33 +260,35 @@ function resolveActionsLogic(siege, troiaAct, gregosAct){
         addLog(siege, `"Um homem na muralha vale por dez" — o ataque grego é repelido com ${contraDano} baixa(s) e um golpe na moral.`);
       }
     }
-  }
-
-  if(troiaAct==='atacar'){
-    let dano = dmgTroops(); let saque=0;
-    if(gregosReforcou){
-      dano = Math.max(1, dano-1);
-      addLog(siege, `Troia avança contra o acampamento reforçado — ${dano} baixa(s) grega(s).`);
-    } else if(gregosAct==='buscar'){
-      dano += 2;
-      saque = Math.floor(siege.suprimentoGregos/3);
-      siege.suprimentoGregos -= saque; siege.suprimentoTroia += saque;
-      siege.determinacao = clamp(siege.determinacao-1,0,siege.determinacaoMax);
-      addLog(siege, `Com metade do exército grego fora buscando recursos, Troia ataca o acampamento exposto — ${dano} baixa(s) e saque de ${saque} suprimento(s).`);
-    } else if(gregosAct==='estratagema'){
+  } else if(location === 'planicie'){
+    const danoTroia = dmgTroops()+siege.bonusAtaqueGregos+1;
+    const danoGregos = Math.max(1, dmgTroops()-1);
+    siege.tropasTroia = Math.max(0, siege.tropasTroia-danoTroia);
+    siege.tropasGregos = Math.max(0, siege.tropasGregos-danoGregos);
+    if(danoTroia > danoGregos) siege.determinacao = clamp(siege.determinacao+1,0,siege.determinacaoMax);
+    else if(danoGregos > danoTroia) siege.determinacao = clamp(siege.determinacao-1,0,siege.determinacaoMax);
+    addLog(siege, `Na planície diante da cidade, os exércitos se enfrentam a céu aberto — a força bruta grega custa ${danoTroia} baixa(s) troiana(s), enquanto Troia resiste e inflige ${danoGregos} baixa(s) grega(s).`);
+  } else if(location === 'acampamento'){
+    const ratio = siege.tropasGregos>0 ? siege.tropasTroia/siege.tropasGregos : 99;
+    if(gregosAct==='estratagema'){
       const anulado = siege.estratagemaForteGregos ? Math.random()<0.75 : Math.random()<0.5;
       if(anulado){
-        dano=0;
         siege.determinacao = clamp(siege.determinacao+1,0,siege.determinacaoMax);
-        addLog(siege, `Odisseu antecipa a manobra troiana — a investida se perde, e a confiança do acampamento cresce.`);
-      } else { addLog(siege, `A antecipação grega falha — o ataque troiano causa ${dano} baixa(s).`); }
-    } else if(gregosAct==='atacar'){
-      addLog(siege, `Enquanto os gregos avançam, uma investida troiana atinge suas linhas por trás — ${dano} baixa(s) grega(s) adicionais.`);
+        addLog(siege, `Odisseu antecipa a manobra troiana — a investida ao acampamento se perde, e a confiança do acampamento cresce.`);
+      } else {
+        addLog(siege, `A antecipação grega falha. ${assaultCamp(siege, ratio, 0)}`);
+      }
+    } else if(gregosAct==='buscar'){
+      const saque = Math.floor(siege.suprimentoGregos/3);
+      siege.suprimentoGregos -= saque; siege.suprimentoTroia += saque;
+      siege.determinacao = clamp(siege.determinacao-1,0,siege.determinacaoMax);
+      addLog(siege, `Com metade do exército grego fora buscando recursos, Troia ataca o acampamento exposto (saque de ${saque} suprimento). ${assaultCamp(siege, ratio, 2)}`);
+    } else if(gregosReforcou){
+      addLog(siege, `O acampamento reforçado resiste melhor do que o esperado. ${assaultCamp(siege, ratio-0.3, 0)}`);
+    } else {
+      addLog(siege, assaultCamp(siege, ratio, 0));
     }
-    if(dano>0) siege.tropasGregos = Math.max(0, siege.tropasGregos-dano);
-  }
-
-  if(troiaAct!=='atacar' && gregosAct!=='atacar'){
+  } else {
     if(troiaAct==='reforcar' && gregosAct==='reforcar'){
       addLog(siege, `Ciclo sem confronto direto — os dois lados recuperam o fôlego.`);
     } else if(gregosAct==='buscar'){
@@ -330,6 +360,7 @@ function restart(room){
 }
 
 module.exports = {
-  ERA_ROUNDS, TROIA_ACTIONS, GREGOS_ACTIONS, ACTION_LABEL,
-  createRoom, startGame, pickEraCard, advanceEraRound, pickAction, resolveCycle, restart
+  ERA_ROUNDS, TROIA_ACTIONS, GREGOS_ACTIONS, ACTION_LABEL, LOCATION_LABEL,
+  createRoom, startGame, pickEraCard, advanceEraRound, pickAction, resolveCycle, restart,
+  determineLocation
 };

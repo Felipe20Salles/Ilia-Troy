@@ -95,6 +95,20 @@
   .error-banner{background:var(--error);color:#fff;padding:10px 14px;border-radius:3px;font-size:13px;margin-bottom:16px;text-align:center;}
   .share-hint{font-size:13px;color:var(--muted);margin-top:8px;}
   .divider-or{color:var(--muted);font-size:12px;margin:18px 0;text-align:center;}
+  .battle-map{margin-bottom:18px;}
+  .battle-map-title{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:0.4px;}
+  .battle-map-row{display:flex;align-items:center;justify-content:center;gap:4px;}
+  .battle-node{flex:1;max-width:150px;text-align:center;padding:10px 6px;border-radius:3px;background:var(--panel);border:1px solid var(--gold-dim);opacity:0.55;transition:opacity .2s ease, border-color .2s ease;}
+  .battle-node.active{opacity:1;border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
+  .battle-node-icon{font-size:22px;margin-bottom:4px;}
+  .battle-node-label{font-size:10px;color:var(--cream);line-height:1.3;}
+  .battle-node-arrow{color:var(--muted);font-size:12px;}
+  .battle-map-hint{text-align:center;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .chronicle-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px;}
+  .chron-btn{background:none;border:1px solid var(--gold-dim);color:var(--ink);border-radius:3px;width:28px;height:28px;cursor:pointer;font-size:14px;line-height:1;padding:0;}
+  .chron-btn:disabled{opacity:0.3;cursor:default;}
+  .chron-cycle{font-size:12px;font-weight:600;letter-spacing:0.3px;}
+  .resources-title{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;}
 </style>
 </head>
 <body>
@@ -109,12 +123,16 @@ const KIND_ICON = {
   'Equipamento':'🔥','Armadilha':'🕳️','Favor divino':'✨','Ritual':'🌊','Estratégia':'🧭'
 };
 const ACTION_LABEL = {atacar:'Atacar', reforcar:'Reforçar', buscar:'Buscar recursos', estratagema:'Estratagema'};
+const LOCATION_LABEL = {muralhas:'Muralhas de Troia', planicie:'Planície', acampamento:'Acampamento Grego'};
+const LOCATION_ICON = {muralhas:'🏛️', planicie:'🌾', acampamento:'🏕️'};
+const LOCATION_ORDER = ['acampamento','planicie','muralhas'];
 
 let session = null; // {code, role, token}
 let view = null;
 let localScreen = 'intro'; // intro | create | join | game
 let errorMsg = null;
 let pollTimer = null;
+let logViewCycle = null;
 
 function loadSession(){
   try {
@@ -154,6 +172,7 @@ async function refreshState(){
     const data = await api('state', { params:{ code:session.code, role:session.role, token:session.token } });
     view = data;
     errorMsg = null;
+    if(!['siege-pick','siege-reveal','fim'].includes(view.phase)) logViewCycle = null;
     render();
   } catch(e){
     errorMsg = e.message;
@@ -257,11 +276,77 @@ function statsHTML(){
   </div>`;
 }
 
+function eraResourcesHTML(){
+  const r = view.resources;
+  if(!r) return '';
+  return `
+  <div class="resources-title">Recursos atuais</div>
+  <div class="fronts">
+    <div class="front troia">
+      <h3>🏛️ Troia</h3>
+      <div class="small-stats">
+        <span><b>🏰 Resistência</b>${r.resistenciaEstrutural}</span>
+        <span><b>⚔️ Tropas</b>${r.tropasTroia}</span>
+        <span><b>🍎 Suprimento</b>${r.suprimentoTroia}</span>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="front gregos">
+      <h3>⛺ Gregos</h3>
+      <div class="small-stats">
+        <span><b>⚔️ Tropas</b>${r.tropasGregos}</span>
+        <span><b>🍎 Suprimento</b>${r.suprimentoGregos}</span>
+        <span><b>🔥 Ataque</b>+${r.bonusAtaqueGregos}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function battleMapHTML(active, title){
+  return `
+  <div class="battle-map">
+    ${title ? `<div class="battle-map-title">${title}</div>` : ''}
+    <div class="battle-map-row">
+      ${LOCATION_ORDER.map(loc => `
+        <div class="battle-node ${active===loc?'active':''}">
+          <div class="battle-node-icon">${LOCATION_ICON[loc]}</div>
+          <div class="battle-node-label">${LOCATION_LABEL[loc]}</div>
+        </div>`).join('<div class="battle-node-arrow">—</div>')}
+    </div>
+  </div>`;
+}
+
+function currentLogCycle(){
+  const max = view.siege.cycle;
+  if(logViewCycle === null || logViewCycle > max) return max;
+  if(logViewCycle < 1) return 1;
+  return logViewCycle;
+}
+
 function chronicleHTML(){
   const s = view.siege;
-  if(!s || !s.log || s.log.length===0) return '';
-  return `<div class="chronicle-box">${s.log.map(e=>`<div class="entry">${e.html}</div>`).join('')}</div>`;
+  if(!s || !s.cycleLogs) return '';
+  const cyc = currentLogCycle();
+  const entries = (s.cycleLogs[cyc] || []).slice().reverse();
+  const canPrev = cyc > 1;
+  const canNext = cyc < s.cycle;
+  return `
+  <div class="chronicle-box">
+    <div class="chronicle-nav">
+      <button class="chron-btn" onclick="navLog(-1)" ${canPrev?'':'disabled'}>‹</button>
+      <span class="chron-cycle">Ciclo ${cyc}</span>
+      <button class="chron-btn" onclick="navLog(1)" ${canNext?'':'disabled'}>›</button>
+    </div>
+    ${entries.length ? entries.map(e=>`<div class="entry">${e.html}</div>`).join('') : '<div class="entry" style="opacity:.6">Nenhum evento registrado.</div>'}
+  </div>`;
 }
+
+window.navLog = function(delta){
+  const max = view.siege.cycle;
+  const cur = currentLogCycle();
+  logViewCycle = Math.max(1, Math.min(max, cur+delta));
+  render();
+};
 
 function errorHTML(){
   return errorMsg ? `<div class="error-banner">${errorMsg}</div>` : '';
@@ -345,6 +430,7 @@ function renderGame(app){
           <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
           <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
         </div>
+        ${eraResourcesHTML()}
         <div class="pass-screen" style="padding:30px 20px;">
           <p>Carta escolhida. Aguardando o adversário decidir a dele...</p>
         </div>`;
@@ -358,6 +444,7 @@ function renderGame(app){
         <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
         <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
       </div>
+      ${eraResourcesHTML()}
       <div class="actions">
         <div class="action-prompt">Escolha uma carta desta rodada:</div>
         <div class="${handClass}">
@@ -384,6 +471,7 @@ function renderGame(app){
         <div class="reveal-item troia"><div class="who">Troia</div><div class="act-name">${rv.troia.name}</div></div>
         <div class="reveal-item gregos"><div class="who">Gregos</div><div class="act-name">${rv.gregos.name}</div></div>
       </div>
+      ${eraResourcesHTML()}
       <div style="text-align:center;"><button class="advance" onclick="continuarEra()">Continuar</button></div>
     `;
     return;
@@ -413,6 +501,11 @@ function renderGame(app){
         <div class="action-grid ${actions.length===3?'three':''}">
           ${actions.map(a=>`<button class="act" onclick="escolherAcao('${a}')">${ACTION_LABEL[a]}</button>`).join('')}
         </div>
+        <div class="battle-map-hint">
+          🏕️ Só Troia ataca → Acampamento Grego (decide o nº de tropas) &nbsp;·&nbsp;
+          🌾 Os dois atacam → Planície (vantagem grega) &nbsp;·&nbsp;
+          🏛️ Só os Gregos atacam → Muralhas de Troia (vantagem troiana)
+        </div>
       </div>`;
     return;
   }
@@ -427,6 +520,9 @@ function renderGame(app){
         <div class="reveal-item troia"><div class="who">Troia</div><div class="act-name">${ACTION_LABEL[la.troia]}</div></div>
         <div class="reveal-item gregos"><div class="who">Gregos</div><div class="act-name">${ACTION_LABEL[la.gregos]}</div></div>
       </div>
+      ${v.location
+        ? battleMapHTML(v.location, 'A batalha ocorre em:')
+        : `<p style="text-align:center;color:var(--muted);font-size:13px;">Nenhum confronto direto ocorre neste ciclo.</p>`}
       <div style="text-align:center;"><button class="advance" onclick="resolverCiclo()">Resolver o ciclo</button></div>
     `;
     return;

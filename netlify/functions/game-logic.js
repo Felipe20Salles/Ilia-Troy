@@ -68,6 +68,10 @@ function createRoom(code){
   };
 }
 
+function findCardDef(side, era, name){
+  return DECKS[side][era].find(c => c.name === name);
+}
+
 function drawHand(room, side){
   const era = room.eraStage;
   const size = era==='era1' ? 3 : 2;
@@ -97,12 +101,14 @@ function pickEraCard(room, side, index){
   room.deckUsed[side].push(card.name);
   room.eraPicks[side] = card;
   if(room.eraPicks.troia && room.eraPicks.gregos){
-    const tCard = room.eraPicks.troia, gCard = room.eraPicks.gregos;
-    tCard.apply(room.eraStats);
-    gCard.apply(room.eraStats);
+    const era = room.eraStage;
+    const tDef = findCardDef('troia', era, room.eraPicks.troia.name);
+    const gDef = findCardDef('gregos', era, room.eraPicks.gregos.name);
+    tDef.apply(room.eraStats);
+    gDef.apply(room.eraStats);
     room.lastEraReveal = {
-      troia: {kind:tCard.kind, name:tCard.name, effect:tCard.effect},
-      gregos: {kind:gCard.kind, name:gCard.name, effect:gCard.effect}
+      troia: {kind:tDef.kind, name:tDef.name, effect:tDef.effect},
+      gregos: {kind:gDef.kind, name:gDef.name, effect:gDef.effect}
     };
     room.hands = { troia:[], gregos:[] };
     room.phase = 'era-reveal';

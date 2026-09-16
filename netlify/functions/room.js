@@ -73,11 +73,11 @@ function sanitize(room, role){
 }
 
 exports.handler = async (event) => {
-  const store = getStore('guerra-de-troia-rooms');
   const params = event.queryStringParameters || {};
   const action = params.action;
 
   try {
+    const store = getStore('guerra-de-troia-rooms');
     if(event.httpMethod === 'POST' && action === 'create'){
       let code;
       for(let tries=0; tries<10; tries++){

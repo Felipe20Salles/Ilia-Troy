@@ -67,8 +67,8 @@ function sanitize(room, role){
       bonusAtaqueGregos: s.bonusAtaqueGregos,
       determinacao: s.determinacao, determinacaoMax: s.determinacaoMax,
       cycle: s.cycle,
-      cycleLogs: s.cycleLogs,
-      lastLocation: s.lastLocation,
+      cycleLogs: s.cycleLogs || {},
+      lastLocation: s.lastLocation || null,
       gameOver: s.gameOver,
       reason: s.reason
     };

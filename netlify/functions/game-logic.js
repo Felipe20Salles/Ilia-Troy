@@ -118,6 +118,7 @@ function pickEraCard(room, side, index){
 }
 
 function addLog(siege, html){
+  if(!siege.cycleLogs) siege.cycleLogs = {};
   const c = siege.cycle;
   if(!siege.cycleLogs[c]) siege.cycleLogs[c] = [];
   siege.cycleLogs[c].push({html});

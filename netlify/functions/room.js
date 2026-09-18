@@ -140,7 +140,7 @@ exports.handler = async (event) => {
 
   try {
     connectLambda(event);
-    const store = getStore('guerra-de-troia-rooms');
+    const store = getStore({name:'guerra-de-troia-rooms', consistency:'strong'});
     if(event.httpMethod === 'POST' && action === 'create'){
       let code;
       for(let tries=0; tries<10; tries++){

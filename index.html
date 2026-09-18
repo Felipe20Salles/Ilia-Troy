@@ -95,6 +95,23 @@
   .error-banner{background:var(--error);color:#fff;padding:10px 14px;border-radius:3px;font-size:13px;margin-bottom:16px;text-align:center;}
   .share-hint{font-size:13px;color:var(--muted);margin-top:8px;}
   .divider-or{color:var(--muted);font-size:12px;margin:18px 0;text-align:center;}
+  .quick-manual{margin:24px auto 0;max-width:640px;text-align:left;border:1px solid var(--gold-dim);border-radius:4px;background:rgba(29,34,36,.72);overflow:hidden;}
+  .quick-manual summary{list-style:none;cursor:pointer;padding:13px 16px;color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;}
+  .quick-manual summary::-webkit-details-marker{display:none;}
+  .quick-manual summary:after{content:'+';float:right;font-family:'IBM Plex Sans',sans-serif;color:var(--muted);}
+  .quick-manual[open] summary:after{content:'−';}
+  .manual-body{border-top:1px solid var(--gold-dim);padding:14px 16px 16px;color:var(--cream);}
+  .manual-body h3{font-size:17px;margin:14px 0 6px;color:var(--gold);}
+  .manual-body h3:first-child{margin-top:0;}
+  .manual-body p{margin:0 0 8px;max-width:none;color:var(--muted);line-height:1.55;}
+  .manual-list{margin:0;padding-left:18px;color:var(--muted);font-size:14px;line-height:1.55;}
+  .manual-list li{margin-bottom:6px;}
+  .manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0;}
+  .manual-side{border-left:3px solid var(--gold-dim);padding:8px 10px;background:#171B1D;}
+  .manual-side.troia{border-left-color:var(--troia);}
+  .manual-side.gregos{border-left-color:var(--gregos);}
+  .manual-side b{display:block;margin-bottom:4px;color:var(--cream);}
+  .manual-side span{display:block;color:var(--muted);font-size:13px;line-height:1.45;}
   .battle-map{margin-bottom:18px;}
   .battle-map-title{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:0.4px;}
   .battle-map-row{display:flex;align-items:center;justify-content:center;gap:4px;}
@@ -104,11 +121,34 @@
   .battle-node-label{font-size:10px;color:var(--cream);line-height:1.3;}
   .battle-node-arrow{color:var(--muted);font-size:12px;}
   .battle-map-hint{text-align:center;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .siege-board{margin-bottom:18px;}
+  .defense-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+  .defense-tile{background:var(--panel);border:1px solid var(--gold-dim);border-radius:3px;padding:9px 8px;min-height:76px;}
+  .defense-tile.inactive{opacity:.42;}
+  .defense-tile.broken{border-color:var(--gregos);background:#261D1B;}
+  .defense-name{font-size:12px;color:var(--cream);font-weight:600;margin-bottom:6px;}
+  .pressure-dots{display:flex;gap:4px;min-height:9px;margin-bottom:5px;}
+  .pressure-dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--gold-dim);background:transparent;}
+  .pressure-dot.filled{background:var(--gold);}
+  .defense-note{font-size:10px;color:var(--muted);line-height:1.3;}
   .chronicle-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px;}
   .chron-btn{background:none;border:1px solid var(--gold-dim);color:var(--ink);border-radius:3px;width:28px;height:28px;cursor:pointer;font-size:14px;line-height:1;padding:0;}
   .chron-btn:disabled{opacity:0.3;cursor:default;}
   .chron-cycle{font-size:12px;font-weight:600;letter-spacing:0.3px;}
   .resources-title{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;}
+  .intro-video-overlay{position:fixed;inset:0;z-index:20;background:#070909;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .intro-video-panel{width:min(920px,100%);text-align:center;}
+  .intro-video-panel video{width:100%;max-height:78vh;border:1px solid var(--gold-dim);background:#000;}
+  .intro-video-actions{display:flex;justify-content:center;gap:10px;margin-top:12px;}
+  @media (max-width:640px){
+    body{padding:22px 14px;}
+    .manual-grid,.fronts{grid-template-columns:1fr;}
+    .divider{display:none;}
+    .action-grid,.action-grid.three,.hand,.hand.two{grid-template-columns:1fr;}
+    .battle-map-row{align-items:stretch;}
+    .battle-node-label{font-size:9px;}
+    .defense-row{grid-template-columns:1fr 1fr;}
+  }
 </style>
 </head>
 <body>
@@ -122,10 +162,10 @@ const KIND_ICON = {
   'Construção':'🏛️','Recurso':'🍎','Recrutamento':'⚔️','Sabedoria':'📜',
   'Equipamento':'🔥','Armadilha':'🕳️','Favor divino':'✨','Ritual':'🌊','Estratégia':'🧭'
 };
-const ACTION_LABEL = {atacar:'Atacar', reforcar:'Reforçar', buscar:'Buscar recursos', estratagema:'Estratagema'};
-const LOCATION_LABEL = {muralhas:'Muralhas de Troia', planicie:'Planície', acampamento:'Acampamento Grego'};
-const LOCATION_ICON = {muralhas:'🏛️', planicie:'🌾', acampamento:'🏕️'};
-const LOCATION_ORDER = ['acampamento','planicie','muralhas'];
+const ACTION_LABEL = {avancar:'Avançar', recuar:'Recuar', atacar:'Atacar', reforcar:'Reforçar', buscar:'Buscar recursos', estratagema:'Estratagema'};
+const LOCATION_LABEL = {muralhas:'Muralhas de Troia', planicie:'Planície', acampamento:'Acampamento Grego', portoes:'Portões de Troia'};
+const LOCATION_ICON = {muralhas:'🏛️', planicie:'🌾', acampamento:'🏕️', portoes:'🚪'};
+const LOCATION_ORDER = ['acampamento','planicie','muralhas','portoes'];
 
 let session = null; // {code, role, token}
 let view = null;
@@ -169,9 +209,11 @@ async function api(action, opts){
 async function refreshState(){
   if(!session) return;
   try {
+    const previousPhase = view && view.phase;
     const data = await api('state', { params:{ code:session.code, role:session.role, token:session.token } });
     view = data;
     errorMsg = null;
+    if(previousPhase === 'lobby' && view.phase === 'era-pick') playIntroVideo();
     if(!['siege-pick','siege-reveal','fim'].includes(view.phase)) logViewCycle = null;
     render();
   } catch(e){
@@ -220,7 +262,7 @@ async function sairSala(){
 }
 
 async function iniciarDuelo(){
-  try { await api('start', { method:'POST', body: session }); refreshState(); }
+  try { await api('start', { method:'POST', body: session }); playIntroVideo(); refreshState(); }
   catch(e){ errorMsg = e.message; render(); }
 }
 async function escolherCartaEra(idx){
@@ -240,9 +282,34 @@ async function resolverCiclo(){
   catch(e){ errorMsg = e.message; render(); }
 }
 async function novoDuelo(){
-  try { await api('restart', { method:'POST', body: session }); refreshState(); }
+  try { await api('restart', { method:'POST', body: session }); playIntroVideo(); refreshState(); }
   catch(e){ errorMsg = e.message; render(); }
 }
+
+function playIntroVideo(){
+  const old = document.getElementById('intro-video-overlay');
+  if(old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'intro-video-overlay';
+  overlay.id = 'intro-video-overlay';
+  overlay.innerHTML = `
+    <div class="intro-video-panel">
+      <video src="Midia/Introdução.mp4" autoplay playsinline controls></video>
+      <div class="intro-video-actions">
+        <button class="advance" onclick="window._closeIntroVideo()">Continuar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const video = overlay.querySelector('video');
+  video.addEventListener('ended', ()=>window._closeIntroVideo());
+  const started = video.play();
+  if(started && started.catch) started.catch(()=>{ video.controls = true; });
+}
+
+window._closeIntroVideo = function(){
+  const overlay = document.getElementById('intro-video-overlay');
+  if(overlay) overlay.remove();
+};
 
 function statsHTML(){
   const s = view.siege;
@@ -257,6 +324,8 @@ function statsHTML(){
       </div>
       <div class="small-stats">
         <span><b>🍎 Suprimento</b>${s.suprimentoTroia}</span>
+        <span><b>❄️ Consumo</b>${s.consumoTroia}/ano</span>
+        <span><b>⏳ Estoque</b>${s.anosSuprimentoTroia} ano(s)</span>
         <span><b>🏰 Resistência</b>${s.resistenciaEstrutural||0}</span>
       </div>
     </div>
@@ -270,6 +339,8 @@ function statsHTML(){
       <div class="small-stats">
         <span><b>⚔️ Tropas</b>${s.tropasGregos}</span>
         <span><b>🍎 Suprimento</b>${s.suprimentoGregos}</span>
+        <span><b>❄️ Consumo</b>${s.consumoGregos}/ano</span>
+        <span><b>⏳ Estoque</b>${s.anosSuprimentoGregos} ano(s)</span>
         <span><b>🔥 Ataque</b>+${s.bonusAtaqueGregos}</span>
       </div>
     </div>
@@ -316,6 +387,58 @@ function battleMapHTML(active, title){
   </div>`;
 }
 
+async function criarSolo(role){
+  errorMsg = null;
+  try {
+    const data = await api('create-solo', { method:'POST', body:{ role } });
+    session = { code:data.code, role:data.role, token:data.token };
+    saveSession(session);
+    localScreen = 'game';
+    playIntroVideo();
+    startPolling();
+  } catch(e){ errorMsg = e.message; render(); }
+}
+
+function defenseHTML(){
+  const d = view.siege.defenses;
+  if(!d) return '';
+  const items = [
+    ['fosso','Fosso','2 pressões removem a defesa'],
+    ['torres','Torres','2 pressões neutralizam a vigilância'],
+    ['muralha','Muralha','3 pressões rompem o caminho aos portões'],
+    ['pedras','Pedras','Bônus defensivo; não recebe pressão']
+  ];
+  return `
+    <div class="defense-row">
+      ${items.map(([key,name,note])=>{
+        const def = d[key] || {};
+        const inactive = !def.active;
+        const broken = !!def.broken;
+        const max = def.max || 0;
+        const pressure = def.pressure || 0;
+        const dots = max
+          ? `<div class="pressure-dots">${Array.from({length:max}).map((_,i)=>`<span class="pressure-dot ${i<pressure?'filled':''}"></span>`).join('')}</div>`
+          : '<div class="pressure-dots"></div>';
+        return `
+          <div class="defense-tile ${inactive?'inactive':''} ${broken?'broken':''}">
+            <div class="defense-name">${name}</div>
+            ${dots}
+            <div class="defense-note">${inactive ? 'não construída' : broken ? 'neutralizada' : note}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function siegeBoardHTML(title){
+  const s = view.siege;
+  if(!s) return '';
+  return `
+    <div class="siege-board">
+      ${battleMapHTML(s.greekPosition, title || 'Posição grega')}
+      ${defenseHTML()}
+    </div>`;
+}
+
 function currentLogCycle(){
   const max = view.siege.cycle;
   if(logViewCycle === null || logViewCycle > max) return max;
@@ -334,7 +457,7 @@ function chronicleHTML(){
   <div class="chronicle-box">
     <div class="chronicle-nav">
       <button class="chron-btn" onclick="navLog(-1)" ${canPrev?'':'disabled'}>‹</button>
-      <span class="chron-cycle">Ciclo ${cyc}</span>
+      <span class="chron-cycle">Ano ${cyc}</span>
       <button class="chron-btn" onclick="navLog(1)" ${canNext?'':'disabled'}>›</button>
     </div>
     ${entries.length ? entries.map(e=>`<div class="entry">${e.html}</div>`).join('') : '<div class="entry" style="opacity:.6">Nenhum evento registrado.</div>'}
@@ -352,6 +475,50 @@ function errorHTML(){
   return errorMsg ? `<div class="error-banner">${errorMsg}</div>` : '';
 }
 
+function manualHTML(compact){
+  return `
+  <details class="quick-manual" ${compact ? '' : 'open'}>
+    <summary>Manual rápido</summary>
+    <div class="manual-body">
+      <h3>Objetivo</h3>
+      <div class="manual-grid">
+        <div class="manual-side troia">
+          <b>🏛️ Troia</b>
+          <span>Resista ao cerco. Você vence se os Gregos ficarem sem tropas ou se a determinação deles cair a zero.</span>
+        </div>
+        <div class="manual-side gregos">
+          <b>⛺ Gregos</b>
+          <span>Derrube a defesa troiana. Você vence se Troia ficar sem tropas.</span>
+        </div>
+      </div>
+
+      <h3>Como a partida anda</h3>
+      <ul class="manual-list">
+        <li><b>Criar sala:</b> quem cria joga como Troia; quem entra com o código joga como os Gregos.</li>
+        <li><b>Eras:</b> antes do cerco, cada lado escolhe cartas em segredo para ganhar tropas, suprimento, defesa, ataque ou efeitos especiais.</li>
+        <li><b>Cerco:</b> cada ano tem 3 manobras: Primavera, Verão e Outono. Depois vem o inverno, com consumo de suprimentos.</li>
+      </ul>
+
+      <h3>Ações do cerco</h3>
+      <ul class="manual-list">
+        <li><b>Avançar/Recuar:</b> ações gregas para mover o exército pela trilha Acampamento, Planície, Muralhas e Portões.</li>
+        <li><b>Atacar:</b> força combate ou pressão contra as defesas, conforme a posição grega.</li>
+        <li><b>Reforçar:</b> gasta 1 suprimento. Troia pode remover pressão de uma defesa; Gregos consolidam a ofensiva.</li>
+        <li><b>Estratagema:</b> tenta antecipar avanço, ataque ou saída inimiga.</li>
+        <li><b>Buscar recursos:</b> Gregos recebem suprimento para vários anos, mas Troia pode saquear se atacar o acampamento no momento certo.</li>
+      </ul>
+
+      <h3>Dicas de leitura</h3>
+      <ul class="manual-list">
+        <li><b>Tropas</b> são sua vida militar. Se zerarem, seu lado desmorona.</li>
+        <li><b>Suprimento</b> alimenta tropas e paga reforços. Falta de suprimento causa perdas.</li>
+        <li><b>Pressão</b> remove fosso, torres e muralha. Pedras do alto são bônus defensivo, não uma estrutura a derrubar.</li>
+        <li><b>Determinação</b> mede a moral grega: cai a cada dois anos, por fome, por recuos duros ou por um ano sem ataque.</li>
+      </ul>
+    </div>
+  </details>`;
+}
+
 function render(){
   const app = document.getElementById('app');
 
@@ -364,6 +531,12 @@ function render(){
         <button class="advance wide" style="max-width:280px;margin:0 auto;" onclick="window._go('create')">Criar sala</button>
         <div class="divider-or">ou</div>
         <button class="wide" style="max-width:280px;margin:0 auto;" onclick="window._go('join')">Entrar com um código</button>
+        <div class="divider-or">modo solo</div>
+        <div class="action-grid" style="max-width:420px;margin:0 auto;">
+          <button class="act" onclick="criarSolo('troia')">Solo como Troia</button>
+          <button class="act" onclick="criarSolo('gregos')">Solo como Gregos</button>
+        </div>
+        ${manualHTML(false)}
       </div>`;
     return;
   }
@@ -413,9 +586,12 @@ function renderGame(app){
         <div class="pass-icon">${v.role==='troia'?'🏛️':'⛺'}</div>
         <h2>Sala ${v.code}</h2>
         <div class="role-pill ${v.role}">Você é ${v.role==='troia'?'Troia':'os Gregos'}</div>
-        ${v.roomFull
+        ${v.solo
+          ? `<p>Modo solo ativo. A IA joga como ${v.aiRole==='troia'?'Troia':'os Gregos'}.</p>`
+          : v.roomFull
           ? `<p>Os dois lados estão prontos.</p><button class="advance" onclick="iniciarDuelo()">Começar duelo</button>`
           : `<div class="room-code">${v.code}</div><p>Compartilhe esse código com o outro jogador. Aguardando ele entrar...</p>`}
+        ${manualHTML(true)}
         <p class="share-hint"><a href="#" onclick="sairSala();return false;" style="color:var(--muted);">sair da sala</a></p>
       </div>`;
     return;
@@ -444,6 +620,7 @@ function renderGame(app){
         <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
         <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
       </div>
+      ${manualHTML(true)}
       ${eraResourcesHTML()}
       <div class="actions">
         <div class="action-prompt">Escolha uma carta desta rodada:</div>
@@ -481,8 +658,9 @@ function renderGame(app){
     if(v.picked){
       app.innerHTML = `
         ${errorHTML()}
-        <div class="cycle-header"><div class="label">Cerco — ciclo ${v.siege.cycle}</div><div class="phase">Fase de planejamento</div></div>
+        <div class="cycle-header"><div class="label">Ano ${v.siege.cycle} — ${v.siege.phaseOfYear} (${v.siege.maneuver}/${v.siege.maneuversPerYear})</div><div class="phase">Fase de planejamento</div></div>
         ${statsHTML()}
+        ${siegeBoardHTML()}
         ${chronicleHTML()}
         <div class="pass-screen" style="padding:20px;">
           <p>Ação escolhida. Aguardando o adversário...</p>
@@ -493,18 +671,18 @@ function renderGame(app){
     app.innerHTML = `
       ${errorHTML()}
       <span class="role-pill ${v.role}">Você é ${v.role==='troia'?'Troia':'os Gregos'}</span>
-      <div class="cycle-header"><div class="label">Cerco — ciclo ${v.siege.cycle}</div><div class="phase">Fase de planejamento</div></div>
+      <div class="cycle-header"><div class="label">Ano ${v.siege.cycle} — ${v.siege.phaseOfYear} (${v.siege.maneuver}/${v.siege.maneuversPerYear})</div><div class="phase">Fase de planejamento</div></div>
+      ${manualHTML(true)}
       ${statsHTML()}
+      ${siegeBoardHTML()}
       ${chronicleHTML()}
       <div class="actions">
-        <div class="action-prompt">Escolha sua ação deste ciclo:</div>
+        <div class="action-prompt">Escolha sua manobra:</div>
         <div class="action-grid ${actions.length===3?'three':''}">
           ${actions.map(a=>`<button class="act" onclick="escolherAcao('${a}')">${ACTION_LABEL[a]}</button>`).join('')}
         </div>
         <div class="battle-map-hint">
-          🏕️ Só Troia ataca → Acampamento Grego (decide o nº de tropas) &nbsp;·&nbsp;
-          🌾 Os dois atacam → Planície (vantagem grega) &nbsp;·&nbsp;
-          🏛️ Só os Gregos atacam → Muralhas de Troia (vantagem troiana)
+          Gregos avançam pela trilha até as muralhas. Troia pode atacar o acampamento, reforçar defesas ou tentar estratagema.
         </div>
       </div>`;
     return;
@@ -512,18 +690,17 @@ function renderGame(app){
 
   if(v.phase === 'siege-reveal'){
     const la = v.lastActions;
+    const resolveLabel = v.siege.maneuver >= v.siege.maneuversPerYear ? 'Resolver manobra e inverno' : 'Resolver manobra';
     app.innerHTML = `
       ${errorHTML()}
-      <div class="cycle-header"><div class="label">Cerco — ciclo ${v.siege.cycle}</div><div class="phase">Revelação</div></div>
+      <div class="cycle-header"><div class="label">Ano ${v.siege.cycle} — ${v.siege.phaseOfYear} (${v.siege.maneuver}/${v.siege.maneuversPerYear})</div><div class="phase">Revelação</div></div>
       ${statsHTML()}
+      ${siegeBoardHTML('Posição antes da resolução')}
       <div class="reveal-box">
         <div class="reveal-item troia"><div class="who">Troia</div><div class="act-name">${ACTION_LABEL[la.troia]}</div></div>
         <div class="reveal-item gregos"><div class="who">Gregos</div><div class="act-name">${ACTION_LABEL[la.gregos]}</div></div>
       </div>
-      ${v.location
-        ? battleMapHTML(v.location, 'A batalha ocorre em:')
-        : `<p style="text-align:center;color:var(--muted);font-size:13px;">Nenhum confronto direto ocorre neste ciclo.</p>`}
-      <div style="text-align:center;"><button class="advance" onclick="resolverCiclo()">Resolver o ciclo</button></div>
+      <div style="text-align:center;"><button class="advance" onclick="resolverCiclo()">${resolveLabel}</button></div>
     `;
     return;
   }
@@ -532,12 +709,14 @@ function renderGame(app){
     const venceu = v.siege.gameOver;
     const textos = {
       tropas: venceu==='troia' ? 'O exército grego se dissolveu por completo — sem homens, o cerco não pode continuar.' : 'A guarnição de Troia foi reduzida a nada — a cidade não tem mais quem a defenda.',
-      moral: 'Sem vitórias suficientes para justificar mais um ano longe de casa, o acampamento grego se desfaz.'
+      moral: 'Sem vitórias suficientes para justificar mais um ano longe de casa, o acampamento grego se desfaz.',
+      portoes: 'As defesas foram superadas e os portões não resistiram ao assalto final.'
     };
     app.innerHTML = `
       ${errorHTML()}
-      <div class="cycle-header"><div class="label">Ciclo ${v.siege.cycle} — fim do cerco</div></div>
+      <div class="cycle-header"><div class="label">Ano ${v.siege.cycle} — fim do cerco</div></div>
       ${statsHTML()}
+      ${siegeBoardHTML()}
       ${chronicleHTML()}
       <div class="endgame">
         <h2>${venceu==='troia' ? 'Troia resiste' : 'O cerco vence'}</h2>

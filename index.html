@@ -115,7 +115,9 @@
   .battle-map{margin-bottom:18px;}
   .battle-map-title{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:0.4px;}
   .battle-map-row{display:flex;align-items:center;justify-content:center;gap:4px;}
+  .battle-map-row.board-view{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"muralhas portoes" "planicie acampamento";gap:8px;max-width:520px;margin:0 auto;}
   .battle-node{flex:1;max-width:150px;text-align:center;padding:10px 6px;border-radius:3px;background:var(--panel);border:1px solid var(--gold-dim);opacity:0.55;transition:opacity .2s ease, border-color .2s ease;}
+  .battle-map-row.board-view .battle-node{max-width:none;min-height:82px;display:flex;flex-direction:column;justify-content:center;}
   .battle-node.active{opacity:1;border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
   .battle-node-icon{font-size:22px;margin-bottom:4px;}
   .battle-node-label{font-size:10px;color:var(--cream);line-height:1.3;}
@@ -173,6 +175,8 @@ let localScreen = 'intro'; // intro | create | join | game
 let errorMsg = null;
 let pollTimer = null;
 let logViewCycle = null;
+let manualOpen = false;
+let requestInFlight = false;
 
 function loadSession(){
   try {
@@ -208,6 +212,7 @@ async function api(action, opts){
 
 async function refreshState(){
   if(!session) return;
+  if(requestInFlight) return;
   try {
     const previousPhase = view && view.phase;
     const data = await api('state', { params:{ code:session.code, role:session.role, token:session.token } });
@@ -266,20 +271,28 @@ async function iniciarDuelo(){
   catch(e){ errorMsg = e.message; render(); }
 }
 async function escolherCartaEra(idx){
-  try { await api('pick-era', { method:'POST', body: Object.assign({index:idx}, session) }); refreshState(); }
-  catch(e){ errorMsg = e.message; render(); }
+  requestInFlight = true;
+  try { await api('pick-era', { method:'POST', body: Object.assign({index:idx}, session) }); }
+  catch(e){ errorMsg = e.message; }
+  finally { requestInFlight = false; refreshState(); }
 }
 async function continuarEra(){
-  try { await api('advance-era', { method:'POST', body: session }); refreshState(); }
-  catch(e){ errorMsg = e.message; render(); }
+  requestInFlight = true;
+  try { await api('advance-era', { method:'POST', body: session }); }
+  catch(e){ errorMsg = e.message; }
+  finally { requestInFlight = false; refreshState(); }
 }
 async function escolherAcao(choice){
-  try { await api('pick-action', { method:'POST', body: Object.assign({choice}, session) }); refreshState(); }
-  catch(e){ errorMsg = e.message; render(); }
+  requestInFlight = true;
+  try { await api('pick-action', { method:'POST', body: Object.assign({choice}, session) }); }
+  catch(e){ errorMsg = e.message; }
+  finally { requestInFlight = false; refreshState(); }
 }
 async function resolverCiclo(){
-  try { await api('resolve-cycle', { method:'POST', body: session }); refreshState(); }
-  catch(e){ errorMsg = e.message; render(); }
+  requestInFlight = true;
+  try { await api('resolve-cycle', { method:'POST', body: session }); }
+  catch(e){ errorMsg = e.message; }
+  finally { requestInFlight = false; refreshState(); }
 }
 async function novoDuelo(){
   try { await api('restart', { method:'POST', body: session }); playIntroVideo(); refreshState(); }
@@ -326,7 +339,7 @@ function statsHTML(){
         <span><b>🍎 Suprimento</b>${s.suprimentoTroia}</span>
         <span><b>❄️ Consumo</b>${s.consumoTroia}/ano</span>
         <span><b>⏳ Estoque</b>${s.anosSuprimentoTroia} ano(s)</span>
-        <span><b>🏰 Resistência</b>${s.resistenciaEstrutural||0}</span>
+        <span><b>🛡️ Defesa</b>+${s.bonusDefesaTroia||0}</span>
       </div>
     </div>
     <div class="divider"></div>
@@ -356,7 +369,7 @@ function eraResourcesHTML(){
     <div class="front troia">
       <h3>🏛️ Troia</h3>
       <div class="small-stats">
-        <span><b>🏰 Resistência</b>${r.resistenciaEstrutural}</span>
+        <span><b>🛡️ Defesa</b>+${r.bonusDefesaTroia||0}</span>
         <span><b>⚔️ Tropas</b>${r.tropasTroia}</span>
         <span><b>🍎 Suprimento</b>${r.suprimentoTroia}</span>
       </div>
@@ -377,12 +390,12 @@ function battleMapHTML(active, title){
   return `
   <div class="battle-map">
     ${title ? `<div class="battle-map-title">${title}</div>` : ''}
-    <div class="battle-map-row">
+    <div class="battle-map-row board-view">
       ${LOCATION_ORDER.map(loc => `
-        <div class="battle-node ${active===loc?'active':''}">
+        <div class="battle-node ${active===loc?'active':''}" style="grid-area:${loc}">
           <div class="battle-node-icon">${LOCATION_ICON[loc]}</div>
           <div class="battle-node-label">${LOCATION_LABEL[loc]}</div>
-        </div>`).join('<div class="battle-node-arrow">—</div>')}
+        </div>`).join('')}
     </div>
   </div>`;
 }
@@ -471,13 +484,18 @@ window.navLog = function(delta){
   render();
 };
 
+window._rememberManual = function(open){
+  manualOpen = open;
+};
+
 function errorHTML(){
   return errorMsg ? `<div class="error-banner">${errorMsg}</div>` : '';
 }
 
 function manualHTML(compact){
+  const opened = compact ? manualOpen : true;
   return `
-  <details class="quick-manual" ${compact ? '' : 'open'}>
+  <details class="quick-manual" ${opened ? 'open' : ''} ontoggle="window._rememberManual(this.open)">
     <summary>Manual rápido</summary>
     <div class="manual-body">
       <h3>Objetivo</h3>
@@ -513,6 +531,7 @@ function manualHTML(compact){
         <li><b>Tropas</b> são sua vida militar. Se zerarem, seu lado desmorona.</li>
         <li><b>Suprimento</b> alimenta tropas e paga reforços. Falta de suprimento causa perdas.</li>
         <li><b>Pressão</b> remove fosso, torres e muralha. Pedras do alto são bônus defensivo, não uma estrutura a derrubar.</li>
+        <li><b>Bônus de defesa</b> vem das estruturas ainda ativas e de cartas como Favor de Apolo e Engenharia de Hefesto.</li>
         <li><b>Determinação</b> mede a moral grega: cai a cada dois anos, por fome, por recuos duros ou por um ano sem ataque.</li>
       </ul>
     </div>

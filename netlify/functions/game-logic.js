@@ -4,10 +4,10 @@ const DEFENSE_ORDER = ['fosso','torres','muralha'];
 const DECKS = {
   troia: {
     era1: [
-      {kind:'Construção', name:'Muralha de pedra', effect:'+2 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=2; s.defenseCards.muralha=true;}},
-      {kind:'Construção', name:'Torres de vigia', effect:'+2 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=2; s.defenseCards.torres=true;}},
-      {kind:'Construção', name:'Fosso de contenção', effect:'+1 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=1; s.defenseCards.fosso=true;}},
-      {kind:'Construção', name:'Pedras do alto', effect:'+1 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=1; s.defenseCards.pedras=true;}},
+      {kind:'Construção', name:'Torres de vigia', effect:'Ativa torres: +1 defesa nas muralhas e melhora estratagema', apply:s=>{s.defenseCards.torres=true; s.bonusDefesaTroia+=1;}},
+      {kind:'Construção', name:'Fosso de contenção', effect:'Ativa fosso: +2 defesa até ser tampado', apply:s=>{s.defenseCards.fosso=true; s.bonusDefesaTroia+=1;}},
+      {kind:'Construção', name:'Pedras do alto', effect:'Ativa pedras: Gregos sofrem baixa extra nas muralhas', apply:s=>{s.defenseCards.pedras=true; s.bonusDefesaTroia+=1;}},
+      {kind:'Construção', name:'Portões selados', effect:'+1 bônus de defesa nos portões', apply:s=>{s.bonusDefesaTroia+=1; s.portoesSelados=true;}},
       {kind:'Recurso', name:'Celeiros reais', effect:'+6 suprimento em estoque', apply:s=>{s.suprimentoTroia+=6;}},
       {kind:'Recurso', name:'Poços internos', effect:'+4 suprimento em estoque', apply:s=>{s.suprimentoTroia+=4;}},
       {kind:'Recrutamento', name:'Guarnição da cidade', effect:'+3 tropas', apply:s=>{s.tropasTroia+=3;}},
@@ -16,10 +16,10 @@ const DECKS = {
     ],
     era2: [
       {kind:'Armadilha', name:'Armadilhas na praia', effect:'Gregos perdem 2 tropas na travessia', apply:s=>{s.tropasGregos=Math.max(0,s.tropasGregos-2);}},
-      {kind:'Favor divino', name:'Favor de Apolo', effect:'+1 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=1;}},
+      {kind:'Favor divino', name:'Favor de Apolo', effect:'+1 bônus de defesa troiano', apply:s=>{s.bonusDefesaTroia+=1;}},
       {kind:'Armadilha', name:'Emboscada noturna', effect:'Gregos perdem 1 tropa, Troia ganha 2 suprimento', apply:s=>{s.tropasGregos=Math.max(0,s.tropasGregos-1); s.suprimentoTroia+=2;}},
       {kind:'Favor divino', name:'Encanto de Afrodite', effect:'+2 tropas troianas', apply:s=>{s.tropasTroia+=2;}},
-      {kind:'Construção', name:'Engenharia de Hefesto', effect:'+1 resistência estrutural', apply:s=>{s.resistenciaEstrutural+=1;}}
+      {kind:'Construção', name:'Engenharia de Hefesto', effect:'+1 bônus de defesa troiano', apply:s=>{s.bonusDefesaTroia+=1;}}
     ]
   },
   gregos: {
@@ -33,7 +33,7 @@ const DECKS = {
     ],
     era2: [
       {kind:'Favor divino', name:'Lança de Atena', effect:'+1 bônus de ataque adicional', apply:s=>{s.bonusAtaqueGregos+=1;}},
-      {kind:'Favor divino', name:'Terremoto', effect:'Reduz a resistência estrutural de Troia em 1', apply:s=>{s.resistenciaEstrutural=Math.max(0,s.resistenciaEstrutural-1);}},
+      {kind:'Favor divino', name:'Terremoto', effect:'Reduz o bônus de defesa troiano em 1', apply:s=>{s.bonusDefesaTroia=Math.max(0,s.bonusDefesaTroia-1);}},
       {kind:'Ritual', name:'Sacrifício a Posêidon', effect:'+2 tropas (travessia segura)', apply:s=>{s.tropasGregos+=2;}},
       {kind:'Favor divino', name:'Marés favoráveis', effect:'+1 determinação inicial', apply:s=>{s.determinacao=(s.determinacao||5)+1;}},
       {kind:'Favor divino', name:'Aquiles retorna ao combate', effect:'+2 determinação inicial', apply:s=>{s.determinacao=(s.determinacao||5)+2;}}
@@ -41,7 +41,7 @@ const DECKS = {
   }
 };
 
-const ERA_ROUNDS = {era1:5, era2:3};
+const ERA_ROUNDS = {era1:3, era2:2};
 const TROIA_ACTIONS = ['atacar','reforcar','estratagema'];
 const GREGOS_ACTIONS = ['avancar','recuar','atacar','reforcar','buscar','estratagema'];
 const ACTION_LABEL = {
@@ -58,8 +58,9 @@ function dmgTroops(){ return 1+Math.floor(Math.random()*2); }
 
 function createEraStats(){
   return {
-    resistenciaEstrutural:0,
+    bonusDefesaTroia:0,
     defenseCards:{fosso:false, torres:false, pedras:false, muralha:false},
+    portoesSelados:false,
     estratagemaForteTroia:false,
     racionamentoAtivo:false,
     tropasTroia:8,
@@ -98,10 +99,13 @@ function findCardDef(side, era, name){
 
 function drawHand(room, side){
   const era = room.eraStage;
-  const size = era==='era1' ? 3 : 2;
+  const size = 2;
   const pool = DECKS[side][era].filter(c=>!room.deckUsed[side].includes(c.name));
   const shuffled = [...pool].sort(()=>Math.random()-0.5);
   room.hands[side] = shuffled.slice(0, Math.min(size, shuffled.length));
+  room.hands[side].forEach(c=>{
+    if(!room.deckUsed[side].includes(c.name)) room.deckUsed[side].push(c.name);
+  });
 }
 
 function dealEraHands(room){
@@ -122,7 +126,6 @@ function pickEraCard(room, side, index){
   const hand = room.hands[side];
   const card = hand[index];
   if(!card) return;
-  room.deckUsed[side].push(card.name);
   const def = findCardDef(side, room.eraStage, card.name);
   def.apply(room.eraStats);
   room.eraPicks[side] = {kind:def.kind, name:def.name, effect:def.effect};
@@ -143,11 +146,19 @@ function addLog(siege, html){
 
 function createDefenses(stats){
   return {
-    fosso: { label:'Fosso', active:!!stats.defenseCards.fosso, pressure:0, max:2, broken:false },
-    torres: { label:'Torres', active:!!stats.defenseCards.torres, pressure:0, max:2, broken:false },
-    muralha: { label:'Muralha', active:true, pressure:0, max:3, broken:false },
+    fosso: { label:'Fosso', active:!!stats.defenseCards.fosso, pressure:0, max:2, broken:false, defenseBonus:2 },
+    torres: { label:'Torres', active:!!stats.defenseCards.torres, pressure:0, max:2, broken:false, defenseBonus:1 },
+    muralha: { label:'Muralha', active:true, pressure:0, max:3, broken:false, defenseBonus:2 },
     pedras: { label:'Pedras do alto', active:!!stats.defenseCards.pedras, bonus:true }
   };
+}
+
+function activeDefenseBonus(siege){
+  const structureBonus = DEFENSE_ORDER.reduce((sum,k)=>{
+    const d = siege.defenses[k];
+    return sum + (d && d.active && !d.broken ? (d.defenseBonus || 0) : 0);
+  }, 0);
+  return structureBonus + (siege.bonusDefesaTroia || 0);
 }
 
 function nextDefenseTarget(siege){
@@ -204,9 +215,11 @@ function greekForageGain(troops){
   return 3;
 }
 
-function resolveSupply(siege){
-  const consumoT = supplyCostTroia(siege);
-  const consumoG = supplyCostGregos(siege);
+function resolveSupply(siege, season){
+  const winter = season === 'Inverno';
+  const consumoT = Math.max(1, Math.ceil(supplyCostTroia(siege) * (winter ? 1 : 0.5)));
+  const consumoG = Math.max(1, Math.ceil(supplyCostGregos(siege) * (winter ? 1 : 0.5)));
+  const seasonText = winter ? 'no inverno' : `em ${season}`;
   if(siege.suprimentoTroia < consumoT){
     const deficit = consumoT - siege.suprimentoTroia;
     siege.tropasTroia = Math.max(0, siege.tropasTroia-deficit);
@@ -214,7 +227,7 @@ function resolveSupply(siege){
     addLog(siege, `<span class="tag troia">Troia</span> não sustenta seus estoques; a fome cobra ${deficit} soldado(s).`);
   } else {
     siege.suprimentoTroia -= consumoT;
-    addLog(siege, `<span class="tag troia">Troia</span> consome ${consumoT} suprimento no inverno.`);
+    addLog(siege, `<span class="tag troia">Troia</span> consome ${consumoT} suprimento ${seasonText}.`);
   }
   if(siege.suprimentoGregos < consumoG){
     const deficit = consumoG - siege.suprimentoGregos;
@@ -224,14 +237,15 @@ function resolveSupply(siege){
     addLog(siege, `<span class="tag gregos">Gregos</span> falham na logística; ${deficit} homem(ns) se perdem e a determinação cai.`);
   } else {
     siege.suprimentoGregos -= consumoG;
-    addLog(siege, `<span class="tag gregos">Gregos</span> consomem ${consumoG} suprimento no inverno.`);
+    addLog(siege, `<span class="tag gregos">Gregos</span> consomem ${consumoG} suprimento ${seasonText}.`);
   }
 }
 
 function initSiege(room){
   const s = room.eraStats;
   const siege = {
-    resistenciaEstrutural: s.resistenciaEstrutural,
+    bonusDefesaTroia: s.bonusDefesaTroia,
+    portoesSelados: s.portoesSelados,
     defenses: createDefenses(s),
     muralhaRompida: false,
     estratagemaForteTroia: s.estratagemaForteTroia,
@@ -326,7 +340,7 @@ function resolveWallAssault(siege, troiaAct, troiaReforcou, gregosReforcou){
       return;
     }
   }
-  const defenseBonus = (siege.resistenciaEstrutural*0.15) + (siege.defenses.pedras.active ? 0.25 : 0) + (troiaReforcou ? 0.25 : 0);
+  const defenseBonus = activeDefenseBonus(siege) * 0.12 + (siege.defenses.pedras.active ? 0.25 : 0) + (troiaReforcou ? 0.25 : 0);
   const greekPower = siege.tropasGregos + siege.bonusAtaqueGregos + (gregosReforcou ? 1 : 0);
   const troiaPower = siege.tropasTroia * (1 + defenseBonus);
   const ratio = troiaPower>0 ? greekPower/troiaPower : 99;
@@ -353,7 +367,7 @@ function resolveWallAssault(siege, troiaAct, troiaReforcou, gregosReforcou){
 
 function resolveGateAssault(room, siege, troiaReforcou, gregosReforcou){
   const greekPower = siege.tropasGregos + siege.bonusAtaqueGregos + (gregosReforcou ? 1 : 0);
-  const troiaPower = siege.tropasTroia + (troiaReforcou ? 2 : 0);
+  const troiaPower = siege.tropasTroia + (troiaReforcou ? 2 : 0) + (siege.portoesSelados ? 2 : 0);
   const ratio = troiaPower>0 ? greekPower/troiaPower : 99;
   if(ratio>=0.9){
     const dano = Math.max(1, dmgTroops()+siege.bonusAtaqueGregos);
@@ -439,7 +453,7 @@ function resolveActionsLogic(room, siege, troiaAct, gregosAct){
 function finishYear(room){
   const siege = room.siege;
   siege.phaseOfYear = 'Inverno';
-  resolveSupply(siege);
+  resolveSupply(siege, 'Inverno');
   if(siege.cycle % 2 === 0){
     siege.determinacao = clamp(siege.determinacao-1,0,siege.determinacaoMax);
     addLog(siege, `<span class="tag gregos">Gregos</span> completam dois anos longe de casa; a determinação cai em 1.`);
@@ -511,6 +525,7 @@ function resolveCycle(room){
   room.lastActions.positionAfter = siege.greekPosition;
   room.lastActions.location = siege.lastLocation;
   room.actionPicks = { troia:null, gregos:null };
+  resolveSupply(siege, siege.phaseOfYear);
   if(checkCollapse(room)) return;
   if(siege.maneuver < siege.maneuversPerYear){
     siege.maneuver += 1;
@@ -540,7 +555,8 @@ function publicSiegeInfo(siege){
   const tCost = supplyCostTroia(siege);
   const gCost = supplyCostGregos(siege);
   return {
-    resistenciaEstrutural: siege.resistenciaEstrutural,
+    bonusDefesaTroia: activeDefenseBonus(siege),
+    bonusDefesaBaseTroia: siege.bonusDefesaTroia || 0,
     defenses: siege.defenses,
     muralhaRompida: siege.muralhaRompida,
     tropasTroia: siege.tropasTroia, tropasTroiaMax: siege.tropasTroiaMax,

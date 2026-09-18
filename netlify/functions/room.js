@@ -98,7 +98,7 @@ function sanitize(room, role){
   if(room.phase === 'era-pick' || room.phase === 'era-reveal'){
     const s = room.eraStats;
     out.resources = {
-      resistenciaEstrutural: s.resistenciaEstrutural,
+      bonusDefesaTroia: s.bonusDefesaTroia,
       tropasTroia: s.tropasTroia,
       suprimentoTroia: s.suprimentoTroia,
       bonusAtaqueGregos: s.bonusAtaqueGregos,

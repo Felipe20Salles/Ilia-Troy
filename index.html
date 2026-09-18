@@ -15,7 +15,7 @@
     --cream:#E8E3D3; --muted:#8B8B7E; --error:#C85C4B;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--cream);font-family:'IBM Plex Sans',sans-serif;padding:28px 20px;max-width:760px;margin:0 auto;}
+  body{margin:0;background:var(--bg);color:var(--cream);font-family:'IBM Plex Sans',sans-serif;padding:28px 20px;max-width:1180px;margin:0 auto;}
   h1,h3{font-family:'Cormorant Garamond',serif;}
   h1{font-size:32px;font-weight:600;margin:0 0 4px;color:var(--gold);text-align:center;}
   .subtitle{text-align:center;color:var(--muted);margin:0 0 24px;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:16px;}
@@ -86,6 +86,8 @@
   .hand.two{grid-template-columns:repeat(2,1fr);}
   .card{border:1px solid var(--gold-dim);border-radius:4px;padding:14px 12px;cursor:pointer;background:var(--panel);text-align:left;transition:border-color .15s ease, transform .15s ease;}
   .card:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .card.selected{border-color:var(--gold);background:#29271f;transform:translateY(-2px);box-shadow:0 0 0 1px var(--gold);}
+  .card.busy{pointer-events:none;opacity:.55;}
   .card .kind{font-size:10px;letter-spacing:0.6px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
   .card .name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--cream);margin-bottom:6px;}
   .card .effect{font-size:12px;color:var(--muted);line-height:1.4;}
@@ -142,6 +144,36 @@
   .intro-video-panel{width:min(920px,100%);text-align:center;}
   .intro-video-panel video{width:100%;max-height:78vh;border:1px solid var(--gold-dim);background:#000;}
   .intro-video-actions{display:flex;justify-content:center;gap:10px;margin-top:12px;}
+  .intro-slide{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--gold-dim);background:#000;overflow:hidden;}
+  .intro-slide img{width:100%;height:100%;object-fit:contain;display:block;}
+  .intro-slide-caption{position:absolute;left:0;right:0;bottom:0;padding:28px 18px 16px;background:linear-gradient(transparent,rgba(0,0,0,.88));font-family:'Cormorant Garamond',serif;font-size:22px;color:#fff;}
+  .intro-progress{display:flex;justify-content:center;gap:7px;margin-top:12px;}
+  .intro-progress span{width:26px;height:3px;background:#444;}
+  .intro-progress span.active{background:var(--gold);}
+  .campaign-board{position:relative;width:100%;aspect-ratio:3/2;margin:0 auto 18px;border:1px solid var(--gold-dim);overflow:hidden;background:#0b0e0f;isolation:isolate;}
+  .campaign-board>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;}
+  .campaign-board:after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(54,12,8,.06),transparent 40%,transparent 60%,rgba(0,42,47,.08));}
+  .board-phase{position:absolute;left:50%;top:2.5%;transform:translateX(-50%);min-width:180px;text-align:center;padding:7px 12px;background:rgba(9,12,12,.9);border:1px solid var(--gold);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:clamp(13px,1.7vw,20px);}
+  .board-counter{display:block;margin-top:2px;color:var(--cream);font-family:'IBM Plex Sans',sans-serif;font-size:clamp(8px,.85vw,11px);}
+  .board-cluster{position:absolute;display:flex;gap:5px;flex-wrap:wrap;max-width:28%;}
+  .board-cluster.gregos{left:6%;top:32%;}
+  .board-cluster.troia{right:5%;top:31%;justify-content:flex-end;}
+  .board-token{min-width:58px;padding:6px 8px;background:rgba(12,15,15,.9);border:1px solid var(--gold-dim);color:var(--cream);font-size:clamp(8px,1vw,12px);text-align:center;box-shadow:0 3px 9px rgba(0,0,0,.35);}
+  .board-token strong{display:block;color:var(--gold);font-size:clamp(13px,1.7vw,20px);line-height:1;}
+  .board-token.pulse{animation:token-arrive .55s ease-out;}
+  @keyframes token-arrive{0%{transform:scale(.72);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+  .board-preparations{position:absolute;left:6%;right:5%;bottom:7.5%;display:flex;justify-content:space-between;gap:12px;pointer-events:none;}
+  .prep-list{display:flex;gap:4px;flex-wrap:wrap;width:42%;align-content:flex-end;}
+  .prep-list.troia{justify-content:flex-end;}
+  .prep-chip{padding:4px 7px;background:rgba(10,13,13,.88);border:1px solid var(--gold-dim);color:var(--cream);font-size:clamp(7px,.8vw,10px);white-space:nowrap;}
+  .board-defense-markers{position:absolute;left:57.5%;top:57.5%;width:26%;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
+  .board-defense-marker{aspect-ratio:1;border:2px solid rgba(184,147,90,.55);background:rgba(9,12,12,.55);display:flex;align-items:center;justify-content:center;color:#8b8b7e;font-size:clamp(8px,1vw,12px);text-align:center;}
+  .board-defense-marker.active{background:rgba(76,122,108,.82);border-color:#d2b475;color:#fff;}
+  .army-marker{position:absolute;width:clamp(25px,4vw,48px);aspect-ratio:1;border-radius:50%;background:var(--gregos-dim);border:2px solid var(--gold);display:grid;place-items:center;font-size:clamp(11px,1.7vw,20px);box-shadow:0 0 0 4px rgba(0,0,0,.3);transition:left .45s ease,top .45s ease;}
+  .army-marker.acampamento{left:19%;top:48%;}.army-marker.planicie{left:45%;top:49%;}.army-marker.muralhas{left:61%;top:47%;}.army-marker.portoes{left:84%;top:45%;}
+  .board-message{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);padding:5px 10px;background:rgba(9,12,12,.9);color:var(--cream);font-size:clamp(8px,.9vw,11px);white-space:nowrap;}
+  .game-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(290px,.75fr);gap:18px;align-items:start;}
+  .game-side{min-width:0;}
   @media (max-width:640px){
     body{padding:22px 14px;}
     .manual-grid,.fronts{grid-template-columns:1fr;}
@@ -150,7 +182,10 @@
     .battle-map-row{align-items:stretch;}
     .battle-node-label{font-size:9px;}
     .defense-row{grid-template-columns:1fr 1fr;}
+    .campaign-board{margin-left:-14px;width:calc(100% + 28px);border-left:0;border-right:0;}
+    .board-cluster{max-width:34%;gap:2px}.board-token{min-width:42px;padding:4px 5px}.prep-chip{display:none}
   }
+  @media (max-width:900px){.game-layout{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -168,6 +203,8 @@ const ACTION_LABEL = {avancar:'Avançar', recuar:'Recuar', atacar:'Atacar', refo
 const LOCATION_LABEL = {muralhas:'Muralhas de Troia', planicie:'Planície', acampamento:'Acampamento Grego', portoes:'Portões de Troia'};
 const LOCATION_ICON = {muralhas:'🏛️', planicie:'🌾', acampamento:'🏕️', portoes:'🚪'};
 const LOCATION_ORDER = ['acampamento','planicie','muralhas','portoes'];
+// Adicione aqui os PNGs da introdução. Com a lista vazia, o vídeo atual continua sendo usado.
+const INTRO_SLIDES = [];
 
 let session = null; // {code, role, token}
 let view = null;
@@ -177,6 +214,8 @@ let pollTimer = null;
 let logViewCycle = null;
 let manualOpen = false;
 let requestInFlight = false;
+let pendingCardIndex = null;
+let pendingAction = null;
 
 function loadSession(){
   try {
@@ -267,41 +306,63 @@ async function sairSala(){
 }
 
 async function iniciarDuelo(){
-  try { await api('start', { method:'POST', body: session }); playIntroVideo(); refreshState(); }
+  try {
+    view = await api('start', { method:'POST', body: session });
+    playIntroVideo();
+    render();
+  }
   catch(e){ errorMsg = e.message; render(); }
 }
 async function escolherCartaEra(idx){
+  if(requestInFlight) return;
   requestInFlight = true;
+  pendingCardIndex = idx;
+  render();
   try { await api('pick-era', { method:'POST', body: Object.assign({index:idx}, session) }); }
   catch(e){ errorMsg = e.message; }
-  finally { requestInFlight = false; refreshState(); }
+  finally { requestInFlight = false; pendingCardIndex = null; await refreshState(); }
 }
 async function continuarEra(){
+  if(requestInFlight) return;
   requestInFlight = true;
+  render();
   try { await api('advance-era', { method:'POST', body: session }); }
   catch(e){ errorMsg = e.message; }
-  finally { requestInFlight = false; refreshState(); }
+  finally { requestInFlight = false; await refreshState(); }
 }
 async function escolherAcao(choice){
+  if(requestInFlight) return;
   requestInFlight = true;
+  pendingAction = choice;
+  render();
   try { await api('pick-action', { method:'POST', body: Object.assign({choice}, session) }); }
   catch(e){ errorMsg = e.message; }
-  finally { requestInFlight = false; refreshState(); }
+  finally { requestInFlight = false; pendingAction = null; await refreshState(); }
 }
 async function resolverCiclo(){
+  if(requestInFlight) return;
   requestInFlight = true;
+  render();
   try { await api('resolve-cycle', { method:'POST', body: session }); }
   catch(e){ errorMsg = e.message; }
-  finally { requestInFlight = false; refreshState(); }
+  finally { requestInFlight = false; await refreshState(); }
 }
 async function novoDuelo(){
-  try { await api('restart', { method:'POST', body: session }); playIntroVideo(); refreshState(); }
+  try {
+    view = await api('restart', { method:'POST', body: session });
+    playIntroVideo();
+    render();
+  }
   catch(e){ errorMsg = e.message; render(); }
 }
 
 function playIntroVideo(){
   const old = document.getElementById('intro-video-overlay');
   if(old) old.remove();
+  if(INTRO_SLIDES.length){
+    playIntroSlides();
+    return;
+  }
   const overlay = document.createElement('div');
   overlay.className = 'intro-video-overlay';
   overlay.id = 'intro-video-overlay';
@@ -318,6 +379,44 @@ function playIntroVideo(){
   const started = video.play();
   if(started && started.catch) started.catch(()=>{ video.controls = true; });
 }
+
+let introSlideIndex = 0;
+function playIntroSlides(){
+  introSlideIndex = 0;
+  const overlay = document.createElement('div');
+  overlay.className = 'intro-video-overlay';
+  overlay.id = 'intro-video-overlay';
+  overlay.innerHTML = `<div class="intro-video-panel" id="intro-slide-panel"></div>`;
+  document.body.appendChild(overlay);
+  renderIntroSlide();
+}
+
+function renderIntroSlide(){
+  const panel = document.getElementById('intro-slide-panel');
+  if(!panel || !INTRO_SLIDES.length) return;
+  const slide = INTRO_SLIDES[introSlideIndex];
+  panel.innerHTML = `
+    <div class="intro-slide">
+      <img src="${slide.src}" alt="${slide.alt||'Introdução da campanha'}">
+      ${slide.caption ? `<div class="intro-slide-caption">${slide.caption}</div>` : ''}
+    </div>
+    <div class="intro-progress">${INTRO_SLIDES.map((_,i)=>`<span class="${i===introSlideIndex?'active':''}"></span>`).join('')}</div>
+    <div class="intro-video-actions">
+      <button class="act" onclick="window._introPrev()" ${introSlideIndex===0?'disabled':''}>Anterior</button>
+      <button class="advance" onclick="window._introNext()">${introSlideIndex===INTRO_SLIDES.length-1?'Começar':'Próximo'}</button>
+      <button class="act" onclick="window._closeIntroVideo()">Pular</button>
+    </div>`;
+}
+
+window._introPrev = function(){
+  introSlideIndex = Math.max(0, introSlideIndex-1);
+  renderIntroSlide();
+};
+window._introNext = function(){
+  if(introSlideIndex >= INTRO_SLIDES.length-1) return window._closeIntroVideo();
+  introSlideIndex += 1;
+  renderIntroSlide();
+};
 
 window._closeIntroVideo = function(){
   const overlay = document.getElementById('intro-video-overlay');
@@ -400,6 +499,65 @@ function battleMapHTML(active, title){
   </div>`;
 }
 
+function stageTitle(stage){
+  return stage === 'era1' ? 'Mobilização' : 'Preparativos para o cerco';
+}
+
+function campaignBoardHTML(options){
+  const prep = options && options.prep;
+  const r = prep ? view.resources : view.siege;
+  if(!r) return '';
+  const chosen = prep && r.chosenCards ? r.chosenCards : {troia:[],gregos:[]};
+  const displayChosen = {
+    troia:[...(chosen.troia||[])],
+    gregos:[...(chosen.gregos||[])]
+  };
+  if(prep && view.pendingPreparation){
+    displayChosen[view.role].push(view.pendingPreparation);
+  }
+  const defenses = prep
+    ? {
+        fosso:{active:!!(r.defenseCards && r.defenseCards.fosso)},
+        torres:{active:!!(r.defenseCards && r.defenseCards.torres)},
+        muralha:{active:true},
+        pedras:{active:!!(r.defenseCards && r.defenseCards.pedras)}
+      }
+    : (r.defenses || {});
+  const stage = prep ? stageTitle(view.eraStage) : `Ano ${r.cycle} — ${r.phaseOfYear}`;
+  const counter = prep ? `Escolha ${view.eraRound} de ${view.eraRoundsTotal}` : `Manobra ${r.maneuver} de ${r.maneuversPerYear}`;
+  const greekTroops = r.tropasGregos;
+  const greekSupply = r.suprimentoGregos;
+  const greekAttack = r.bonusAtaqueGregos || 0;
+  const troyTroops = r.tropasTroia;
+  const troySupply = r.suprimentoTroia;
+  const troyDefense = r.bonusDefesaTroia || 0;
+  const prepChips = side => displayChosen[side].map(c=>`<span class="prep-chip">${KIND_ICON[c.kind]||''} ${c.name}</span>`).join('');
+  return `
+    <div class="campaign-board" aria-label="Tabuleiro da campanha">
+      <img src="Midia/Tabuleiro Digital.png" alt="Tabuleiro da Guerra de Troia visto de cima">
+      <div class="board-phase">${stage}<span class="board-counter">${counter}</span></div>
+      <div class="board-cluster gregos">
+        <span class="board-token pulse"><strong>${greekTroops}</strong>Tropas</span>
+        <span class="board-token"><strong>${greekSupply}</strong>Suprimento</span>
+        <span class="board-token"><strong>+${greekAttack}</strong>Ataque</span>
+      </div>
+      <div class="board-cluster troia">
+        <span class="board-token pulse"><strong>${troyTroops}</strong>Tropas</span>
+        <span class="board-token"><strong>${troySupply}</strong>Suprimento</span>
+        <span class="board-token"><strong>+${troyDefense}</strong>Defesa</span>
+      </div>
+      <div class="board-defense-markers">
+        ${[['fosso','Fosso'],['torres','Torres'],['muralha','Muralha'],['pedras','Pedras']].map(([key,label])=>{
+          const item = defenses[key] || {};
+          const active = item.active && !item.broken;
+          return `<span class="board-defense-marker ${active?'active':''}" title="${label}">${label}</span>`;
+        }).join('')}
+      </div>
+      ${prep ? `<div class="board-preparations"><div class="prep-list gregos">${prepChips('gregos')}</div><div class="prep-list troia">${prepChips('troia')}</div></div>` : `<div class="army-marker ${r.greekPosition}" title="Posição do exército grego">⚔</div>`}
+      <div class="board-message">${prep ? (view.phase==='era-reveal' ? 'As duas preparações foram incorporadas ao tabuleiro.' : view.picked || pendingCardIndex !== null ? 'Preparação confirmada. Aguardando o outro lado.' : 'Sua escolha altera o acampamento ou a cidadela.') : LOCATION_LABEL[r.greekPosition]}</div>
+    </div>`;
+}
+
 async function criarSolo(role){
   errorMsg = null;
   try {
@@ -447,7 +605,7 @@ function siegeBoardHTML(title){
   if(!s) return '';
   return `
     <div class="siege-board">
-      ${battleMapHTML(s.greekPosition, title || 'Posição grega')}
+      ${campaignBoardHTML({prep:false})}
       ${defenseHTML()}
     </div>`;
 }
@@ -513,7 +671,8 @@ function manualHTML(compact){
       <h3>Como a partida anda</h3>
       <ul class="manual-list">
         <li><b>Criar sala:</b> quem cria joga como Troia; quem entra com o código joga como os Gregos.</li>
-        <li><b>Eras:</b> antes do cerco, cada lado escolhe cartas em segredo para ganhar tropas, suprimento, defesa, ataque ou efeitos especiais.</li>
+        <li><b>Mobilização:</b> os Gregos formam o acampamento enquanto Troia abastece e prepara a cidadela.</li>
+        <li><b>Preparativos para o cerco:</b> os navios chegam à costa sem combate naval. Ambos concluem tropas, recursos, favores e defesas.</li>
         <li><b>Cerco:</b> cada ano tem 3 manobras: Primavera, Verão e Outono. Depois vem o inverno, com consumo de suprimentos.</li>
       </ul>
 
@@ -623,9 +782,9 @@ function renderGame(app){
         <span class="role-pill ${v.role}">Você é ${v.role==='troia'?'Troia':'os Gregos'}</span>
         <div class="era-banner">
           <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
-          <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
+          <div class="title">${v.eraStage==='era1' ? 'Etapa I — Mobilização' : 'Etapa II — Preparativos para o cerco'}</div>
         </div>
-        ${eraResourcesHTML()}
+        ${campaignBoardHTML({prep:true})}
         <div class="pass-screen" style="padding:30px 20px;">
           <p>Carta escolhida. Aguardando o adversário decidir a dele...</p>
         </div>`;
@@ -637,18 +796,18 @@ function renderGame(app){
       <span class="role-pill ${v.role}">Você é ${v.role==='troia'?'Troia':'os Gregos'}</span>
       <div class="era-banner">
         <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
-        <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
+        <div class="title">${v.eraStage==='era1' ? 'Etapa I — Mobilização' : 'Etapa II — Preparativos para o cerco'}</div>
       </div>
       ${manualHTML(true)}
-      ${eraResourcesHTML()}
+      ${campaignBoardHTML({prep:true})}
       <div class="actions">
         <div class="action-prompt">Escolha uma carta desta rodada:</div>
         <div class="${handClass}">
           ${v.myHand.map((c,i)=>`
-            <div class="card" onclick="escolherCartaEra(${i})">
+            <div class="card ${pendingCardIndex===i?'selected':''} ${requestInFlight?'busy':''}" onclick="escolherCartaEra(${i})">
               <div class="kind">${KIND_ICON[c.kind]||''} ${c.kind}</div>
               <div class="name">${c.name}</div>
-              <div class="effect">${c.effect}</div>
+              <div class="effect">${pendingCardIndex===i?'Confirmando preparação...':c.effect}</div>
             </div>`).join('')}
         </div>
       </div>`;
@@ -661,13 +820,13 @@ function renderGame(app){
       ${errorHTML()}
       <div class="era-banner">
         <div class="tag">Rodada ${v.eraRound} de ${v.eraRoundsTotal}</div>
-        <div class="title">${v.eraStage==='era1' ? 'Era I — Preparação' : 'Era II — Travessia'}</div>
+        <div class="title">${v.eraStage==='era1' ? 'Etapa I — Mobilização' : 'Etapa II — Preparativos para o cerco'}</div>
       </div>
       <div class="reveal-box">
         <div class="reveal-item troia"><div class="who">Troia</div><div class="act-name">${rv.troia.name}</div></div>
         <div class="reveal-item gregos"><div class="who">Gregos</div><div class="act-name">${rv.gregos.name}</div></div>
       </div>
-      ${eraResourcesHTML()}
+      ${campaignBoardHTML({prep:true})}
       <div style="text-align:center;"><button class="advance" onclick="continuarEra()">Continuar</button></div>
     `;
     return;
@@ -698,7 +857,7 @@ function renderGame(app){
       <div class="actions">
         <div class="action-prompt">Escolha sua manobra:</div>
         <div class="action-grid ${actions.length===3?'three':''}">
-          ${actions.map(a=>`<button class="act" onclick="escolherAcao('${a}')">${ACTION_LABEL[a]}</button>`).join('')}
+          ${actions.map(a=>`<button class="act" onclick="escolherAcao('${a}')" ${requestInFlight?'disabled':''}>${pendingAction===a?'Confirmando...':ACTION_LABEL[a]}</button>`).join('')}
         </div>
         <div class="battle-map-hint">
           Gregos avançam pela trilha até as muralhas. Troia pode atacar o acampamento, reforçar defesas ou tentar estratagema.

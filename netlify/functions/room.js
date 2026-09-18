@@ -99,16 +99,21 @@ function sanitize(room, role){
     const s = room.eraStats;
     out.resources = {
       bonusDefesaTroia: s.bonusDefesaTroia,
+      defenseCards: s.defenseCards,
+      portoesSelados: !!s.portoesSelados,
+      racionamentoAtivo: !!s.racionamentoAtivo,
       tropasTroia: s.tropasTroia,
       suprimentoTroia: s.suprimentoTroia,
       bonusAtaqueGregos: s.bonusAtaqueGregos,
       tropasGregos: s.tropasGregos,
-      suprimentoGregos: s.suprimentoGregos
+      suprimentoGregos: s.suprimentoGregos,
+      chosenCards: room.chosenCards || {troia:[], gregos:[]}
     };
   }
   if(room.phase === 'era-pick'){
     out.picked = !!room.eraPicks[role];
     out.opponentPicked = !!room.eraPicks[opponent];
+    out.pendingPreparation = room.eraPicks[role] || null;
     out.myHand = out.picked ? [] : (room.hands[role]||[]).map(c=>({kind:c.kind, name:c.name, effect:c.effect}));
   }
   if(room.phase === 'era-reveal'){

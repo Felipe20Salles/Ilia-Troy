@@ -15,9 +15,9 @@ const DECKS = {
       {kind:'Estratégia', name:'Racionamento estrito', effect:'Troia consome 50% menos suprimento durante todo o cerco', apply:s=>{s.racionamentoAtivo=true;}}
     ],
     era2: [
-      {kind:'Armadilha', name:'Armadilhas na praia', effect:'Gregos perdem 2 tropas na travessia', apply:s=>{s.tropasGregos=Math.max(0,s.tropasGregos-2);}},
+      {kind:'Recrutamento', name:'Aliados da Anatólia', effect:'+3 tropas para a defesa de Troia', apply:s=>{s.tropasTroia+=3;}},
       {kind:'Favor divino', name:'Favor de Apolo', effect:'+1 bônus de defesa troiano', apply:s=>{s.bonusDefesaTroia+=1;}},
-      {kind:'Armadilha', name:'Emboscada noturna', effect:'Gregos perdem 1 tropa, Troia ganha 2 suprimento', apply:s=>{s.tropasGregos=Math.max(0,s.tropasGregos-1); s.suprimentoTroia+=2;}},
+      {kind:'Recurso', name:'Rotas secretas de abastecimento', effect:'+5 suprimentos nos celeiros de Troia', apply:s=>{s.suprimentoTroia+=5;}},
       {kind:'Favor divino', name:'Encanto de Afrodite', effect:'+2 tropas troianas', apply:s=>{s.tropasTroia+=2;}},
       {kind:'Construção', name:'Engenharia de Hefesto', effect:'+1 bônus de defesa troiano', apply:s=>{s.bonusDefesaTroia+=1;}}
     ]
@@ -34,7 +34,7 @@ const DECKS = {
     era2: [
       {kind:'Favor divino', name:'Lança de Atena', effect:'+1 bônus de ataque adicional', apply:s=>{s.bonusAtaqueGregos+=1;}},
       {kind:'Favor divino', name:'Terremoto', effect:'Reduz o bônus de defesa troiano em 1', apply:s=>{s.bonusDefesaTroia=Math.max(0,s.bonusDefesaTroia-1);}},
-      {kind:'Ritual', name:'Sacrifício a Posêidon', effect:'+2 tropas (travessia segura)', apply:s=>{s.tropasGregos+=2;}},
+      {kind:'Ritual', name:'Sacrifício a Posêidon', effect:'+2 tropas chegam prontas ao acampamento', apply:s=>{s.tropasGregos+=2;}},
       {kind:'Favor divino', name:'Marés favoráveis', effect:'+1 determinação inicial', apply:s=>{s.determinacao=(s.determinacao||5)+1;}},
       {kind:'Favor divino', name:'Aquiles retorna ao combate', effect:'+2 determinação inicial', apply:s=>{s.determinacao=(s.determinacao||5)+2;}}
     ]
@@ -85,6 +85,7 @@ function createRoom(code){
     eraStats: createEraStats(),
     deckUsed: { troia: [], gregos: [] },
     hands: { troia: [], gregos: [] },
+    chosenCards: { troia: [], gregos: [] },
     eraPicks: { troia: null, gregos: null },
     lastEraReveal: null,
     siege: null,
@@ -127,9 +128,15 @@ function pickEraCard(room, side, index){
   const card = hand[index];
   if(!card) return;
   const def = findCardDef(side, room.eraStage, card.name);
-  def.apply(room.eraStats);
   room.eraPicks[side] = {kind:def.kind, name:def.name, effect:def.effect};
   if(room.eraPicks.troia && room.eraPicks.gregos){
+    if(!room.chosenCards) room.chosenCards = { troia:[], gregos:[] };
+    ['troia','gregos'].forEach(pickedSide=>{
+      const picked = room.eraPicks[pickedSide];
+      const pickedDef = findCardDef(pickedSide, room.eraStage, picked.name);
+      pickedDef.apply(room.eraStats);
+      room.chosenCards[pickedSide].push({stage:room.eraStage, kind:picked.kind, name:picked.name});
+    });
     room.lastEraReveal = { troia: room.eraPicks.troia, gregos: room.eraPicks.gregos };
     room.hands = { troia:[], gregos:[] };
     room.phase = 'era-reveal';
@@ -542,6 +549,7 @@ function restart(room){
   room.eraStats = createEraStats();
   room.deckUsed = { troia:[], gregos:[] };
   room.hands = { troia:[], gregos:[] };
+  room.chosenCards = { troia:[], gregos:[] };
   room.eraPicks = { troia:null, gregos:null };
   room.lastEraReveal = null;
   room.siege = null;

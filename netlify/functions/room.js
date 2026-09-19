@@ -68,8 +68,12 @@ function runAi(room){
   if(room.phase === 'era-pick' && !room.eraPicks[side]){
     logic.pickEraCard(room, side, aiEraIndex(room, side));
   }
-  if(room.phase === 'siege-pick' && room.siege && !room.actionPicks[side]){
-    logic.pickAction(room, side, aiAction(room, side));
+  if(room.phase === 'siege-pick' && room.siege){
+    const picks = Array.isArray(room.actionPicks[side]) ? room.actionPicks[side] : [];
+    while(picks.length < (room.siege.actionsPerSeason || 2)){
+      const contingent = side === 'troia' ? (picks.length ? 'pelotaoB' : 'guarnicao') : (picks.length ? 'forrageadores' : 'hoste');
+      logic.pickAction(room, side, aiAction(room, side), contingent);
+    }
   }
 }
 
@@ -125,8 +129,12 @@ function sanitize(room, role){
   }
   if(room.phase === 'siege-pick'){
     out.actions = logic.actionsFor(room, role);
-    out.picked = !!room.actionPicks[role];
-    out.opponentPicked = !!room.actionPicks[opponent];
+    const ownOrders = Array.isArray(room.actionPicks[role]) ? room.actionPicks[role] : [];
+    const otherOrders = Array.isArray(room.actionPicks[opponent]) ? room.actionPicks[opponent] : [];
+    out.picked = ownOrders.length >= (room.siege.actionsPerSeason || 2);
+    out.actionCount = ownOrders.length;
+    out.actionsPerSeason = room.siege.actionsPerSeason || 2;
+    out.opponentPicked = otherOrders.length >= (room.siege.actionsPerSeason || 2);
   }
   if(room.phase === 'siege-reveal'){
     out.lastActions = room.lastActions;
@@ -218,7 +226,7 @@ exports.handler = async (event) => {
         logic.advanceEraRound(room);
         runAi(room);
       } else if(action === 'pick-action'){
-        logic.pickAction(room, role, body.choice);
+        logic.pickAction(room, role, body.choice, body.contingent);
         runAi(room);
       } else if(action === 'resolve-cycle'){
         logic.resolveCycle(room);

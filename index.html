@@ -188,6 +188,12 @@
   .defense-pressure i.on{background:var(--gold);}
   .army-marker{position:absolute;width:4.1%;aspect-ratio:1;border-radius:50%;background:var(--gregos-dim);border:2px solid #e5c078;display:grid;place-items:center;font-size:clamp(9px,1.55cqw,18px);box-shadow:0 0 0 3px rgba(0,0,0,.4),0 0 12px rgba(229,192,120,.55);transition:left .45s ease,top .45s ease;transform:translate(-50%,-50%);}
   .army-marker.acampamento{left:18%;top:51.5%;}.army-marker.planicie{left:45%;top:51.5%;}.army-marker.muralhas{left:68%;top:51.5%;}.army-marker.portoes{left:89%;top:51.5%;}
+  .contingent-marker{position:absolute;z-index:3;min-width:7%;padding:3px 4px;border:1px solid #d2b475;background:rgba(8,11,11,.9);color:#fff;text-align:center;font-size:clamp(8px,1.05cqw,13px);line-height:1.1;box-shadow:0 2px 8px rgba(0,0,0,.55);transform:translate(-50%,-50%);}
+  .contingent-marker.gregos{border-color:var(--gregos-light)}.contingent-marker.troia{border-color:var(--troia-light)}
+  .contingent-marker strong{display:block;font-size:clamp(11px,1.45cqw,17px)}.contingent-marker small{display:block;color:#d4c7aa;font-size:clamp(7px,.8cqw,10px);white-space:nowrap}
+  .contingent-marker.hoste{left:18%;top:51.5%}.contingent-marker.forrageadores{left:34%;top:35%}.contingent-marker.reforcos{left:34%;top:68%}
+  .contingent-marker.guarnicao{left:78%;top:45%}.contingent-marker.pelotaoB{left:66%;top:67%}.contingent-marker.missaoHitita{left:88%;top:29%}
+  .route-key{position:absolute;left:4%;right:4%;bottom:2.3%;display:flex;justify-content:space-between;color:#ead9b7;font-size:clamp(7px,.85cqw,10px);text-shadow:0 1px 3px #000;pointer-events:none}
   .season-marker{position:absolute;top:78.2%;width:5.2%;aspect-ratio:1;border-radius:50%;border:2px solid #f0cf87;box-shadow:0 0 12px rgba(240,207,135,.8);pointer-events:none;}
   .season-marker.primavera{left:40.3%;}.season-marker.verao{left:46.3%;}.season-marker.outono{left:52.2%;}.season-marker.inverno{left:58.1%;}
   .command-panel{min-width:0;height:100%;display:flex;flex-direction:column;background:#181d1f;border:1px solid var(--gold-dim);overflow:hidden;}
@@ -212,6 +218,10 @@
   .result-line span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}.result-line strong{display:block;margin-top:3px;font-family:'Cormorant Garamond',serif;font-size:18px;}
   .force-list{display:grid;gap:10px}.force-side{padding:10px;border-left:3px solid var(--gold-dim);background:#202527}.force-side.gregos{border-color:var(--gregos)}.force-side.troia{border-color:var(--troia)}
   .force-side h3{margin:0 0 8px;font-size:17px}.force-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.force-stat{font-size:11px;color:var(--muted)}.force-stat strong{display:block;color:var(--cream);font-size:15px;margin-top:2px}
+  .contingent-list{display:grid;gap:6px;margin-top:10px}.contingent-row{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;padding:7px;background:#202527;border-left:2px solid var(--gold-dim);font-size:11px}.contingent-row.gregos{border-color:var(--gregos)}.contingent-row.troia{border-color:var(--troia)}.contingent-row strong{display:block;color:var(--cream)}.contingent-row small{color:var(--muted)}.contingent-row b{font-size:14px;color:var(--gold)}
+  .objective-list{display:grid;gap:6px;margin-top:10px}.objective-item{padding:7px 8px;background:#202527;border-left:2px solid var(--gold-dim);font-size:11px;color:var(--cream)}.objective-item.done{border-color:#8eb78c}.objective-item span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+  .action-context{padding:8px 9px;background:#202527;border:1px solid #413c32;margin-bottom:9px;font-size:11px}.action-context strong{color:var(--gold)}.contingent-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:9px}.contingent-picker button{min-height:54px;padding:5px 3px;background:#171c1e;border:1px solid #4b4335;color:var(--cream);font-size:10px;cursor:pointer}.contingent-picker button.active{border-color:var(--gold);background:#2b2922;color:var(--gold)}.contingent-picker button strong{display:block;font-size:16px}.order-slots{display:flex;gap:5px;margin:0 0 9px}.order-slot{flex:1;padding:5px;background:#171c1e;border:1px solid #403a31;color:var(--muted);font-size:10px;text-align:center}.order-slot.filled{border-color:var(--gold);color:var(--cream)}
+  .campaign-board.topdown .board-track,.campaign-board.topdown .track-count,.campaign-board.topdown .board-metric{display:none}.campaign-board.topdown .board-defense-markers{left:0;top:0;width:100%;height:100%;display:block}.campaign-board.topdown .board-defense-marker{position:absolute;width:5.5%;height:5.5%;padding:0;border-width:1px;border-radius:50%;background:rgba(22,29,27,.72)}.campaign-board.topdown .board-defense-marker:nth-child(1){left:75%;top:18%}.campaign-board.topdown .board-defense-marker:nth-child(2){left:89%;top:27%}.campaign-board.topdown .board-defense-marker:nth-child(3){left:88%;top:52%}.campaign-board.topdown .board-defense-marker:nth-child(4){left:75%;top:59%}.campaign-board.topdown .board-defense-marker:after{font-size:clamp(9px,1.2cqw,15px)}.campaign-board.topdown .contingent-marker.hoste{left:23%;top:52%}.campaign-board.topdown .contingent-marker.forrageadores{left:48%;top:10%}.campaign-board.topdown .contingent-marker.reforcos{left:42%;top:81%}.campaign-board.topdown .contingent-marker.guarnicao{left:82%;top:25%}.campaign-board.topdown .contingent-marker.pelotaoB{left:73%;top:52%}.campaign-board.topdown .contingent-marker.missaoHitita{left:83%;top:83%}.campaign-board.topdown .army-marker{display:none}
   .prep-history{margin-top:12px}.prep-history-title{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}.prep-history-list{display:flex;flex-wrap:wrap;gap:5px}.prep-history-list span{padding:4px 6px;border:1px solid #4a4337;background:#171b1d;font-size:9px;color:#c9c1ad;}
   .command-panel .chronicle-box{margin:0;padding:0;background:transparent;color:var(--cream);max-height:none;overflow:visible}.command-panel .chronicle-box .entry{font-family:'IBM Plex Sans',sans-serif;font-size:12px;border-bottom:1px solid #37322a;padding:8px 0;margin:0}.command-panel .chron-btn{color:var(--cream)}
   .game-manual-overlay{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:20px;background:rgba(4,6,7,.8);}
@@ -246,6 +256,7 @@ const KIND_ICON = {
 const ACTION_LABEL = {avancar:'Avançar', recuar:'Recuar', atacar:'Atacar', reforcar:'Reforçar', buscar:'Buscar recursos', estratagema:'Estratagema'};
 const LOCATION_LABEL = {muralhas:'Muralhas de Troia', planicie:'Planície', acampamento:'Acampamento Grego', portoes:'Portões de Troia'};
 const LOCATION_ICON = {muralhas:'🏛️', planicie:'🌾', acampamento:'🏕️', portoes:'🚪'};
+const ROUTE_LABELS = {acampamento:'Acampamento',celeiro:'Celeiro',floresta:'Floresta',porto:'Porto',planicie:'Planície',muralhas:'Muralhas',portoes:'Portões',cidadela:'Cidadela','rota-hitita-1':'Rota hitita I','rota-hitita-2':'Rota hitita II',fronteiraHitita:'Fronteira hitita'};
 const LOCATION_ORDER = ['acampamento','planicie','muralhas','portoes'];
 // Adicione aqui os PNGs da introdução. Com a lista vazia, o vídeo atual continua sendo usado.
 const INTRO_SLIDES = [];
@@ -265,6 +276,7 @@ let stateGraceUntil = 0;
 let panelTab = 'decision';
 let previewMode = false;
 let lastPanelPhase = null;
+let selectedContingent = 'hoste';
 
 function loadSession(){
   try {
@@ -426,14 +438,16 @@ async function continuarEra(){
 }
 async function escolherAcao(choice){
   if(previewMode){
-    view.phase='siege-reveal'; view.lastActions={troia:'reforcar',gregos:choice}; lastPanelPhase=null; render(); return;
+    view.actionCount=(view.actionCount||0)+1;
+    if(view.actionCount < 2){ render(); return; }
+    view.phase='siege-reveal'; view.lastActions={troia:[{action:'reforcar',contingent:'guarnicao'},{action:'avancar',contingent:'pelotaoB'}],gregos:[{action:choice,contingent:selectedContingent},{action:'buscar',contingent:'forrageadores'}]}; lastPanelPhase=null; render(); return;
   }
   if(requestInFlight) return;
   requestInFlight = true;
   pendingAction = choice;
   render();
   try {
-    view = await api('pick-action', { method:'POST', body: actionBody({choice}) });
+    view = await api('pick-action', { method:'POST', body: actionBody({choice,contingent:selectedContingent}) });
     errorMsg = null;
   }
   catch(e){ errorMsg = e.message; }
@@ -441,10 +455,10 @@ async function escolherAcao(choice){
 }
 async function resolverCiclo(){
   if(previewMode){
-    const chosen=view.lastActions.gregos;
-    view.phase='siege-pick'; view.picked=false; view.actions=['avancar','recuar','atacar','reforcar','buscar','estratagema'];
+    const chosen=(view.lastActions.gregos[0]||{}).action;
+    view.phase='siege-pick'; view.picked=false; view.actions=['avancar','recuar','reforcar','buscar','estratagema'];
     if(chosen==='avancar') view.siege.greekPosition='muralhas';
-    view.siege.maneuver=3; view.siege.phaseOfYear='Outono'; lastPanelPhase=null; render(); return;
+    view.actionCount=0; view.siege.maneuver=3; view.siege.phaseOfYear='Outono'; lastPanelPhase=null; render(); return;
   }
   if(requestInFlight) return;
   requestInFlight = true;
@@ -641,9 +655,10 @@ function campaignBoardHTML(options){
   const troyDefense = r.bonusDefesaTroia || 0;
   const troyConsumption = r.consumoTroia || Math.max(1,Math.ceil(troyTroops/4));
   const season = prep ? '' : String(r.phaseOfYear||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const contingentMarkers = !prep && r.contingents ? Object.entries(r.contingents).flatMap(([side,list])=>list.map(c=>`<span class="contingent-marker ${side} ${c.id} ${c.position}" title="${c.name} em ${ROUTE_LABELS[c.position]||c.position}"><strong>${c.icon||'◆'} ${c.troops}</strong><small>${c.name}</small></span>`)).join('') : '';
   return `
-    <div class="campaign-board" aria-label="Tabuleiro da campanha">
-      <img src="Midia/Tabuleiro Digital.png" alt="Tabuleiro da Guerra de Troia visto de cima">
+    <div class="campaign-board topdown" aria-label="Tabuleiro top-down da campanha">
+      <img src="Midia/Tabuleiro Top Down.png" alt="Tabuleiro top-down da Guerra de Troia">
       <span class="board-zone-focus gregos"></span><span class="board-zone-focus troia"></span><span class="board-zone-focus defesas"></span>
       <div class="board-track greek-troops">${trackPips(greekTroops,prep?16:(r.tropasGregosMax||16))}</div>
       <div class="board-track troy-troops">${trackPips(troyTroops,prep?16:(r.tropasTroiaMax||16))}</div>
@@ -670,7 +685,7 @@ function campaignBoardHTML(options){
           return `<span class="board-defense-marker ${active?'active':''} ${item.broken?'broken':''}" title="${label}">${dots}</span>`;
         }).join('')}
       </div>
-      ${prep ? '' : `<div class="army-marker ${r.greekPosition}" title="${LOCATION_LABEL[r.greekPosition]}">⚔</div><div class="season-marker ${season}" title="${r.phaseOfYear}"></div>`}
+      ${prep ? '' : `${contingentMarkers}<div class="season-marker ${season}" title="${r.phaseOfYear}"></div><div class="route-key"><span>⛺ Acampamento</span><span>🌾 Recursos</span><span>⚔ Planície</span><span>🏛 Defesas</span></div>`}
     </div>`;
 }
 
@@ -808,16 +823,16 @@ function manualHTML(compact){
         <li><b>Criar sala:</b> quem cria joga como Troia; quem entra com o código joga como os Gregos.</li>
         <li><b>Mobilização:</b> os Gregos formam o acampamento enquanto Troia abastece e prepara a cidadela.</li>
         <li><b>Preparativos para o cerco:</b> os navios chegam à costa sem combate naval. Ambos concluem tropas, recursos, favores e defesas.</li>
-        <li><b>Cerco:</b> cada ano tem 3 manobras: Primavera, Verão e Outono. Depois vem o inverno, com consumo de suprimentos.</li>
+        <li><b>Cerco:</b> cada estação permite 2 ordens por lado. Depois do Outono vem o inverno, com consumo de suprimentos.</li>
       </ul>
 
       <h3>Ações do cerco</h3>
       <ul class="manual-list">
-        <li><b>Avançar/Recuar:</b> ações gregas para mover o exército pela trilha Acampamento, Planície, Muralhas e Portões.</li>
-        <li><b>Atacar:</b> força combate ou pressão contra as defesas, conforme a posição grega.</li>
-        <li><b>Reforçar:</b> gasta 1 suprimento. Troia pode remover pressão de uma defesa; Gregos consolidam a ofensiva.</li>
-        <li><b>Estratagema:</b> tenta antecipar avanço, ataque ou saída inimiga.</li>
-        <li><b>Buscar recursos:</b> Gregos recebem suprimento para vários anos, mas Troia pode saquear se atacar o acampamento no momento certo.</li>
+        <li><b>Avançar/Recuar:</b> cada contingente move uma casa pela própria rota. O encontro na mesma casa gera conflito automaticamente.</li>
+        <li><b>Buscar recursos:</b> os Forrageadores precisam permanecer na rota de recursos. O Porto permite receber reforços.</li>
+        <li><b>Reforçar:</b> gasta 1 suprimento. A Guarnição pode remover pressão das defesas e os Reforços navais podem aumentar a hoste.</li>
+        <li><b>Estratagema:</b> modifica a leitura da estação e cria oportunidades para o contingente escolhido.</li>
+        <li><b>Objetivos:</b> os Gregos precisam chegar aos Portões até o Ano 9 ou derrotar o Pelotão B; Troia pode resistir até o Ano 6 ou concluir a aliança hitita.</li>
       </ul>
 
       <h3>Dicas de leitura</h3>
@@ -858,8 +873,37 @@ function forcePanelHTML(prep){
       <div class="force-stat">Defesa<strong>+${s.bonusDefesaTroia||0}</strong></div><div class="force-stat">Consumo<strong>${tConsumption}</strong></div>
       ${prep?'':`<div class="force-stat">Posição inimiga<strong>${LOCATION_LABEL[s.greekPosition]}</strong></div><div class="force-stat">Estoque<strong>${s.anosSuprimentoTroia} ano(s)</strong></div>`}
     </div></section>
-  </div>`;
+  </div>${prep?'':contingentPanelHTML()}`;
 }
+
+function contingentPanelHTML(){
+  const s = view.siege;
+  if(!s || !s.contingents) return '';
+  const own = s.contingents[view.role] || [];
+  const objectives = (s.objectives && s.objectives[view.role]) || [];
+  return `<div class="contingent-list">${own.map(c=>`<div class="contingent-row ${view.role}"><b>${c.icon||'◆'}</b><div><strong>${c.name}</strong><small>${ROUTE_LABELS[c.position]||c.position} · ATQ ${c.attack} · DEF ${c.defense}</small></div><span>${c.troops}</span></div>`).join('')}</div><div class="objective-list">${objectives.map(o=>`<div class="objective-item ${o.progress>=o.target?'done':''}">${o.label}<span>${o.progress>=o.target?'Concluído':'Progresso: '+o.progress+'/'+o.target}</span></div>`).join('')}</div>`;
+}
+
+function actionDecisionHTML(v){
+  const own = (v.siege.contingents && v.siege.contingents[v.role]) || [];
+  const selected = own.find(c=>c.id===selectedContingent) || own[0];
+  if(selected && selected.id !== selectedContingent) selectedContingent = selected.id;
+  const count = v.actionCount || 0;
+  const total = v.actionsPerSeason || 2;
+  const orders = Array.from({length:total},(_,i)=>`<span class="order-slot ${i<count?'filled':''}">${i<count?'Ordem '+(i+1)+' confirmada':'Ordem '+(i+1)}</span>`).join('');
+  if(v.picked) return `<div class="panel-wait">Suas duas ordens foram registradas.<br>Aguardando o próximo jogador.</div>`;
+  return `<p class="panel-prompt">Escolha um contingente e dê uma ordem. Cada estação permite ${total} ordens.</p><div class="order-slots">${orders}</div><div class="action-context">Peça selecionada: <strong>${selected ? selected.icon+' '+selected.name : 'nenhuma'}</strong><br><span>${selected ? (ROUTE_LABELS[selected.position]||selected.position) : ''}</span></div><div class="contingent-picker">${own.map(c=>`<button class="${c.id===selectedContingent?'active':''}" onclick="selectContingent('${c.id}')"><strong>${c.icon||'◆'}</strong>${c.name}<br><small>${c.troops} tropas</small></button>`).join('')}</div><div class="panel-actions">${v.actions.map(a=>`<button class="act" onclick="escolherAcao('${a}')" ${requestInFlight?'disabled':''}>${pendingAction===a?'Confirmando...':ACTION_LABEL[a]}</button>`).join('')}</div>`;
+}
+
+function ordersSummary(orders, contingents){
+  const list = Array.isArray(orders) ? orders : [orders];
+  return list.map(o=>{
+    const c = (contingents||[]).find(item=>item.id===(typeof o==='string'?'':o.contingent));
+    return `${ACTION_LABEL[typeof o==='string'?o:o.action]||'Ordem'}${c?' · '+c.name:''}`;
+  }).join('<br>');
+}
+
+window.selectContingent = function(id){ selectedContingent = id; render(); };
 
 function preparationHistoryHTML(){
   const chosen = view.resources && view.resources.chosenCards;
@@ -904,9 +948,9 @@ function previewToolbarHTML(){
 
 function previewView(mode){
   if(mode === 'siege'){
-    return {code:'LOCAL',revision:4,phase:'siege-pick',role:'gregos',solo:true,aiRole:'troia',picked:false,actions:['avancar','recuar','atacar','reforcar','buscar','estratagema'],siege:{
+    return {code:'LOCAL',revision:4,phase:'siege-pick',role:'gregos',solo:true,aiRole:'troia',picked:false,actions:['avancar','recuar','reforcar','buscar','estratagema'],siege:{
       bonusDefesaTroia:5,defenses:{fosso:{active:true,pressure:1,max:2,broken:false},torres:{active:true,pressure:0,max:2,broken:false},muralha:{active:true,pressure:2,max:3,broken:false},pedras:{active:true,pressure:0,max:0,broken:false}},
-      tropasTroia:11,tropasTroiaMax:14,suprimentoTroia:10,consumoTroia:3,anosSuprimentoTroia:3,tropasGregos:13,tropasGregosMax:16,suprimentoGregos:8,consumoGregos:4,anosSuprimentoGregos:2,bonusAtaqueGregos:2,determinacao:6,determinacaoMax:9,cycle:3,maneuver:2,maneuversPerYear:3,phaseOfYear:'Verão',greekPosition:'planicie',cycleLogs:{3:[{html:'<b>Primavera</b> — <span class="tag gregos">Gregos</span> avançam para a planície.'},{html:'<b>Primavera</b> — <span class="tag troia">Troia</span> reforça a muralha.'}]}
+      tropasTroia:11,tropasTroiaMax:14,suprimentoTroia:10,consumoTroia:3,anosSuprimentoTroia:3,tropasGregos:13,tropasGregosMax:16,suprimentoGregos:8,consumoGregos:4,anosSuprimentoGregos:2,bonusAtaqueGregos:2,determinacao:6,determinacaoMax:9,cycle:3,maneuver:2,maneuversPerYear:3,actionsPerSeason:2,phaseOfYear:'Verão',greekPosition:'planicie',hititeProgress:1,contingents:{gregos:[{id:'hoste',name:'Hoste aqueia',icon:'⚔',position:'planicie',troops:7,attack:2,defense:1},{id:'forrageadores',name:'Forrageadores',icon:'🌾',position:'celeiro',troops:3,attack:0,defense:1},{id:'reforcos',name:'Reforços navais',icon:'⛵',position:'porto',troops:3,attack:1,defense:1}],troia:[{id:'guarnicao',name:'Guarnição das muralhas',icon:'🏛',position:'muralhas',troops:5,attack:1,defense:2},{id:'pelotaoB',name:'Pelotão B',icon:'🛡',position:'planicie',troops:3,attack:2,defense:1},{id:'missaoHitita',name:'Missão hitita',icon:'🐎',position:'rota-hitita-1',troops:2,attack:0,defense:1}]},objectives:{gregos:[{id:'nono-ano',label:'Tomar os Portões até o Ano 9',progress:0,target:9},{id:'pelotao-b',label:'Derrotar o Pelotão B',progress:0,target:1}],troia:[{id:'sexto-ano',label:'Manter as Muralhas até o Ano 6',progress:3,target:6},{id:'hititas',label:'Concluir a aliança hitita',progress:1,target:3}]},cycleLogs:{3:[{html:'<b>Primavera</b> — <span class="tag gregos">Gregos</span> avançam para a planície.'},{html:'<b>Primavera</b> — <span class="tag troia">Troia</span> reforça a muralha.'}]}
     }};
   }
   return {code:'LOCAL',revision:0,phase:'era-pick',role:'troia',solo:true,aiRole:'gregos',eraStage:'era1',eraRound:2,eraRoundsTotal:3,picked:false,pendingPreparation:null,myHand:[
@@ -1032,18 +1076,15 @@ function renderGame(app){
   }
 
   if(v.phase === 'siege-pick'){
-    const actions = v.actions;
-    const decision = v.picked
-      ? '<div class="panel-wait">Manobra confirmada.<br>Aguardando o outro lado.</div>'
-      : `<p class="panel-prompt">Escolha uma manobra para esta estação.</p><div class="panel-actions">${actions.map(a=>`<button class="act" onclick="escolherAcao('${a}')" ${requestInFlight?'disabled':''}>${pendingAction===a?'Confirmando...':ACTION_LABEL[a]}</button>`).join('')}</div><p class="panel-prompt" style="margin-top:12px">Posição atual: <b>${LOCATION_LABEL[v.siege.greekPosition]}</b></p>`;
+    const decision = actionDecisionHTML(v);
     app.innerHTML = tableShellHTML({board:campaignBoardHTML({prep:false}),prep:false,kicker:`Ano ${v.siege.cycle} · ${v.siege.phaseOfYear} · ${v.siege.maneuver}/${v.siege.maneuversPerYear}`,title:'Planejamento',decision,footer:`<span class="role-pill ${v.role}">Você comanda ${v.role==='troia'?'Troia':'os Gregos'}</span>`});
     return;
   }
 
   if(v.phase === 'siege-reveal'){
     const la = v.lastActions;
-    const resolveLabel = v.siege.maneuver >= v.siege.maneuversPerYear ? 'Resolver manobra e inverno' : 'Resolver manobra';
-    const decision = `<p class="panel-prompt">As ordens foram reveladas. Resolva a manobra para atualizar a mesa.</p><div class="result-pair"><div class="result-line troia"><span>Troia</span><strong>${ACTION_LABEL[la.troia]}</strong></div><div class="result-line gregos"><span>Gregos</span><strong>${ACTION_LABEL[la.gregos]}</strong></div></div>`;
+    const resolveLabel = v.siege.maneuver >= v.siege.maneuversPerYear ? 'Resolver estação e inverno' : 'Resolver estação';
+    const decision = `<p class="panel-prompt">As ordens foram reveladas. Resolva a estação para atualizar a mesa.</p><div class="result-pair"><div class="result-line troia"><span>Troia</span><strong>${ordersSummary(la.troia,v.siege.contingents.troia)}</strong></div><div class="result-line gregos"><span>Gregos</span><strong>${ordersSummary(la.gregos,v.siege.contingents.gregos)}</strong></div></div>`;
     app.innerHTML = tableShellHTML({board:campaignBoardHTML({prep:false}),prep:false,kicker:`Ano ${v.siege.cycle} · ${v.siege.phaseOfYear}`,title:'Ordens reveladas',decision,footer:`<button class="advance wide" onclick="resolverCiclo()" ${requestInFlight?'disabled':''}>${resolveLabel}</button>`});
     return;
   }

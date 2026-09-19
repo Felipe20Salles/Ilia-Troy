@@ -1,5 +1,25 @@
 const POSITIONS = ['acampamento','planicie','muralhas','portoes'];
 const DEFENSE_ORDER = ['fosso','torres','muralha'];
+const ACTIONS_PER_SEASON = 2;
+
+const CONTINGENT_TEMPLATES = {
+  gregos: [
+    {id:'hoste', name:'Hoste aqueia', icon:'⚔', role:'Avança pela rota central.', position:'acampamento', troops:5, attack:2, defense:1},
+    {id:'forrageadores', name:'Forrageadores', icon:'🌾', role:'Busca suprimentos nas rotas laterais.', position:'celeiro', troops:3, attack:0, defense:1},
+    {id:'reforcos', name:'Reforços navais', icon:'⛵', role:'Chega pelo porto com tropas e artefatos.', position:'porto', troops:3, attack:1, defense:1}
+  ],
+  troia: [
+    {id:'guarnicao', name:'Guarnição das muralhas', icon:'🏛', role:'Protege a cidade e as defesas.', position:'muralhas', troops:5, attack:1, defense:2},
+    {id:'pelotaoB', name:'Pelotão B', icon:'🛡', role:'Sai para disputar a Planície.', position:'cidadela', troops:3, attack:2, defense:1},
+    {id:'missaoHitita', name:'Missão hitita', icon:'🐎', role:'Constrói a aliança pela rota diplomática.', position:'rota-hitita-1', troops:2, attack:0, defense:1}
+  ]
+};
+
+const ROUTE_LABELS = {
+  acampamento:'Acampamento', celeiro:'Celeiro', floresta:'Floresta', porto:'Porto',
+  planicie:'Planície', muralhas:'Muralhas', portoes:'Portões', cidadela:'Cidadela',
+  'rota-hitita-1':'Rota hitita I', 'rota-hitita-2':'Rota hitita II', fronteiraHitita:'Fronteira hitita'
+};
 
 const DECKS = {
   troia: {
@@ -42,8 +62,8 @@ const DECKS = {
 };
 
 const ERA_ROUNDS = {era1:3, era2:2};
-const TROIA_ACTIONS = ['atacar','reforcar','estratagema'];
-const GREGOS_ACTIONS = ['avancar','recuar','atacar','reforcar','buscar','estratagema'];
+const TROIA_ACTIONS = ['avancar','recuar','reforcar','buscar','estratagema'];
+const GREGOS_ACTIONS = ['avancar','recuar','reforcar','buscar','estratagema'];
 const ACTION_LABEL = {
   avancar:'Avançar', recuar:'Recuar', atacar:'Atacar',
   reforcar:'Reforçar', buscar:'Buscar recursos', estratagema:'Estratagema'
@@ -55,6 +75,39 @@ const LOCATION_LABEL = {
 
 function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function dmgTroops(){ return 1+Math.floor(Math.random()*2); }
+
+function createContingents(side, stats){
+  return CONTINGENT_TEMPLATES[side].map(template=>({
+    ...template,
+    troops: template.troops,
+    maxTroops: template.troops,
+    attack: template.attack + (side==='gregos' ? Math.floor((stats.bonusAtaqueGregos||0)/2) : 0),
+    defense: template.defense + (side==='troia' ? Math.floor((stats.bonusDefesaTroia||0)/2) : 0),
+    route: side==='gregos' && template.id==='forrageadores' ? 'resources' : side==='gregos' && template.id==='reforcos' ? 'reinforcements' : side==='troia' && template.id==='missaoHitita' ? 'hitites' : side==='troia' && template.id==='pelotaoB' ? 'troiaField' : 'central'
+  }));
+}
+
+function contingentById(siege, side, id){
+  return (siege.contingents && siege.contingents[side] || []).find(c=>c.id===id) || null;
+}
+
+function routeNext(side, contingent, direction){
+  const routes = {
+    central:['acampamento','planicie','muralhas','portoes'],
+    resources:['celeiro','floresta','planicie'],
+    reinforcements:['porto','rota-hitita-1','rota-hitita-2','planicie'],
+    troiaField:['cidadela','muralhas','planicie'],
+    hitites:['cidadela','rota-hitita-1','rota-hitita-2','fronteiraHitita']
+  };
+  const route = routes[contingent.route] || routes.central;
+  const index = route.indexOf(contingent.position);
+  if(index < 0) return contingent.position;
+  return route[clamp(index + direction, 0, route.length-1)];
+}
+
+function positionForSide(siege, side){
+  return (siege.contingents[side]||[]).map(c=>`${c.name} em ${ROUTE_LABELS[c.position]||c.position}`).join(', ');
+}
 
 function createEraStats(){
   return {
@@ -90,7 +143,7 @@ function createRoom(code){
     eraPicks: { troia: null, gregos: null },
     lastEraReveal: null,
     siege: null,
-    actionPicks: { troia: null, gregos: null },
+    actionPicks: { troia: [], gregos: [] },
     lastActions: null
   };
 }
@@ -272,6 +325,23 @@ function initSiege(room){
     phaseOfYear: 'Primavera',
     greekPosition: 'acampamento',
     lastLocation: 'acampamento',
+    contingents: {gregos:createContingents('gregos', s), troia:createContingents('troia', s)},
+    objectives: {
+      gregos:[
+        {id:'nono-ano', label:'Tomar os Portões até o Ano 9', progress:0, target:9},
+        {id:'pelotao-b', label:'Derrotar o Pelotão B', progress:0, target:1}
+      ],
+      troia:[
+        {id:'sexto-ano', label:'Manter as Muralhas até o Ano 6', progress:0, target:6},
+        {id:'hititas', label:'Concluir a aliança hitita', progress:0, target:3}
+      ]
+    },
+    hititeProgress: 0,
+    hititeBlockYears: 0,
+    hititeContactThisYear: false,
+    hititeRewards: {year1:false, year2:false, year3:false},
+    seasonActions: {gregos:[], troia:[]},
+    actionsPerSeason: ACTIONS_PER_SEASON,
     lastGreekAssaultTarget: null,
     cycleLogs: {},
     greekAttackedThisYear: false,
@@ -411,6 +481,10 @@ function resolveCampRaid(siege, gregosAct){
 }
 
 function resolveActionsLogic(room, siege, troiaAct, gregosAct){
+  if(siege.contingents){
+    resolveContingentRound(room, siege, troiaAct, gregosAct);
+    return;
+  }
   const troiaReforcou = troiaAct==='reforcar' && affordReforcar(siege,'troia');
   const gregosReforcou = gregosAct==='reforcar' && affordReforcar(siege,'gregos');
   if(troiaAct==='reforcar' && !troiaReforcou) addLog(siege, `<span class="tag troia">Troia</span> tenta reforçar, mas não há suprimento.`);
@@ -458,6 +532,75 @@ function resolveActionsLogic(room, siege, troiaAct, gregosAct){
   siege.lastLocation = siege.greekPosition;
 }
 
+function orderAction(order){ return typeof order === 'string' ? order : order && order.action; }
+function orderContingent(order){ return typeof order === 'string' ? null : order && order.contingent; }
+
+function resolveContingentRound(room, siege, troiaOrder, greekOrder){
+  const orders = [{side:'troia',order:troiaOrder},{side:'gregos',order:greekOrder}];
+  orders.forEach(({side,order})=>{
+    const action = orderAction(order);
+    const list = siege.contingents[side] || [];
+    const contingent = contingentById(siege, side, orderContingent(order)) || list[0];
+    if(!contingent || contingent.troops<=0) return;
+    const dir = action==='recuar' ? -1 : action==='avancar' ? 1 : 0;
+    if(dir){
+      contingent.position = routeNext(side, contingent, dir);
+      addLog(siege, `<span class="tag ${side}">${side==='troia'?'Troia':'Gregos'}</span> move ${contingent.name} para ${ROUTE_LABELS[contingent.position]||contingent.position}.`);
+    }
+    if(action==='buscar'){
+      if(side==='gregos' && contingent.route==='resources' && ['celeiro','floresta'].includes(contingent.position)){
+        siege.suprimentoGregos += 4;
+        addLog(siege, `<span class="tag gregos">Gregos</span> recolhem +4 suprimentos com os Forrageadores.`);
+      } else if(side==='troia' && contingent.route==='hitites' && contingent.position.startsWith('rota-hitita')){
+        siege.hititeContactThisYear = true;
+        addLog(siege, `<span class="tag troia">Troia</span> mantém contato com os Emissários de Hatti.`);
+      }
+    }
+    if(action==='reforcar'){
+      const field = side==='troia' ? 'suprimentoTroia' : 'suprimentoGregos';
+      if(siege[field]>0){
+        siege[field]-=1;
+        if(side==='troia' && contingent.id==='guarnicao'){
+          const repaired = reduceDefensePressure(siege);
+          addLog(siege, repaired ? `<span class="tag troia">Troia</span> remove 1 pressão de ${repaired.toLowerCase()}.` : `<span class="tag troia">Troia</span> reforça a guarnição.`);
+        } else if(side==='gregos' && contingent.id==='reforcos'){
+          siege.tropasGregos += 1;
+          contingent.troops += 1;
+          addLog(siege, `<span class="tag gregos">Gregos</span> recebem 1 reforço do porto.`);
+        }
+      }
+    }
+  });
+
+  const greek = (siege.contingents.gregos||[]).filter(c=>c.troops>0);
+  const trojan = (siege.contingents.troia||[]).filter(c=>c.troops>0);
+  const encounters = greek.flatMap(g=>trojan.filter(t=>t.position===g.position).map(t=>[g,t]));
+  if(encounters.length) siege.greekAttackedThisYear = true;
+  encounters.slice(0,1).forEach(([g,t])=>{
+    const structural = ['muralhas','portoes'].includes(g.position) ? activeDefenseBonus(siege) : 0;
+    const gp = g.troops + g.attack + siege.bonusAtaqueGregos;
+    const tp = t.troops + t.defense + structural + siege.bonusDefesaTroia;
+    if(gp >= tp){
+      const loss = Math.max(1, Math.min(2, Math.ceil((gp-tp)/3)));
+      t.troops = Math.max(0,t.troops-loss); siege.tropasTroia = Math.max(0,siege.tropasTroia-loss);
+      if(t.id==='pelotaoB' && t.troops===0) siege.objectives.gregos[1].progress=1;
+      addLog(siege, `<span class="tag gregos">Gregos</span> vencem o encontro em ${ROUTE_LABELS[g.position]||g.position} e causam ${loss} baixa(s).`);
+    } else {
+      const loss = Math.max(1, Math.min(2, Math.ceil((tp-gp)/3)));
+      g.troops = Math.max(0,g.troops-loss); siege.tropasGregos = Math.max(0,siege.tropasGregos-loss);
+      g.position = routeNext('gregos', g, -1);
+      addLog(siege, `<span class="tag troia">Troia</span> segura ${ROUTE_LABELS[g.position]||g.position} e força ${g.name} a recuar.`);
+    }
+  });
+  const hoste = contingentById(siege,'gregos','hoste');
+  if(hoste) siege.greekPosition = hoste.position;
+  if(hoste && hoste.position==='muralhas') addDefensePressure(siege, 1);
+  if(siege.greekPosition==='portoes' && siege.muralhaRompida){
+    siege.gameOver='gregos'; siege.reason='portoes'; room.phase='fim';
+    addLog(siege, `<span class="tag gregos">Gregos</span> alcançam os portões de Troia.`);
+  }
+}
+
 function finishYear(room){
   const siege = room.siege;
   siege.phaseOfYear = 'Inverno';
@@ -470,12 +613,51 @@ function finishYear(room){
     siege.determinacao = clamp(siege.determinacao-1,0,siege.determinacaoMax);
     addLog(siege, `<span class="tag gregos">Gregos</span> passam o ano sem ataque relevante; os reis pressionam e a determinação cai.`);
   }
+  resolveHititeYear(room);
   if(checkCollapse(room)) return;
+  if(siege.cycle >= 6 && !siege.muralhaRompida){
+    siege.gameOver='troia'; siege.reason='sexto-ano'; room.phase='fim';
+    addLog(siege, `<span class="tag troia">Troia</span> mantém as muralhas até o sexto ano e vence por resistência.`);
+    return;
+  }
+  if(siege.cycle >= 9 && siege.greekPosition!=='portoes'){
+    siege.gameOver='troia'; siege.reason='nono-ano'; room.phase='fim';
+    addLog(siege, `<span class="tag troia">Troia</span> sobrevive ao nono ano; o cerco grego perde sua última chance.`);
+    return;
+  }
   siege.cycle += 1;
   siege.maneuver = 1;
   siege.phaseOfYear = 'Primavera';
   siege.greekAttackedThisYear = false;
   room.phase = 'siege-pick';
+}
+
+function resolveHititeYear(room){
+  const siege = room.siege;
+  if(!siege.contingents) return;
+  if(!siege.hititeRewards) siege.hititeRewards = {year1:false,year2:false,year3:false};
+  const emissarios = contingentById(siege,'troia','missaoHitita');
+  const greekBlocker = (siege.contingents.gregos||[]).some(c => c.troops>0 && ['rota-hitita-1','rota-hitita-2'].includes(c.position));
+  if(greekBlocker){
+    siege.hititeBlockYears = (siege.hititeBlockYears||0)+1;
+    if(siege.hititeBlockYears >= 2 && siege.hititeProgress>0){
+      siege.hititeProgress -= 1;
+      siege.hititeBlockYears = 0;
+      addLog(siege, `<span class="tag gregos">Gregos</span> mantêm a rota ocupada por dois anos; o progresso de Hatti recua 1 nível.`);
+    } else {
+      addLog(siege, `<span class="tag gregos">Gregos</span> bloqueiam a rota dos Emissários de Hatti.`);
+    }
+  } else if(siege.hititeContactThisYear) {
+    siege.hititeBlockYears = 0;
+    siege.hititeProgress = clamp(siege.hititeProgress+1,0,4);
+    const level = siege.hititeProgress;
+    if(level===1 && !siege.hititeRewards.year1){ siege.suprimentoTroia += 3; siege.hititeRewards.year1=true; addLog(siege, `<span class="tag troia">Troia</span> recebe +3 suprimentos de Hatti.`); }
+    if(level===2 && !siege.hititeRewards.year2){ const troops=2; siege.suprimentoTroia += 0; siege.tropasTroia += troops; if(emissarios) emissarios.troops += troops; siege.hititeRewards.year2=true; addLog(siege, `<span class="tag troia">Troia</span> recebe ${troops} tropas que se juntam aos Emissários de Hatti.`); }
+    if(level===3 && !siege.hititeRewards.year3){ siege.suprimentoTroia += 4; siege.hititeRewards.year3=true; addLog(siege, `<span class="tag troia">Troia</span> recebe +4 suprimentos de Hatti.`); }
+    addLog(siege, `<span class="tag troia">Troia</span> mantém a rota de Hatti (${siege.hititeProgress}/4).`);
+    if(siege.hititeProgress>=4){ siege.gameOver='troia'; siege.reason='hititas'; room.phase='fim'; addLog(siege, `<span class="tag troia">Troia</span> recebe o exército principal de Hatti e vence.`); }
+  }
+  siege.hititeContactThisYear = false;
 }
 
 function advanceEraRound(room){
@@ -493,28 +675,22 @@ function advanceEraRound(room){
   } else {
     initSiege(room);
     if(room.phase !== 'fim') room.phase = 'siege-pick';
-    room.actionPicks = { troia:null, gregos:null };
+    room.actionPicks = { troia:[], gregos:[] };
   }
 }
 
 function actionsFor(room, role){
   if(!room.siege) return role==='troia' ? TROIA_ACTIONS : GREGOS_ACTIONS;
-  if(role==='troia') return TROIA_ACTIONS;
-  const actions = [...GREGOS_ACTIONS];
-  if(room.siege.greekPosition === 'acampamento') actions.splice(actions.indexOf('recuar'), 1);
-  if(room.siege.greekPosition === 'muralhas' && !room.siege.muralhaRompida){
-    actions.splice(actions.indexOf('avancar'), 1);
-  }
-  if(room.siege.greekPosition === 'portoes') actions.splice(actions.indexOf('avancar'), 1);
-  return actions;
+  return role==='troia' ? TROIA_ACTIONS : GREGOS_ACTIONS;
 }
 
-function pickAction(room, side, action){
+function pickAction(room, side, action, contingentId){
   if(room.phase !== 'siege-pick') return;
-  if(room.actionPicks[side]) return;
+  if(!Array.isArray(room.actionPicks[side])) room.actionPicks[side] = room.actionPicks[side] ? [room.actionPicks[side]] : [];
+  if(room.actionPicks[side].length >= ACTIONS_PER_SEASON) return;
   if(!actionsFor(room, side).includes(action)) return;
-  room.actionPicks[side] = action;
-  if(room.actionPicks.troia && room.actionPicks.gregos){
+  room.actionPicks[side].push({action, contingent:contingentId || CONTINGENT_TEMPLATES[side][0].id});
+  if(room.actionPicks.troia.length >= ACTIONS_PER_SEASON && room.actionPicks.gregos.length >= ACTIONS_PER_SEASON){
     room.lastActions = {
       troia: room.actionPicks.troia,
       gregos: room.actionPicks.gregos,
@@ -529,10 +705,13 @@ function pickAction(room, side, action){
 function resolveCycle(room){
   if(room.phase !== 'siege-reveal') return;
   const siege = room.siege;
-  resolveActionsLogic(room, siege, room.lastActions.troia, room.lastActions.gregos);
+  const troiaOrders = Array.isArray(room.lastActions.troia) ? room.lastActions.troia : [room.lastActions.troia];
+  const greekOrders = Array.isArray(room.lastActions.gregos) ? room.lastActions.gregos : [room.lastActions.gregos];
+  const rounds = Math.max(troiaOrders.length, greekOrders.length);
+  for(let i=0;i<rounds;i++) resolveActionsLogic(room, siege, troiaOrders[i] || 'reforcar', greekOrders[i] || 'avancar');
   room.lastActions.positionAfter = siege.greekPosition;
   room.lastActions.location = siege.lastLocation;
-  room.actionPicks = { troia:null, gregos:null };
+  room.actionPicks = { troia:[], gregos:[] };
   resolveSupply(siege, siege.phaseOfYear);
   if(checkCollapse(room)) return;
   if(siege.maneuver < siege.maneuversPerYear){
@@ -554,7 +733,7 @@ function restart(room){
   room.eraPicks = { troia:null, gregos:null };
   room.lastEraReveal = null;
   room.siege = null;
-  room.actionPicks = { troia:null, gregos:null };
+  room.actionPicks = { troia:[], gregos:[] };
   room.lastActions = null;
   room.phase = 'lobby';
   startGame(room);
@@ -581,8 +760,12 @@ function publicSiegeInfo(siege){
     cycle: siege.cycle,
     maneuver: siege.maneuver,
     maneuversPerYear: siege.maneuversPerYear,
+    actionsPerSeason: siege.actionsPerSeason || ACTIONS_PER_SEASON,
     phaseOfYear: siege.phaseOfYear,
     greekPosition: siege.greekPosition,
+    contingents: siege.contingents || {gregos:[],troia:[]},
+    objectives: siege.objectives || {gregos:[],troia:[]},
+    hititeProgress: siege.hititeProgress || 0,
     cycleLogs: siege.cycleLogs || {},
     lastLocation: siege.lastLocation || null,
     gameOver: siege.gameOver,

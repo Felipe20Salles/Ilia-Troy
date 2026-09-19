@@ -140,7 +140,7 @@ exports.handler = async (event) => {
 
   try {
     connectLambda(event);
-    const store = getStore({name:'guerra-de-troia-rooms', consistency:'strong'});
+    const store = getStore('guerra-de-troia-rooms');
     if(event.httpMethod === 'POST' && action === 'create'){
       let code;
       for(let tries=0; tries<10; tries++){
@@ -152,7 +152,7 @@ exports.handler = async (event) => {
       const token = genToken();
       room.tokens.troia = token;
       await store.setJSON(code, room);
-      return json({ code, role:'troia', token });
+      return json({...sanitize(room, 'troia'), token});
     }
 
     if(event.httpMethod === 'POST' && action === 'create-solo'){
@@ -173,7 +173,7 @@ exports.handler = async (event) => {
       logic.startGame(room);
       runAi(room);
       await store.setJSON(code, room);
-      return json({ code, role, token });
+      return json({...sanitize(room, role), token});
     }
 
     if(event.httpMethod === 'POST' && action === 'join'){
@@ -187,7 +187,7 @@ exports.handler = async (event) => {
       room.tokens.gregos = token;
       room.updatedAt = Date.now();
       await store.setJSON(room.code, room);
-      return json({ code: room.code, role:'gregos', token });
+      return json({...sanitize(room, 'gregos'), token});
     }
 
     if(event.httpMethod === 'GET' && action === 'state'){

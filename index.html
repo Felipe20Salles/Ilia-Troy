@@ -216,6 +216,7 @@ let manualOpen = false;
 let requestInFlight = false;
 let pendingCardIndex = null;
 let pendingAction = null;
+let stateMisses = 0;
 
 function loadSession(){
   try {
@@ -256,11 +257,16 @@ async function refreshState(){
     const previousPhase = view && view.phase;
     const data = await api('state', { params:{ code:session.code, role:session.role, token:session.token } });
     view = data;
+    stateMisses = 0;
     errorMsg = null;
     if(previousPhase === 'lobby' && view.phase === 'era-pick') playIntroVideo();
     if(!['siege-pick','siege-reveal','fim'].includes(view.phase)) logViewCycle = null;
     render();
   } catch(e){
+    if(view && e.message === 'Sala não encontrada.' && stateMisses < 5){
+      stateMisses += 1;
+      return;
+    }
     errorMsg = e.message;
     render();
   }
@@ -280,8 +286,11 @@ async function criarSala(){
   try {
     const data = await api('create', { method:'POST', body:{} });
     session = { code:data.code, role:data.role, token:data.token };
+    view = data;
     saveSession(session);
     localScreen = 'game';
+    manualOpen = false;
+    render();
     startPolling();
   } catch(e){ errorMsg = e.message; render(); }
 }
@@ -291,8 +300,11 @@ async function entrarSala(code){
   try {
     const data = await api('join', { method:'POST', body:{ code } });
     session = { code:data.code, role:data.role, token:data.token };
+    view = data;
     saveSession(session);
     localScreen = 'game';
+    manualOpen = false;
+    render();
     startPolling();
   } catch(e){ errorMsg = e.message; render(); }
 }
@@ -308,6 +320,7 @@ async function sairSala(){
 async function iniciarDuelo(){
   try {
     view = await api('start', { method:'POST', body: session });
+    manualOpen = false;
     playIntroVideo();
     render();
   }
@@ -563,9 +576,12 @@ async function criarSolo(role){
   try {
     const data = await api('create-solo', { method:'POST', body:{ role } });
     session = { code:data.code, role:data.role, token:data.token };
+    view = data;
     saveSession(session);
     localScreen = 'game';
+    manualOpen = false;
     playIntroVideo();
+    render();
     startPolling();
   } catch(e){ errorMsg = e.message; render(); }
 }
@@ -746,7 +762,7 @@ function render(){
 
   if(localScreen === 'game'){
     if(!view){
-      app.innerHTML = `${errorHTML()}<div class="setup"><p>Carregando sala...</p></div>`;
+      app.innerHTML = `${errorHTML()}<div class="setup"><p>${errorMsg?'Não foi possível recuperar esta partida.':'Carregando sala...'}</p>${errorMsg?'<button class="act" onclick="sairSala()">Voltar ao início</button>':''}</div>`;
       return;
     }
     renderGame(app);

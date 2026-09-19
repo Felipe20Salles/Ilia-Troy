@@ -78,6 +78,7 @@ function createRoom(code){
     code,
     createdAt: Date.now(),
     updatedAt: Date.now(),
+    revision: 0,
     tokens: { troia: null, gregos: null },
     phase: 'lobby',
     eraStage: 'era1',

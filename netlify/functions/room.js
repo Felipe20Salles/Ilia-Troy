@@ -86,6 +86,7 @@ function sanitize(room, role){
   const opponent = opponentOf(role);
   const out = {
     code: room.code,
+    revision: room.revision || 0,
     phase: room.phase,
     role,
     solo: !!(room.ai && room.ai.enabled),
@@ -185,6 +186,7 @@ exports.handler = async (event) => {
       if(room.tokens.gregos) return json({error:'Sala já está cheia.'}, 409);
       const token = genToken();
       room.tokens.gregos = token;
+      room.revision = (room.revision || 0) + 1;
       room.updatedAt = Date.now();
       await store.setJSON(room.code, room);
       return json({...sanitize(room, 'gregos'), token});
@@ -202,6 +204,9 @@ exports.handler = async (event) => {
       if(auth.error) return json(auth, auth.status);
       const room = auth.room;
       const role = body.role;
+      if((room.revision || 0) < Number(body.revision || 0)){
+        return json({error:'Estado da partida ainda sincronizando.'}, 409);
+      }
 
       if(action === 'start'){
         if(!room.tokens.troia || !room.tokens.gregos) return json({error:'Aguardando o segundo jogador entrar na sala.'}, 400);
@@ -225,6 +230,7 @@ exports.handler = async (event) => {
         return json({error:'Ação desconhecida.'}, 400);
       }
 
+      room.revision = (room.revision || 0) + 1;
       room.updatedAt = Date.now();
       await store.setJSON(room.code, room);
       return json(sanitize(room, role));

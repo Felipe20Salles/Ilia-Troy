@@ -217,6 +217,7 @@ let requestInFlight = false;
 let pendingCardIndex = null;
 let pendingAction = null;
 let stateMisses = 0;
+let stateGraceUntil = 0;
 
 function loadSession(){
   try {
@@ -235,6 +236,7 @@ function clearSession(){
 async function api(action, opts){
   opts = opts || {};
   const method = opts.method || 'GET';
+  const attempt = opts._attempt || 0;
   let url = API + '?action=' + encodeURIComponent(action);
   const fetchOpts = { method };
   if(method === 'GET'){
@@ -246,8 +248,19 @@ async function api(action, opts){
   }
   const res = await fetch(url, fetchOpts);
   const data = await res.json().catch(()=>({error:'Resposta inválida do servidor.'}));
-  if(!res.ok) throw new Error(data.error || 'Erro na requisição.');
+  if(!res.ok){
+    const waitingForRoom = data.error === 'Sala não encontrada.' || data.error === 'Estado da partida ainda sincronizando.';
+    if(method === 'POST' && waitingForRoom && attempt < 20){
+      await new Promise(resolve=>setTimeout(resolve, 750));
+      return api(action, Object.assign({}, opts, {_attempt:attempt+1}));
+    }
+    throw new Error(data.error || 'Erro na requisição.');
+  }
   return data;
+}
+
+function actionBody(extra){
+  return Object.assign({revision:(view && view.revision)||0}, session, extra||{});
 }
 
 async function refreshState(){
@@ -256,14 +269,16 @@ async function refreshState(){
   try {
     const previousPhase = view && view.phase;
     const data = await api('state', { params:{ code:session.code, role:session.role, token:session.token } });
+    if(view && (data.revision||0) < (view.revision||0)) return;
     view = data;
     stateMisses = 0;
+    stateGraceUntil = 0;
     errorMsg = null;
     if(previousPhase === 'lobby' && view.phase === 'era-pick') playIntroVideo();
     if(!['siege-pick','siege-reveal','fim'].includes(view.phase)) logViewCycle = null;
     render();
   } catch(e){
-    if(view && e.message === 'Sala não encontrada.' && stateMisses < 5){
+    if(view && e.message === 'Sala não encontrada.' && (Date.now() < stateGraceUntil || stateMisses < 5)){
       stateMisses += 1;
       return;
     }
@@ -287,6 +302,7 @@ async function criarSala(){
     const data = await api('create', { method:'POST', body:{} });
     session = { code:data.code, role:data.role, token:data.token };
     view = data;
+    stateGraceUntil = Date.now()+30000;
     saveSession(session);
     localScreen = 'game';
     manualOpen = false;
@@ -301,6 +317,7 @@ async function entrarSala(code){
     const data = await api('join', { method:'POST', body:{ code } });
     session = { code:data.code, role:data.role, token:data.token };
     view = data;
+    stateGraceUntil = Date.now()+30000;
     saveSession(session);
     localScreen = 'game';
     manualOpen = false;
@@ -319,7 +336,7 @@ async function sairSala(){
 
 async function iniciarDuelo(){
   try {
-    view = await api('start', { method:'POST', body: session });
+    view = await api('start', { method:'POST', body: actionBody() });
     manualOpen = false;
     playIntroVideo();
     render();
@@ -331,38 +348,50 @@ async function escolherCartaEra(idx){
   requestInFlight = true;
   pendingCardIndex = idx;
   render();
-  try { await api('pick-era', { method:'POST', body: Object.assign({index:idx}, session) }); }
+  try {
+    view = await api('pick-era', { method:'POST', body: actionBody({index:idx}) });
+    errorMsg = null;
+  }
   catch(e){ errorMsg = e.message; }
-  finally { requestInFlight = false; pendingCardIndex = null; await refreshState(); }
+  finally { requestInFlight = false; pendingCardIndex = null; render(); }
 }
 async function continuarEra(){
   if(requestInFlight) return;
   requestInFlight = true;
   render();
-  try { await api('advance-era', { method:'POST', body: session }); }
+  try {
+    view = await api('advance-era', { method:'POST', body: actionBody() });
+    errorMsg = null;
+  }
   catch(e){ errorMsg = e.message; }
-  finally { requestInFlight = false; await refreshState(); }
+  finally { requestInFlight = false; render(); }
 }
 async function escolherAcao(choice){
   if(requestInFlight) return;
   requestInFlight = true;
   pendingAction = choice;
   render();
-  try { await api('pick-action', { method:'POST', body: Object.assign({choice}, session) }); }
+  try {
+    view = await api('pick-action', { method:'POST', body: actionBody({choice}) });
+    errorMsg = null;
+  }
   catch(e){ errorMsg = e.message; }
-  finally { requestInFlight = false; pendingAction = null; await refreshState(); }
+  finally { requestInFlight = false; pendingAction = null; render(); }
 }
 async function resolverCiclo(){
   if(requestInFlight) return;
   requestInFlight = true;
   render();
-  try { await api('resolve-cycle', { method:'POST', body: session }); }
+  try {
+    view = await api('resolve-cycle', { method:'POST', body: actionBody() });
+    errorMsg = null;
+  }
   catch(e){ errorMsg = e.message; }
-  finally { requestInFlight = false; await refreshState(); }
+  finally { requestInFlight = false; render(); }
 }
 async function novoDuelo(){
   try {
-    view = await api('restart', { method:'POST', body: session });
+    view = await api('restart', { method:'POST', body: actionBody() });
     playIntroVideo();
     render();
   }
@@ -577,6 +606,7 @@ async function criarSolo(role){
     const data = await api('create-solo', { method:'POST', body:{ role } });
     session = { code:data.code, role:data.role, token:data.token };
     view = data;
+    stateGraceUntil = Date.now()+30000;
     saveSession(session);
     localScreen = 'game';
     manualOpen = false;

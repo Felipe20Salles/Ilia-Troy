@@ -6,7 +6,7 @@
     const safe=n=>Number.isInteger(n)&&n>=0&&n<=100?n:0;
     const resources={supplies:safe(previous?.resources?.supplies),horseMaterials:safe(previous?.resources?.horseMaterials)};
     if(outcome.completed==='desembarque')resources.supplies=Math.max(resources.supplies,safe(outcome.supplies));
-    return {version:1,completed:[...new Set([...completed,outcome.completed])],resources,intel:outcome.completed==='muralhas'?['M1','M2']:(previous?.intel||[]),team:{players,heroes:heroes.map(h=>h.id),owners:heroes.map(h=>h.owner)}};
+    return {version:1,completed:[...new Set([...completed,outcome.completed])],resources,intel:outcome.completed==='muralhas'?['M1','M2']:(previous?.intel||[]),team:{players,heroes:heroes.map(h=>h.id),owners:heroes.map(h=>h.owner),levels:Object.fromEntries(heroes.map(h=>[h.id,h.level??1]))}};
   }
   return {record};
 });

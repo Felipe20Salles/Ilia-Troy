@@ -60,14 +60,15 @@ test('sabotage, incapacitation and timeout each cause defeat',()=>{
  s=G.newGame();s.round=10;s.enemies=[];assert.equal(G.trojanTurn(s).result,'defeat');
  s=G.newGame();s.heroes.forEach(h=>{h.hp=0;h.ap=0;});s.heroes[0].hp=1;s.enemies[0].zone='N1';assert.equal(G.trojanTurn(s).result,'defeat');
 });
-test('all fifteen skills have a legal effect and spend one action',()=>{
+test('all fourteen active skills have a legal effect and spend one action',()=>{
  for(const def of G.HEROES)for(let i=0;i<3;i++){
+  if(def.cards[i].passive)continue;
   let s=G.newGame({players:5,heroes:G.HEROES.map(h=>h.id)});const h=s.heroes.find(h=>h.id===def.id),ally=s.heroes.find(a=>a.id!==h.id);h.hp=3;s.enemies=[{id:'e1',hp:3,zone:'B2'}];let target;
   const type=def.cards[i].type;
-  if(type==='attack'){h.zone='B2';target='e1';}else if(['charge','ranged'].includes(type))target='e1';
+  if(type==='attack'){h.zone='B2';target='e1';}else if(['charge','ranged','precision'].includes(type))target='e1';
   else if(type==='healAlly'){ally.hp=0;ally.ap=0;target=ally.id;}
-  else if(type==='guide')target=ally.id+':P3';else if(type==='sprint')target='A1';else if(type==='refresh'){ally.used=[0,1];target=ally.id;}
-  const r=G.act(s,h.id,'card:'+i,target);assert.ok(r.ok,def.name+' '+def.cards[i].name+': '+r.error);const after=r.state.heroes.find(a=>a.id===h.id);assert.equal(after.ap,1);assert.ok(after.used.includes(i));assert.ok(G.validSave(r.state));
+  else if(type==='grantAction')target=ally.id;else if(type==='guide')target=ally.id+':P3';else if(type==='sprint')target='A1';else if(type==='refresh'){ally.used=[0,1];target=ally.id;}
+  const r=G.act(s,h.id,'card:'+i,target);assert.ok(r.ok,def.name+' '+def.cards[i].name+': '+r.error);const after=r.state.heroes.find(a=>a.id===h.id);assert.equal(after.ap,1);assert.ok((def.cards[i].once?after.onceUsed:after.used).includes(i));assert.ok(G.validSave(r.state));
  }
 });
 test('Agamemnon prepares ally skills without adding actions or targeting himself',()=>{

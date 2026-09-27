@@ -1,32 +1,32 @@
 (function(root,factory){
-  if(typeof module==='object'&&module.exports)module.exports=factory(require('./heroes.js'));
-  else root.TroyLanding=factory(root.TroyHeroes);
-})(typeof globalThis!=='undefined'?globalThis:this,function(HEROES){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./heroes.js'),require('./troops.js'));
+  else root.TroyLanding=factory(root.TroyHeroes,root.TroyTroops);
+})(typeof globalThis!=='undefined'?globalThis:this,function(HEROES,TROOPS){
   'use strict';
-  const VERSION=3,MAX_ROUNDS=10;
-  const LAYOUT=[['P1','P2','B1'],['A2','A1','B2'],['N2','P3','N1']];
-  const TERRAINS={P:{art:'planicie',name:'Planície'},B:{art:'bosque',name:'Bosque'},A:{art:'acampamento',name:'Acampamento'},N:{art:'navios',name:'Praia'}};
+  const VERSION=5,MAX_ROUNDS=10;
+  const LAYOUT=[['P3','P1','P6','C2'],['A1','A2','P2'],['N1','N2','N3','N4']];
+  const TERRAINS={C:{art:'colina',name:'Colina'},P:{art:'planicie',name:'Planície'},B:{art:'bosque',name:'Bosque'},A:{art:'acampamento',name:'Acampamento'},N:{art:'navios',name:'Praia'}};
   const ZONES={};
   LAYOUT.forEach((row,y)=>row.forEach((id,x)=>{ZONES[id]={x,y,name:id+' · '+TERRAINS[id[0]].name,terrain:id[0],art:TERRAINS[id[0]].art,links:[]};}));
-  const CONNECTIONS={P1:['A2','P2'],P2:['P1','P3','B1'],B1:['P2','B2'],A2:['P1','A1'],A1:['A2','P3','N2'],B2:['B1','P3','N1'],N2:['A1','P3'],P3:['P2','A1','B2','N2','N1'],N1:['P3','B2']};
+  const CONNECTIONS={"P3":["P1","P6"],"P1":["P3","P6","A1","A2"],"P6":["P3","P1","A2","C2"],"C2":["P6","A2","P2"],"A1":["P1","A2","N1"],"A2":["A1","P1","P6","C2","P2","N1","N2"],"P2":["A2","C2","N2","N3","N4"],"N1":["A1","A2","N2"],"N2":["N1","A2","P2","N3"],"N3":["N2","P2","N4"],"N4":["N3","P2"]};
   for(const [id,links] of Object.entries(CONNECTIONS))ZONES[id].links=links;
   const clone=s=>JSON.parse(JSON.stringify(s));
   function log(s,msg){s.log.unshift(msg);s.log=s.log.slice(0,80);}
-  function spawn(s,zone){s.enemies.push({id:'e'+s.nextEnemy++,zone,hp:3});}
+  function spawn(s,zone,type='explorador'){s.enemies.push(TROOPS.create('e'+s.nextEnemy++,zone,type));}
   function newGame(options={}){
     const players=options.players??1,ids=options.heroes??['aquiles','ajax','odisseu'],owners=options.owners??ids.map((_,i)=>i%players+1);
     if(!Number.isInteger(players)||players<1||players>5||ids.length!==Math.max(3,players)||new Set(ids).size!==ids.length||ids.some(id=>!HEROES.some(h=>h.id===id))||owners.length!==ids.length||owners.some(n=>!Number.isInteger(n)||n<1||n>players)||new Set(owners).size!==players)throw Error('Escolha a quantidade de heróis indicada e atribua ao menos um a cada jogador.');
     const s={version:VERSION,mission:'desembarque',players,round:1,phase:'heroes',result:null,reason:'',campDamage:0,delivered:0,required:ids.length,built:false,held:0,supplies:{N1:Math.ceil(ids.length/2),N2:Math.floor(ids.length/2)},guards:{},nextEnemy:1,
       heroes:ids.map((id,i)=>({...HEROES.create(id,options.levels?.[id]??1),owner:owners[i],zone:'N1',cargo:false})),enemies:[],log:[],outcome:null};
-    spawn(s,'P1');if(ids.length>=4)spawn(s,'B1');log(s,'Desembarque: levem '+s.required+' caixas das praias N1/N2 ao acampamento A1.');return s;
+    spawn(s,'P1');if(ids.length>=4)spawn(s,'C2');log(s,'Desembarque: levem '+s.required+' caixas das praias N1/N2 ao acampamento A1.');return s;
   }
   function distance(from,to){if(!ZONES[from]||!ZONES[to])return Infinity;const queue=[[from,0]],seen=new Set([from]);for(const [at,d] of queue){if(at===to)return d;for(const n of ZONES[at].links)if(!seen.has(n)){seen.add(n);queue.push([n,d+1]);}}return Infinity;}
   function nextStep(zone){return ZONES[zone].links.slice().sort((a,b)=>distance(a,'A1')-distance(b,'A1'))[0];}
-  function waves(s,round){const zones=({3:['B1'],5:['P1'],7:['P2'],9:['B1']})[round]||[];return s.heroes.length===5&&round===5?[...zones,'B1']:zones;}
+  function waves(s,round){const zones=({3:['C2'],5:['P1'],7:['P2'],9:['C2']})[round]||[];return s.heroes.length===5&&round===5?[...zones,'C2']:zones;}
   function intent(e,s){if(e.stunned)return 'Atordoado: perderá esta ativação';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;if(s.heroes.some(h=>h.zone===e.zone&&h.hp>0))return 'Atacar um herói aqui';return e.zone==='A1'?'Sabotar o acampamento':'Avançar para '+ZONES[nextStep(e.zone)].name;}
   function finish(s,result,reason){s.result=result;s.phase='end';s.reason=reason;if(result==='victory')s.outcome={completed:'desembarque',next:'Diante das muralhas',supplies:s.required,horseMaterials:0};log(s,reason);}
   function defeat(s){if(s.campDamage>=3)finish(s,'defeat','O acampamento sofreu três danos. Os aqueus precisam refazer o desembarque.');else if(s.heroes.every(h=>h.hp===0))finish(s,'defeat','Todos os heróis caíram. A expedição precisa recuar.');}
-  function kill(s,e,damage,piercing=false){e.hp-=Math.max(0,damage-(piercing?0:e.armor||0));if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,'Grupo '+e.id.slice(1)+' derrotado em '+e.zone+'.');}}
+  function kill(s,e,damage,piercing=false){e.hp-=Math.max(0,damage-(piercing?0:e.armor||0));if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');}}
   function interaction(s,h){
     if(h.cargo&&h.zone==='A1')return {label:'Entregar caixa',detail:'Abastecer o acampamento',available:true};
     if(!h.cargo&&(s.supplies[h.zone]||0)>0)return {label:'Carregar caixa',detail:'Leve uma caixa até A1',available:true};
@@ -44,7 +44,7 @@
       if(foes().length)return fail('Elimine os inimigos nesta casa antes de interagir.');
       if(h.cargo&&h.zone==='A1'){h.cargo=false;s.delivered++;message='entregou uma caixa em A1 ('+s.delivered+'/'+s.required+')';}
       else if(!h.cargo&&(s.supplies[h.zone]||0)>0){s.supplies[h.zone]--;h.cargo=true;message='carregou uma caixa de '+h.zone;}
-      else if(h.zone==='A1'&&s.delivered===s.required&&!s.built){s.built=true;s.held=0;for(let i=0;i<Math.ceil(s.heroes.length/2);i++)spawn(s,i%2?'B1':'P2');message='instalou o acampamento. Contra-ataque em P2/B1: defendam A1 por duas respostas consecutivas';}
+      else if(h.zone==='A1'&&s.delivered===s.required&&!s.built){s.built=true;s.held=0;for(let i=0;i<Math.ceil(s.heroes.length/2);i++)spawn(s,i%2?'C2':'P2','lanceiro');message='instalou o acampamento. Contra-ataque em P2/C2: defendam A1 por duas respostas consecutivas';}
       else return fail('Não há entrega, coleta ou instalação disponível aqui.');
     }else if(action==='rest'){
       if(foes().length)return fail('Não é possível recuperar com inimigos nesta casa.');if(!h.used.length&&h.hp===HEROES.stats(h).maxHp)return fail('Vida e habilidades já estão completas.');h.used=[];h.hp=Math.min(HEROES.stats(h).maxHp,h.hp+1);message='recuperou habilidades e 1 de vida';
@@ -86,8 +86,8 @@
     s.guards={};
     if(s.built){const held=s.heroes.some(h=>h.zone==='A1'&&h.hp>0)&&!s.enemies.some(e=>e.zone==='A1');s.held=held?s.held+1:0;log(s,held?'Acampamento defendido: '+s.held+'/2 respostas consecutivas.':'Defesa interrompida: limpem A1 e mantenham um herói de pé lá.');if(s.held>=2){finish(s,'victory','O acampamento está seguro. Os aqueus têm uma base para avançar em direção às muralhas.');return s;}}
     if(s.round>=MAX_ROUNDS){finish(s,'defeat','O tempo acabou antes de consolidar o acampamento.');return s;}
-    s.round++;for(const zone of waves(s,s.round))spawn(s,zone);s.heroes.forEach(h=>{h.ap=h.hp>0?HEROES.stats(h).actions:0;h.bonusActions=0;h.tauntRound=0;});
-    if(s.round===3)log(s,'Alerta: Troia reconheceu o desembarque. Chegou uma patrulha pelo bosque B1.');
+    s.round++;for(const zone of waves(s,s.round))spawn(s,zone,s.round>=5?'lanceiro':'explorador');s.heroes.forEach(h=>{h.ap=h.hp>0?HEROES.stats(h).actions:0;h.bonusActions=0;h.tauntRound=0;});
+    if(s.round===3)log(s,'Alerta: Troia reconheceu o desembarque. Chegou uma patrulha pela colina C2.');
     if(s.round===5)log(s,'A pressão aumenta. Uma nova patrulha entra pela planície.');
     return s;
   }
@@ -97,9 +97,9 @@
     if(new Set(s.heroes.map(h=>h.id)).size!==s.heroes.length||new Set(s.heroes.map(h=>h.owner)).size!==s.players||!s.heroes.every(h=>HEROES.some(d=>d.id===h.id)&&ZONES[h.zone]&&integer(h.owner,1,s.players)&&HEROES.valid(h,s.round)&&(!h.hp?h.ap===0&&!h.cargo:true)&&typeof h.cargo==='boolean'&&Array.isArray(h.used)&&new Set(h.used).size===h.used.length&&h.used.every(n=>integer(n,0,2))))return false;
     if(s.required!==s.heroes.length||!integer(s.delivered,0,s.required)||!integer(s.campDamage,0,3)||typeof s.built!=='boolean'||(s.built&&s.delivered!==s.required)||!integer(s.held,0,2)||(!s.built&&s.held!==0)||!s.supplies||Object.entries(s.supplies).some(([id,n])=>!ZONES[id]||!integer(n,0,s.required)))return false;
     if(s.delivered+s.heroes.filter(h=>h.cargo).length+Object.values(s.supplies).reduce((n,x)=>n+x,0)!==s.required)return false;
-    if(!Array.isArray(s.enemies)||new Set(s.enemies.map(e=>e.id)).size!==s.enemies.length||!s.enemies.every(e=>/^e\d+$/.test(e.id)&&ZONES[e.zone]&&integer(e.hp,1,3)&&(e.armor===undefined||integer(e.armor,0,100))&&(e.attack===undefined||integer(e.attack,0,100))&&(e.stunned===undefined||typeof e.stunned==='boolean'))||!Number.isInteger(s.nextEnemy)||s.nextEnemy<1||s.enemies.some(e=>Number(e.id.slice(1))>=s.nextEnemy)||!s.guards||Object.entries(s.guards).some(([id,n])=>!ZONES[id]||!integer(n,0,100)))return false;
+    if(!Array.isArray(s.enemies)||new Set(s.enemies.map(e=>e.id)).size!==s.enemies.length||!s.enemies.every(e=>/^e\d+$/.test(e.id)&&ZONES[e.zone]&&integer(e.hp,1,e.type?TROOPS.types[e.type]?.hp||0:3)&&(e.armor===undefined||integer(e.armor,0,100))&&(e.attack===undefined||integer(e.attack,0,100))&&(e.stunned===undefined||typeof e.stunned==='boolean'))||!Number.isInteger(s.nextEnemy)||s.nextEnemy<1||s.enemies.some(e=>Number(e.id.slice(1))>=s.nextEnemy)||!s.guards||Object.entries(s.guards).some(([id,n])=>!ZONES[id]||!integer(n,0,100)))return false;
     if(s.result==='victory'&&(!s.built||s.held!==2||s.campDamage>=3||s.outcome?.completed!=='desembarque'||s.outcome.supplies!==s.required||s.outcome.horseMaterials!==0))return false;
     return Array.isArray(s.log)&&s.log.every(x=>typeof x==='string')&&typeof s.reason==='string';
   }
-  return {VERSION,MAX_ROUNDS,HEROES,LAYOUT,TERRAINS,ZONES,newGame,distance,intent,waves,interaction,act,trojanTurn,validSave};
+  return {VERSION,MAX_ROUNDS,HEROES,TROOPS,LAYOUT,TERRAINS,ZONES,newGame,distance,intent,waves,interaction,act,trojanTurn,validSave};
 });

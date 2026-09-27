@@ -1,6 +1,6 @@
 # Da praia aos portões de Troia
 
-Desembarque e Diante das muralhas estão jogáveis. Os capítulos 3–6 permanecem propostas para prototipagem.
+Missões 1 e 2 jogáveis; módulo 3 disponível como protótipo de defesa. Capítulos 4–6 planejados.
 
 ## Regras de projeto
 
@@ -20,9 +20,9 @@ Desembarque e Diante das muralhas estão jogáveis. Os capítulos 3–6 permanec
 
 **Objetivo:** Transportar uma caixa por herói de N1/N2 até A1, instalar a base e concluir duas respostas consecutivas com A1 livre de inimigos e um herói de pé.
 
-**Território:** Imagem atual: praias secas N1/N2, clareira A1, acesso A2, planície P1/P2/P3 e bosque B1/B2. Colina, mar e espaços sem contorno não participam.
+**Território:** 11 peças do tabuleiro final: N1–N4, A1–A2, P1–P3, P6 e C2. Movimento nas praias restrito à areia.
 
-**Acontecimentos:** Patrulha inicial em P1; também B1 com quatro ou cinco heróis. Reforços nas rodadas 3, 5, 7 e 9. Instalar o campo provoca o contra-ataque anunciado. Não há emboscada oculta nesta introdução.
+**Acontecimentos:** Exploradores iniciais e lanceiros no contra-ataque; instalação em A1.
 
 **Vitória:** Base instalada e defendida por duas respostas consecutivas. Tendas aparecem como marcadores sobre a clareira.
 
@@ -40,43 +40,43 @@ Desembarque e Diante das muralhas estão jogáveis. Os capítulos 3–6 permanec
 
 **Situação:** Com a base pronta, os aqueus tentam encontrar uma entrada. O reconhecimento revela que o assalto frontal seria insustentável.
 
-**Objetivo:** Reconhecer M1 e M2, gastando uma ação em cada acesso livre de inimigos; reunir todos os heróis de pé em A1 e gastar uma ação para concluir a retirada.
+**Objetivo:** Reconhecer M1 livre de inimigos e retornar com toda a equipe de pé a A1.
 
-**Território:** A1 segura, A2, P1/P2/P3, B1/B2 e acessos M1/M2. Mar e praias não participam. A extensão das muralhas usa formas provisórias.
+**Território:** As 11 peças do desembarque, acrescidas de P7, P4, M1, M4 e B5: 16 peças.
 
-**Acontecimentos:** Guarda inicial em M1; também M2 com quatro ou cinco heróis. Reforço em M1 na rodada 5 caso a retirada não tenha começado. Primeira chegada a B1 revela emboscada em B2. Segundo reconhecimento gera ceil(heróis/2) grupos alternados entre M1/M2 e fixa o prazo na rodada atual + 6, limitado a 14.
+**Acontecimentos:** Heitor e Páris são presenças narrativas nas muralhas. Guardas defendem M1; arqueiros cobrem os acessos. Fichas de exploração substituem nomes de recursos no mapa. Arma em P2 ignora 1 de Armadura no ataque básico. O reconhecimento inicia a retirada e um contra-ataque de lanceiros.
 
-**Vitória:** Ambos os acessos reconhecidos, todos vivos em A1 e ação de conclusão antes de encerrar a rodada limite.
+**Vitória:** M1 reconhecido; todos de pé em A1; gastar 1 ação para concluir a retirada.
 
 **Derrota:** Todos caídos ou resposta troiana da rodada limite sem retirada concluída. Prazo inicial: rodada 14.
 
 **Consequência:** Registra as informações de M1/M2 e preserva os suprimentos anteriores. O efeito dessas informações na missão 3 ainda será implementado.
 
-**Pressão e dificuldade:** Moderada: avançar o bastante para aprender, conservando ações para voltar.
+**Pressão e dificuldade:** N2 recomendado para os primeiros testes com tropas diferenciadas; prazo 14, reduzido para a rodada do reconhecimento + 6, limitado a 14.
 
 **Componentes:** Extensão de muralhas, dois marcadores de reconhecimento e ficha de retirada. Primeiro testar com formas simples antes da arte final.
 
 ## 3. Segurar a linha
 
-**Planejado**
+**Protótipo jogável — defesa.html**
 
-**Situação:** Os troianos perseguem o destacamento que recuou. A base é ameaçada em um episódio específico de contra-ataque.
+**Situação:** Heitor lidera o contra-ataque e Páris cobre a ofensiva à distância. A base agora pode ser invadida.
 
-**Objetivo:** Manter aberta a rota de retirada e evacuar cargas importantes. Defender pontos de passagem enquanto aliados ou cargas atravessam.
+**Objetivo:** Resistir a seis respostas de Troia e encerrar uma resposta com A1 livre de inimigos e um defensor de pé.
 
-**Território:** Planície e acesso à base da imagem atual, com dois corredores de aproximação e uma zona de segurança claramente marcada.
+**Território:** As mesmas 16 peças da missão 2; caminhos preservados. A1 deixa de ser uma zona segura.
 
-**Acontecimentos:** Uma aproximação começa visível; a segunda é anunciada antes de receber reforços. No meio da missão, a equipe escolhe entre resgatar uma carga adicional ou encurtar a retirada.
+**Acontecimentos:** Explorador na rodada 2; Heitor na 3; Páris na 4; lanceiro na 5; guarda na 6. N2 e armas preparadas sugeridos. Reparar A1 custa 1 ação e 1 comida e remove 1 dano.
 
-**Vitória:** Salvar a carga mínima e retirar a equipe antes do fechamento da rota. Não é necessário eliminar todos os inimigos.
+**Vitória:** Seis respostas concluídas, A1 livre e ao menos um defensor de pé; não exige derrotar os comandantes.
 
-**Derrota:** Rota bloqueada pelo prazo definido, carga mínima perdida ou equipe incapacitada.
+**Derrota:** Cinco danos à base, todos caídos, ou término da rodada 8 sem consolidar a defesa.
 
-**Consequência:** Cargas opcionais salvas fornecem suprimentos extras. Uma vitória com perdas não remove os recursos mínimos necessários para continuar.
+**Consequência:** A base resiste, os comandantes recuam e a campanha segue para a busca de outro caminho.
 
-**Pressão e dificuldade:** Alta por duas frentes, com escolha explícita do que proteger. Evitar transformar a base em uma máquina de combate.
+**Pressão e dificuldade:** Maior concentração de combate. Heitor: vida 10, ataque 3, Armadura 1; Páris: vida 6, ataque 3, Armadura 0, alcance 2. Valores provisórios.
 
-**Componentes:** Cargas móveis, marcadores de corredor e contador de evacuação. Sem novo conjunto de arte obrigatório.
+**Componentes:** Mesma montagem e miniaturas de tropas; fichas de exploração; Heitor e Páris como combatentes.
 
 ## 4. Outro caminho
 

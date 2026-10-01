@@ -75,7 +75,7 @@
       if(foes().length)return fail('Não é possível recuperar habilidades com inimigos nesta área.');
       if(!h.used.length&&h.hp===6)return fail('Sua vida e suas habilidades já estão completas.');h.used=[];h.hp=Math.min(6,h.hp+1);message='recuperou as habilidades e 1 de vida';
     }else if(action==='rescue'){
-      const ally=s.heroes.find(x=>x.id===target&&x.zone===h.zone&&x.hp===0);if(!ally)return fail('Escolha um herói caído nesta área.');ally.hp=2;message='socorreu '+HEROES.find(x=>x.id===ally.id).name;
+      const ally=s.heroes.find(x=>x.id===target&&x.zone===h.zone&&x.hp===0);if(!ally)return fail('Escolha um herói caído nesta área.');ally.hp=2;ally.ap=1;message='socorreu '+HEROES.find(x=>x.id===ally.id).name+' com 1 ação disponível';
     }else if(action.startsWith('card:')){
       const n=Number(action.slice(5)),card=def.cards[n];if(!card||h.used.includes(n))return fail('Esta habilidade não está disponível.');
       const e=s.enemies.find(x=>x.id===target),ally=s.heroes.find(x=>x.id===target);
@@ -86,7 +86,7 @@
       }else if(card.type==='heal'){
         if(h.hp===6)return fail('Sua vida já está completa.');h.hp=Math.min(6,h.hp+card.value);
       }else if(card.type==='healAlly'){
-        if(!ally||ally.id===h.id||ally.zone!==h.zone||ally.hp===6)return fail('Escolha outro herói ferido nesta área.');ally.hp=Math.min(6,ally.hp+card.value);
+        if(!ally||ally.id===h.id||ally.zone!==h.zone||ally.hp===6)return fail('Escolha outro herói ferido nesta área.');const fallen=ally.hp===0;ally.hp=Math.min(6,ally.hp+card.value);if(fallen)ally.ap=1;
       }else if(card.type==='guard'){s.guards[h.zone]=(s.guards[h.zone]||0)+card.value;}
       else if(card.type==='guide'){
         const [id,zone]=String(target).split(':');const a=s.heroes.find(x=>x.id===id&&x.id!==h.id&&x.hp>0&&x.zone===h.zone);

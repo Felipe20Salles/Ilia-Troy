@@ -1,12 +1,16 @@
 (function(){
  'use strict';
- const ENABLED_KEY='ilia-audio-enabled-v1',MUSIC_VOLUME_KEY='ilia-music-volume-v1',SFX_VOLUME_KEY='ilia-sfx-volume-v1';
+ const ENABLED_KEY='ilia-audio-enabled-v1',POSITION_BASE='ilia-music-position-v1',MUSIC_VOLUME_KEY='ilia-music-volume-v1',SFX_VOLUME_KEY='ilia-sfx-volume-v1';
  const script=document.currentScript;
- const musicURL=new URL('audio/the-fight-juliush.mp3',script.src).href;
+ // Cada página pode trazer a sua trilha (data-music e data-music-title no <script>); sem isso, toca The Fight, a trilha da campanha de Troia.
+ const musicFile=script.dataset.music||'audio/the-fight-juliush.mp3',musicTitle=script.dataset.musicTitle||'The Fight · JuliusH';
+ const musicURL=new URL(musicFile,script.src).href,POSITION_KEY=POSITION_BASE+':'+musicFile;
  let context=null,master=null,music=null,unlocked=false;
  const read=(key,fallback)=>{try{const value=localStorage.getItem(key);return value===null?fallback:JSON.parse(value);}catch(_){return fallback;}};
  const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));}catch(_){}};
  let enabled=read(ENABLED_KEY,true),musicVolume=read(MUSIC_VOLUME_KEY,.22),sfxVolume=read(SFX_VOLUME_KEY,.7);
+ // data-music-gain nivela trilhas gravadas mais altas ou mais baixas que The Fight.
+ const musicGain=Number(script.dataset.musicGain)||1;
  const playingMission=()=>document.body.classList.contains('game-active');
  function ensureContext(){
   if(!context){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return null;context=new AudioContext();master=context.createGain();master.gain.value=sfxVolume;master.connect(context.destination);}
@@ -14,7 +18,9 @@
   return context;
  }
  function ensureMusic(){
-  if(!music){music=new Audio(musicURL);music.loop=true;music.preload='auto';music.volume=musicVolume;music.setAttribute('data-track','The Fight — JuliusH');}
+  if(!music){music=new Audio(musicURL);music.loop=true;music.preload='auto';music.volume=musicVolume*musicGain;music.setAttribute('data-track',musicTitle);
+   let saved=0;try{saved=Number(sessionStorage.getItem(POSITION_KEY))||0;}catch(_){}
+   if(saved>0)music.addEventListener('loadedmetadata',()=>{if(saved<music.duration)music.currentTime=saved;},{once:true});}
   return music;
  }
  function syncButton(){
@@ -23,18 +29,21 @@
    button.classList.toggle('muted',!active);
    button.setAttribute('aria-pressed',String(active));
    button.setAttribute('aria-label',active?'Desativar sons':'Ativar sons');
-   button.title=playingMission()?(active?'Efeitos sonoros ligados':'Efeitos sonoros desligados'):(active?'The Fight · JuliusH — música ligada':'Música desligada');
-   button.innerHTML=`<span aria-hidden="true">${active?'🔊':'🔇'}</span><b>${playingMission()?'Sons':'Trilha'}</b>`;
+   button.title=playingMission()?(active?'Efeitos sonoros ligados':'Efeitos sonoros desligados'):(active?musicTitle+' — música ligada':'Música desligada');
+   const waves=active?'<path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>':'<path d="m16.5 9.5 5 5m0-5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+   button.innerHTML=`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>${waves}</svg><b>${playingMission()?'Sons':'Trilha'}</b>`;
   });
  }
  function playMusic(){
   const track=ensureMusic();
   if(!enabled||playingMission()||document.hidden){track.pause();return;}
-  track.volume=musicVolume;
-  if(unlocked)track.play().catch(()=>{});
+  if(track.paused){track.volume=0;clearInterval(track._fadeIn);track._fadeIn=setInterval(()=>{track.volume=Math.min(musicVolume*musicGain,track.volume+musicVolume*musicGain/40);if(track.volume>=musicVolume*musicGain)clearInterval(track._fadeIn);},75);}else track.volume=musicVolume*musicGain;
+  track.play().then(()=>{unlocked=true;}).catch(()=>{});
  }
  function stopMusic(){if(music)music.pause();}
- function toggle(){enabled=!enabled;write(ENABLED_KEY,enabled);unlocked=true;if(enabled){ensureContext();playMusic();effect('ui');}else{stopMusic();}syncButton();}
+ function savePosition(){if(music&&music.currentTime>0)try{sessionStorage.setItem(POSITION_KEY,String(music.currentTime));}catch(_){}}
+ function toggleAmbience(){enabled?resumeAmbience():pauseAmbience();}
+ function toggle(){if(enabled&&!playingMission()&&(!music||music.paused)){unlocked=true;ensureContext();playMusic();syncButton();return;}enabled=!enabled;write(ENABLED_KEY,enabled);unlocked=true;if(enabled){ensureContext();playMusic();effect('ui');}else{stopMusic();}toggleAmbience();syncButton();}
  function tone(start,end,duration,volume,type='sine',delay=0){
   const ctx=ensureContext();if(!ctx)return;const at=ctx.currentTime+delay,osc=ctx.createOscillator(),gain=ctx.createGain();osc.type=type;osc.frequency.setValueAtTime(start,at);osc.frequency.exponentialRampToValueAtTime(Math.max(25,end),at+duration);gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(volume,at+.012);gain.gain.exponentialRampToValueAtTime(.0001,at+duration);osc.connect(gain);gain.connect(master);osc.start(at);osc.stop(at+duration+.02);
  }
@@ -55,29 +64,76 @@
   if(name==='reveal'){tone(330,660,.28,.08,'triangle');tone(494,988,.32,.065,'sine',.12);return;}
   if(name==='death'){tone(260,75,.65,.13,'sawtooth');noise(.45,.06,220,.12);}
  }
+ // Cada herói golpeia com a sua arma; mover é a marcha do contingente.
+ const WEAPON={aquiles:'espada',agamemnon:'espada',menelau:'lanca',ajax:'escudo',odisseu:'flecha'};
  function action(actionName,heroId,card){
-  if(actionName==='move')return effect('move');
-  if(actionName==='attack')return effect(heroId==='odisseu'?'arrow':'attack');
+  const play=name=>window.TroyAudio?.cue?cue(name):effect(CUE_FALLBACK[name]||'ui');
+  if(actionName==='move')return play('marcha');
+  if(actionName==='attack')return play(WEAPON[heroId]||'espada');
   if(actionName==='interact')return effect('explore');
   if(actionName==='rest'||actionName==='rescue'||actionName==='share')return effect('recover');
   if(!actionName.startsWith('card:'))return effect('ui');
   const type=card?.type||'';
-  if(['ranged','precision','multiRanged'].includes(type))return effect('arrow');
-  if(type==='attack')return effect(card?.name?.toLocaleLowerCase('pt-BR').includes('escudo')?'shield':'attack');
-  if(['charge','sprint','guide'].includes(type))return effect('move');
+  if(['ranged','precision','multiRanged'].includes(type))return play('flecha');
+  if(type==='attack')return play(card?.name?.toLocaleLowerCase('pt-BR').includes('escudo')?'escudo':WEAPON[heroId]||'espada');
+  if(type==='charge')return play(WEAPON[heroId]||'espada');
+  if(['sprint','guide'].includes(type))return play('marcha');
   if(['heal','healAlly','refresh'].includes(type))return effect('recover');
-  if(['guard','protect'].includes(type))return effect('shield');
+  if(['guard','protect'].includes(type))return play('escudo');
   return effect('ability');
  }
- function trojan(step){if(!step)return;const intent=(step.intent||'').toLocaleLowerCase('pt-BR');if(intent.includes('atacar'))effect(['arqueiro','paris'].includes(step.type)?'arrow':'attack');else if(intent.includes('dano ao acampamento'))effect('shield');else effect('march');}
+ function trojan(step){if(!step)return;const intent=(step.intent||'').toLocaleLowerCase('pt-BR');if(intent.includes('atacar'))cue(['arqueiro','paris'].includes(step.type)?'flecha':'espada');else if(intent.includes('sabotar'))cue('escudo');else cue('marcha');}
  function mount(){
   const header=document.querySelector('header'),host=header||document.body;if(!host.querySelector('[data-audio-toggle]')){const button=document.createElement('button');button.type='button';button.className='audio-control'+(header?'':' audio-control-floating');button.dataset.audioToggle='';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggle();});const rules=header?.querySelector('#rules-button');header?header.insertBefore(button,rules||null):host.appendChild(button);}
   syncButton();
   const observer=new MutationObserver(()=>{syncButton();playingMission()?stopMusic():playMusic();});observer.observe(document.body,{attributes:true,attributeFilter:['class']});
-  document.addEventListener('pointerdown',()=>{unlocked=true;ensureContext();if(!playingMission())playMusic();},{once:true,capture:true});
+  const unlockEvents=['pointerdown','keydown','touchstart'];
+  const unlock=event=>{if(event.target.closest?.('[data-audio-toggle]'))return;unlockEvents.forEach(type=>document.removeEventListener(type,unlock,true));unlocked=true;ensureContext();if(!playingMission())playMusic();};
+  unlockEvents.forEach(type=>document.addEventListener(type,unlock,true));
   document.addEventListener('click',event=>{if(event.target.closest('button,a')&&!event.target.closest('[data-audio-toggle]'))effect('ui');});
-  document.addEventListener('visibilitychange',()=>document.hidden?stopMusic():playMusic());
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){savePosition();stopMusic();pauseAmbience();}else{playMusic();resumeAmbience();}});
+  window.addEventListener('pagehide',savePosition);
+  playMusic();
  }
- window.TroyAudio={effect,action,trojan,playMusic,stopMusic,isEnabled:()=>enabled};
+ // Sons em arquivo (assets/audio/sfx/<nome>.mp3). Sem o arquivo, toca o efeito gerado pelo app.
+ // Equilíbrio medido em 02/10/2026 pelo volume médio de cada arquivo: o ganho nivela os sons entre si
+ // (acima de 1 amplifica) e "max" corta com fade os sons longos demais para um momento.
+ const LEVELS={mar:{gain:1.3},'tambores-longe':{gain:.3},'tambores-guerra':{gain:.32},batimento:{gain:.2},
+  caixa:{gain:1,max:1.5},marcha:{gain:1,max:1.5},espada:{gain:.9,max:1.5},lanca:{gain:1,max:1.5},escudo:{gain:1.2,max:1.5},flecha:{gain:1.3,max:2},troianos:{gain:.58,max:4},acampamento:{gain:.8,max:3},revelar:{gain:.52,max:5},descoberta:{gain:2.5},encontro:{gain:.7},cronica:{gain:1.8},feito:{gain:1.45},queda:{gain:.8,max:8},
+  'deus-atena':{gain:3.4},'deus-poseidon':{gain:2.1},'deus-zeus':{gain:1.7,max:6}};
+ const CUE_FALLBACK={caixa:'explore',marcha:'move',espada:'attack',lanca:'attack',escudo:'shield',flecha:'arrow',troianos:'march',acampamento:'ui',revelar:'reveal',descoberta:'explore',encontro:'ability',cronica:'reveal',feito:'ability',queda:'death','deus-atena':'reveal','deus-poseidon':'move','deus-zeus':'attack'};
+ const sfxURL=name=>new URL('audio/sfx/'+name+'.mp3',script.src).href,clips={};
+ function clip(name,loop=false){
+  if(clips[name])return clips[name];
+  const el=new Audio(sfxURL(name));el.preload='auto';el.loop=loop;
+  const entry={el,gain:null,ok:true,timer:0,onError:null};clips[name]=entry;
+  el.addEventListener('error',()=>{entry.ok=false;entry.onError?.();},{once:true});
+  const ctx=ensureContext();
+  if(ctx){try{const source=ctx.createMediaElementSource(el);entry.gain=ctx.createGain();entry.gain.gain.value=0;source.connect(entry.gain);entry.gain.connect(master);}catch(_){entry.gain=null;}}
+  return entry;
+ }
+ function setLevel(entry,value,seconds=0){
+  if(entry.gain){const g=entry.gain.gain,now=context.currentTime;g.cancelScheduledValues(now);g.setValueAtTime(g.value,now);if(seconds)g.linearRampToValueAtTime(value,now+seconds);else g.setValueAtTime(value,now);}
+  else entry.el.volume=Math.max(0,Math.min(1,value));
+ }
+ function cue(name){
+  if(!enabled)return;unlocked=true;const fallback=()=>effect(CUE_FALLBACK[name]||'ui');
+  const entry=clip(name);if(!entry.ok){fallback();return;}
+  const level=LEVELS[name]||{gain:1};entry.onError=fallback;clearTimeout(entry.timer);
+  setLevel(entry,level.gain);try{entry.el.currentTime=0;}catch(_){}entry.el.play().catch(()=>{});
+  if(level.max)entry.timer=setTimeout(()=>{setLevel(entry,0,.8);entry.timer=setTimeout(()=>entry.el.pause(),900);},level.max*1000);
+ }
+ // Ambiente da missão: mar sempre; tambores entram conforme a tensão (o Alarme); batimento com herói em perigo.
+ const LAYERS=['mar','tambores-longe','tambores-guerra'];let tension=-1,heartbeatOn=false;
+ function ambient(name,want){
+  const entry=clip(name,true);if(!entry.ok)return;clearTimeout(entry.timer);
+  if(want){if(entry.el.paused)entry.el.play().catch(()=>{});setLevel(entry,LEVELS[name]?.gain??.5,2.5);}
+  else{setLevel(entry,0,1.5);entry.timer=setTimeout(()=>entry.el.pause(),1600);}
+ }
+ function setTension(level){tension=level;LAYERS.forEach((name,i)=>{const want=enabled&&!document.hidden&&level>=0&&i<=level;if(want||clips[name])ambient(name,want);});}
+ function setHeartbeat(on){heartbeatOn=on;const want=on&&enabled&&!document.hidden;if(want||clips.batimento)ambient('batimento',want);}
+ function pauseAmbience(){for(const name of [...LAYERS,'batimento'])if(clips[name])ambient(name,false);}
+ function resumeAmbience(){if(tension>=0)setTension(tension);if(heartbeatOn)setHeartbeat(true);}
+ window.TroyAudio={effect,action,trojan,cue,setTension,setHeartbeat,playMusic,stopMusic,isEnabled:()=>enabled};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();

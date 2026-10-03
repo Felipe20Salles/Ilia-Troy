@@ -3,7 +3,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
-const mime = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.mp4':'video/mp4'};
+const mime = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.mp3':'audio/mpeg','.webp':'image/webp','.jpg':'image/jpeg','.mp4':'video/mp4'};
 http.createServer((req,res) => {
   try {
     let pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
@@ -18,4 +18,4 @@ http.createServer((req,res) => {
       res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Cache-Control':'no-store'});res.end(bytes);
     });
   } catch {res.writeHead(400);res.end('Bad request');}
-}).listen(4173,'127.0.0.1',()=>console.log('Ilia: http://127.0.0.1:4173 — cooperativo local; competitivo online requer Netlify.'));
+}).listen(4180,'127.0.0.1',()=>console.log('Ilia: http://127.0.0.1:4180 — cooperativo local; competitivo online requer Netlify.'));

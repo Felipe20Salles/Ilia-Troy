@@ -60,7 +60,7 @@
     s.enemies=s.enemies.filter(a=>a.id!==e.id);s.commanders[e.type]='retreated';log(s,TROOPS.label(e)+' foi gravemente ferido e recuou do campo.');return true;
   }
   function kill(s,e,damage,piercing=false){e.hp-=Math.max(0,damage-(piercing===true?0:Math.max(0,(e.armor||0)-(typeof piercing==='number'?piercing:0))));if(retreatCommander(s,e))return;if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);if(e.type==='eneias'||e.type==='sarpedon'){s.commanders??={};s.commanders[e.type]='dead';}log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');}}
-  function hurtHero(s,h,amount,options){return HEROES.damage(s,h,amount,log,options);}
+  function hurtHero(s,h,amount,options){return HEROES.damage(s,h,amount,log,{...options,distance:(a,b)=>distance(a,b,s)});}
   function strike(s,h,e,amount,options={}){
     kill(s,e,amount,options.piercing||h.id==='odisseu');
     if(!s.enemies.some(a=>a.id===e.id))return;
@@ -70,7 +70,7 @@
   }
   function moveHero(s,h,target){
     const attacker=s.enemies.filter(e=>e.zone===h.zone&&!e.stunned).sort((a,b)=>(a.attack??ENEMY_ATTACK)-(b.attack??ENEMY_ATTACK)||a.hp-b.hp)[0];
-    if(attacker){const origin=h.zone,amount=Math.floor((attacker.attack??ENEMY_ATTACK)/2),damage=HEROES.damage(s,h,amount,log,{ignoreArmor:true});log(s,'Golpe de fuga em '+origin+': '+TROOPS.label(attacker)+' causou '+damage+' de dano em '+HEROES.find(d=>d.id===h.id).name+'.');if(!h.hp)return false;}
+    if(attacker){const origin=h.zone,amount=Math.floor((attacker.attack??ENEMY_ATTACK)/2),damage=HEROES.damage(s,h,amount,log,{ignoreArmor:true,distance:(a,b)=>distance(a,b,s)});log(s,'Golpe de fuga em '+origin+': '+TROOPS.label(attacker)+' causou '+damage+' de dano em '+HEROES.find(d=>d.id===h.id).name+'.');if(!h.hp)return false;}
     h.zone=target;return true;
   }
   function eat(s,h){h.food--;s.foodSpent++;}
@@ -124,7 +124,7 @@
       else if(c.type==='grantAction'){if(!a||a.id===h.id||a.zone!==h.zone||a.hp<=0)return fail('Escolha outro herói de pé nesta área.');a.ap++;a.bonusActions++;}
       else if(c.type==='taunt'){h.tauntRound=s.round;}
       else if(c.type==='refresh'){if(!a||a.id===h.id||a.zone!==h.zone||a.hp===0||!a.used.length)return fail('Escolha outro herói de pé com habilidades esgotadas nesta casa.');a.used=[];}
-      else if(c.type==='intimidate'){const zone=e&&e.zone===h.zone?intimidationZone(s,e):null;if(!zone)return fail('Escolha um inimigo nesta área que possa recuar.');const origin=e.zone;e.zone=zone;e.intimidated=true;log(s,TROOPS.label(e)+' recuou de '+origin+' para '+zone+' e não poderá atacar na próxima resposta.');}
+      else if(c.type==='intimidate'){const zone=e&&e.zone===h.zone?intimidationZone(s,e):null;if(!zone)return fail('Escolha um inimigo nesta área que possa recuar.');const origin=e.zone;kill(s,e,c.value);if(s.enemies.includes(e)&&e.hp>0){e.zone=zone;e.intimidated=true;log(s,TROOPS.label(e)+' sofreu '+c.value+' de dano, recuou de '+origin+' para '+zone+' e não poderá atacar na próxima resposta.');}}
       else return fail('Habilidade desconhecida.');
       if(c.once)h.onceUsed.push(n);else h.used.push(n);message='usou '+c.name;
     }else return fail('Ação desconhecida.');

@@ -6,9 +6,9 @@ const path=require('node:path');
 const G=require('../cooperativo/landing.js');
 const regions=require('../cooperativo/territory.js');
 test('every playable region has one mapped location and reciprocal reachable connections',()=>{
- assert.deepEqual(Object.keys(regions).sort(),Object.keys(G.ZONES).sort());
- for(const [id,r] of Object.entries(regions)){assert.ok(r.y<90);assert.ok(Number.isFinite(G.distance('N1',id)));assert.ok(r.polygon.split(' ').length>=6);for(const to of G.ZONES[id].links)assert.ok(G.ZONES[to].links.includes(id));}
- assert.deepEqual(Object.keys(G.ZONES).sort(),['N1','N2','N3','N4','A1','A2','P1','P2','P6','C2'].sort());assert.ok(G.ZONES.C2.links.includes('P6'));assert.ok(G.ZONES.N4.links.includes('N3'));
+ assert.ok(Object.keys(G.ZONES).every(id=>regions[id]),'toda peça da missão tem contorno');
+ for(const [id,r] of Object.entries(regions).filter(([id])=>G.ZONES[id])){assert.ok(r.y<90);assert.ok(Number.isFinite(G.distance('N1',id)));assert.ok(r.polygon.split(' ').length>=6);for(const to of G.ZONES[id].links)assert.ok(G.ZONES[to].links.includes(id));}
+ assert.deepEqual(Object.keys(G.ZONES).sort(),['N1','N2','N3','N4','A1','A2','P1','P2','P6','C2','C1'].sort());assert.ok(G.ZONES.C2.links.includes('P6'));assert.ok(G.ZONES.N4.links.includes('N3'));
 });
 test('natural map uses the exact mission-one piece mask and only displays removable tents after installation',()=>{
  const context={G,window:{TroyTerritory:regions,TroyBoardSilhouettes:{landing:'M0 0 Z'}}};vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../cooperativo/natural-map.js'),'utf8'),context);

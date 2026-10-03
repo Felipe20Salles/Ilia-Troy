@@ -1,6 +1,8 @@
 'use strict';
+// Só as peças desta missão: o arquivo de território tem as peças de todas as missões.
+function missionRegions(){return Object.fromEntries(Object.entries(window.TroyTerritory).filter(([id])=>G.ZONES[id]));}
 function puzzleMap(s,selected){
-  const regions=window.TroyTerritory,hero=s.heroes.find(h=>h.id===selected),edges=[];
+  const regions=missionRegions(),hero=s.heroes.find(h=>h.id===selected),edges=[];
   for(const [id,z] of Object.entries(G.ZONES))for(const next of z.links)if(id<next){const a=regions[id],b=regions[next];edges.push(`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`);}
   return `<section class="map-panel natural-panel" aria-label="Território do Desembarque"><div class="section-label"><span>COSTA DA TRÓADE</span><span>10 PEÇAS · MISSÃO 1</span></div><label class="route-switch"><input type="checkbox" id="show-routes"> Mostrar acessos permitidos</label><details class="map-controls"><summary>Como ler este território</summary><p>Somente as peças desta missão estão expostas. As linhas douradas mostram as conexões permitidas: 1 movimento por região. Água, rochedos e espaços sem contorno não são casas. C2 faz parte desta missão.</p></details><div class="puzzle-scroll" tabindex="0" aria-label="Mapa panorâmico; deslize para explorar"><div class="natural-map" style="aspect-ratio:3/2;min-width:820px;overflow:hidden;margin-top:-13%"><svg class="landscape" viewBox="0 0 1536 1024" preserveAspectRatio="none" role="img" aria-label="Recorte da missão 1 do tabuleiro principal final"><image href="assets/setup/stage-5.png?v=3" width="1536" height="1024" preserveAspectRatio="none"/></svg><svg class="territory-overlay route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g class="territory-routes">${edges.join('')}</g></svg>${Object.entries(regions).map(([id,r])=>{
     const allies=s.heroes.filter(h=>h.zone===id),enemies=s.enemies.filter(e=>e.zone===id);

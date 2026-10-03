@@ -152,7 +152,7 @@ function manualPages(){const legacy=legacyHTML();return [
  manualPage('identidade/cena-mirante.webp','Pelo caminho',['A <b>torre de vigia</b> (M4), o <b>santuário de Apolo</b> (C1), os <b>pastores do bosque</b> (B5) e a <b>trilha dos pinheiros</b> (P7).','Nada disso é obrigatório. Tudo custa tempo, e algumas escolhas pesam nas missões seguintes.']),
  manualPage('','Os feitos de cada herói',featItems(),'<p class="manual-note">Cumprir o feito ensina uma nova habilidade, à escolha do jogador.</p>')];}
 function mesaChecklist(){const l=campaign?.legacy;return ['Montem as peças que vocês já conhecem da missão 1. As peças das muralhas ficam guardadas.',`Coloquem as miniaturas de ${setup.heroes.map(id=>G.HEROES.find(h=>h.id===id).name).join(', ').replace(/, ([^,]*)$/,' e $1')} em <b>A1</b>.`,'Ponham no tabuleiro de cada herói as <b>fichas de comida</b> da vida que ele traz. O app pede o resto quando o armazém repuser.',...(l?.lookout===false?['Coloquem uma <b>companhia de lanceiros</b> em P1: Troia manteve o mirante.']:[]),...(l?.lookout===true?['Encaixem também <b>P3</b>, o campo aberto que vocês viram do mirante.']:[]),'Deixem as cartas de habilidade conhecidas para cima e as outras viradas.'];}
-function setupMap(){return referenceMap(G.BASE.filter(z=>!campaign?.revealedZones||campaign.revealedZones.includes(z)||['A1','N1'].includes(z)),['A1']);}
+function setupMap(){return referenceMap([...G.BASE,'P3',...(campaign?.legacy?.lookout?['M4']:[])],['A1']);}
 
 function staticAlarmTrack(marks,heroAt){return `<div class="alarm-track" role="img" aria-label="Patamares do Alarme">${Object.entries(marks).map(([n,label])=>`<span class="alarm-mark ${n==heroAt?'hero':''}" style="left:${n/18*100}%"><b>${n}</b><small>${label}</small></span>`).join('')}</div>`;}
 function manualPage(img,title,items,extra=''){return `<figure class="story-panel manual-page">${img?`<img src="${STORY_ART}${img}" alt="" loading="lazy" width="1280" height="720">`:''}<figcaption><h2>${title}</h2>${items.length?`<ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul>`:''}${extra}</figcaption></figure>`;}
@@ -181,7 +181,7 @@ function newConfirm(){const round=saved&&!saved.result?saved.round:null;return `
 function targets(action,h){
   const seen=state.enemies.filter(e=>known(e.zone));
   const stuck=h.cargo&&h.moves>0;
-  if(action==='move')return stuck?[]:G.ZONES[h.zone].links.map(z=>[z,known(z)?G.ZONES[z].name:'o desconhecido (revela a peça)']);
+  if(action==='move')return stuck?[]:G.ZONES[h.zone].links.filter(known).map(z=>[z,G.ZONES[z].name]);
   if(action==='attack')return seen.filter(e=>G.distance(h.zone,e.zone)<=G.HEROES.stats(h).range).map(e=>[e.id,`${G.TROOPS.label(e)} · ${e.hp}♥ · ATQ ${e.attack??2} · ARM ${e.armor??0}`]);
   if(action==='rescue')return state.heroes.filter(a=>a.hp===0&&a.zone===h.zone).map(a=>[a.id,G.HEROES.find(d=>d.id===a.id).name]);
   if(action.startsWith('card:')){
@@ -196,7 +196,7 @@ function targets(action,h){
     if(c.type==='healAlly')return state.heroes.filter(a=>a.id!==h.id&&a.zone===h.zone&&a.hp<G.HEROES.stats(a).maxHp).map(a=>[a.id,G.HEROES.find(d=>d.id===a.id).name]);
     if(c.type==='grantAction')return state.heroes.filter(a=>a.id!==h.id&&a.hp>0&&a.zone===h.zone).map(a=>[a.id,G.HEROES.find(d=>d.id===a.id).name]);
     if(c.type==='guide')return state.heroes.filter(a=>a.id!==h.id&&a.hp>0&&a.zone===h.zone&&!(a.cargo&&a.moves>0)).flatMap(a=>state.revealed.filter(z=>z!==h.zone&&G.knownDistance(state,h.zone,z)<=(a.cargo?1:c.value)).map(z=>[a.id+':'+z,G.HEROES.find(d=>d.id===a.id).name+' → '+G.ZONES[z].name]));
-    if(c.type==='sprint')return Object.keys(G.ZONES).filter(z=>z!==h.zone&&G.distance(h.zone,z)<=(h.cargo?1:2)).map(z=>[z,known(z)?G.ZONES[z].name:'o desconhecido (revela)']);
+    if(c.type==='sprint')return state.revealed.filter(z=>z!==h.zone&&G.knownDistance(state,h.zone,z)<=2).map(z=>[z,G.ZONES[z].name]);
   }return null;
 }
 function recentEvents(){return `<div class="event-log"><b>Últimos acontecimentos</b>${state.log.slice(0,4).map(msg=>`<p>${esc(msg)}</p>`).join('')}</div>`;}

@@ -15,12 +15,14 @@ function play(ids,options={}){let s=G.newGame({heroes:ids,players:ids.length,...
    const h=hero(s,id);if(s.result||!h.hp||!h.ap)break;
    const def=G.HEROES.find(d=>d.id===id),here=s.enemies.filter(e=>e.zone===h.zone&&G.isRevealed(s,e.zone));
    const reporter=s.heroes.find(a=>a.id===s.reporter);
-   if(s.reconned&&h.zone!=='A1'&&!(reporter&&!reporter.hp&&reporter.zone===h.zone&&h.hp>=2)){const danger=z=>s.enemies.filter(e=>e.zone===z).length;const step=G.ZONES[h.zone].links.slice().sort((a,b)=>G.distance(a,'A1')-G.distance(b,'A1')||danger(a)-danger(b))[0];doAct(id,'move',step);continue;}
+   const kd=(a,b)=>G.knownDistance(s,a,b),links=G.ZONES[h.zone].links.filter(z=>G.isRevealed(s,z)),opens=z=>(G.CLUES[z]||[]).some(x=>!G.isRevealed(s,x));
+   if(s.reconned&&h.zone!=='A1'&&!(reporter&&!reporter.hp&&reporter.zone===h.zone&&h.hp>=2)){const danger=z=>s.enemies.filter(e=>e.zone===z).length;const step=links.slice().sort((a,b)=>kd(a,'A1')-kd(b,'A1')||danger(a)-danger(b))[0];doAct(id,'move',step);continue;}
    if(here.length){const foe=here.sort((a,b)=>a.hp-b.hp)[0];const c=def.cards.findIndex((c,n)=>['attack','intimidate'].includes(c.type)&&!h.used.includes(n)&&h.known.includes(n));doAct(id,c<0?'attack':'card:'+c,foe.id);continue;}
    const down=s.heroes.find(a=>a.zone===h.zone&&!a.hp);if(down&&h.hp>=2){doAct(id,'rescue',down.id);continue;}
-   const option=G.interactions(s,h).find(x=>x.available&&(x.id==='recon'||(x.id==='explore'&&h.hp<=G.HEROES.stats(h).maxHp-2)));if(option){doAct(id,'interact',option.id);continue;}
+   const option=G.interactions(s,h).find(x=>x.available&&(x.id==='recon'||(x.id==='explore'&&(opens(h.zone)||h.hp<=G.HEROES.stats(h).maxHp-2))));if(option){doAct(id,'interact',option.id);continue;}
    let goal=s.reconned?(reporter&&!reporter.hp&&h.hp>=3?reporter.zone:'A1'):'M1';
-   if(goal!==h.zone){const step=G.ZONES[h.zone].links.slice().sort((a,b)=>G.distance(a,goal)-G.distance(b,goal))[0];doAct(id,'move',step);continue;}
+   if(kd(h.zone,goal)===Infinity){const clue=s.revealed.filter(z=>s.tokens[z]&&!s.tokens[z].resolved&&opens(z)&&kd(h.zone,z)<Infinity).sort((a,b)=>kd(h.zone,a)-kd(h.zone,b))[0];if(clue)goal=clue;}
+   if(goal!==h.zone&&kd(h.zone,goal)<Infinity){const step=links.slice().sort((a,b)=>kd(a,goal)-kd(b,goal))[0];doAct(id,'move',step);continue;}
    if(h.used.length){doAct(id,'rest');continue;}break;
   }
   if(!s.result)s=G.trojanTurn(s);
@@ -31,11 +33,11 @@ function play(ids,options={}){let s=G.newGame({heroes:ids,players:ids.length,...
 module.exports={play};
 
 test('the mission starts at the camp with the territory of mission 1 and the walls hidden',()=>{
- const s=setup();assert.ok(G.validSave(s));assert.ok(s.heroes.every(h=>h.zone==='A1'));assert.ok(G.BASE.every(z=>s.revealed.includes(z)));assert.ok(G.WALLS.every(z=>!s.revealed.includes(z)));assert.ok(s.enemies.some(e=>e.zone==='M1'&&e.type==='guarda'&&e.hold));
+ const s=setup();assert.ok(G.validSave(s));assert.ok(s.heroes.every(h=>h.zone==='A1'));assert.ok(G.BASE.every(z=>s.revealed.includes(z)));assert.ok(s.revealed.includes('P3'),'Agamêmnon aponta a planície');assert.ok(G.WALLS.filter(z=>z!=='P3').every(z=>!s.revealed.includes(z)));assert.ok(s.enemies.some(e=>e.zone==='M1'&&e.type==='guarda'&&e.hold));
 });
 test('mission 1 consequences carry over: castaways, the old man, the lookout, life and the store',()=>{
  const s=setup({legacy:{castaways:'rescued',beggar:'zeus',lookout:true},campFood:2,life:{aquiles:2}});
- assert.equal(s.campFood,3);assert.equal(s.favor,2);assert.ok(s.revealed.includes('P3'));assert.equal(hero(s,'aquiles').hp,2);assert.ok(s.foodSetup);
+ assert.equal(s.campFood,3);assert.equal(s.favor,2);assert.ok(s.revealed.includes('M4'),'do mirante já se via a torre');assert.equal(hero(s,'aquiles').hp,2);assert.ok(s.foodSetup);
  let a=G.allocateFood(s,'aquiles',1).state;assert.equal(hero(a,'aquiles').hp,3);assert.equal(a.campFood,2);assert.equal(G.allocateFood(s,'aquiles',-1).ok,false,'não se tira vida que já havia');
  const b=setup({legacy:{castaways:'lost',beggar:'spy',lookout:false}});assert.equal(b.favor,0);assert.equal(b.alarm,2);assert.ok(b.enemies.some(e=>e.zone==='P1'&&e.type==='lanceiro'&&!e.hold));
 });
@@ -52,7 +54,7 @@ test('the Greeks win when every standing hero is back in A1 after the reconnaiss
 test('Criseida, the shepherds and the tower are choices with hidden effects',()=>{
  let s=setup();s.revealed.push(...G.WALLS,'B5');s.enemies=[];hero(s,'aquiles').zone='P2';hero(s,'aquiles').hp=4;s=act(s,'aquiles','move','C1');assert.equal(s.encounter.id,'criseida');
  const t=G.choose(s,'take').state;assert.equal(t.criseida,'taken');assert.equal(hero(t,'aquiles').hp,6,'as oferendas viram vida');assert.equal(G.choose(s,'respect').state.criseida,'respected');
- let p=setup();p.revealed.push(...G.WALLS);p.enemies=[];hero(p,'odisseu').zone='P4';p=act(p,'odisseu','move','B5');assert.equal(p.encounter.id,'shepherds');p=G.choose(p,'pay').state;assert.equal(hero(p,'odisseu').hp,5);assert.ok(p.scrolls.includes('pastores-1'));
+ let p=setup();p.revealed.push(...G.WALLS,'B5');p.enemies=[];hero(p,'odisseu').zone='P4';p=act(p,'odisseu','move','B5');assert.equal(p.encounter.id,'shepherds');p=G.choose(p,'pay').state;assert.equal(hero(p,'odisseu').hp,5);assert.ok(p.scrolls.includes('pastores-1'));
  let w=setup();w.revealed.push(...G.WALLS);w.enemies=[];hero(w,'agamemnon').zone='M4';w=act(w,'agamemnon','interact','tower');w=act(w,'agamemnon','interact','tower');assert.equal(w.encounter.id,'tower');assert.equal(w.alarm,2);
  const plan=G.choose(w,'plan').state;assert.ok(plan.scrolls.includes('segredos-1'));const train=G.choose(w,'train').state;assert.equal(train.encounter.id,'evolution');
 });
@@ -69,4 +71,10 @@ test('the bot completes most rosters',()=>{
  for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];
   for(const abilities of [undefined,Object.fromEntries(team.map(i=>[i,0]))]){const s=play(team,{abilities});games++;if(s.result==='victory')wins++;}}
  assert.ok(wins/games>=.6,'vitórias do robô: '+wins+'/'+games);
+});
+test('heroes only move between revealed pieces; the clues of P3, P7 and P4 open the way to the gate',()=>{
+ let s=setup();s.enemies=[];hero(s,'odisseu').zone='P3';assert.equal(G.act(s,'odisseu','move','P7').ok,false,'P7 ainda não foi descoberta');
+ const alarm=s.alarm;s=act(s,'odisseu','interact','explore');assert.deepEqual(s.lastReveals,['M4','P7']);assert.equal(s.alarm,alarm,'observar as torres não faz barulho');
+ s=act(s,'odisseu','move','P7');s=G.trojanTurn(s);s.enemies=[];s=act(s,'odisseu','interact','explore');assert.ok(G.isRevealed(s,'M1')&&G.isRevealed(s,'P4'));assert.equal(s.personal.odisseu.done,true,'duas fichas investigadas');
+ let r=setup({abilities:{aquiles:0,odisseu:2,agamemnon:0}});r.enemies=[];assert.equal(G.act(r,'odisseu','card:2','P7').ok,false,'Caminho Seguro só vai a peças reveladas');
 });

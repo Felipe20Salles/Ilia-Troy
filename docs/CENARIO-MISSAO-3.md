@@ -80,12 +80,51 @@ O jogo encaminha Pátroclo para enfrentar Heitor, como se esse fosse o objetivo 
 
 - **Zeus e a balança de ouro.** Quando Heitor sai do portão (Alarme 11), Zeus aparece para Pátroclo e pesa o destino dele, como na Ilíada. A tela mostra os dois pratos: o que acontece se Pátroclo enfrentar Heitor e o que acontece se ele fugir. É uma exceção à regra de efeitos escondidos (`DILEMAS.md`).
 - **Se Pátroclo sobreviver à missão 3,** a visita se repete no início da missão 4.
-- **Condição:** Pátroclo precisa morrer **de frente para Heitor**, lutando com ele. Se morrer de outro jeito, Aquiles volta, mas sem os prêmios abaixo.
+- **Condição (decidida em 03/10/2026):** Pátroclo precisa morrer **de frente para Heitor**: cair na mesma peça de Heitor, depois de tê-lo atacado pelo menos uma vez. Se morrer de outro jeito, Aquiles volta, mas sem os prêmios abaixo.
+- **A escolha não é um botão:** o jogador decide jogando, levando Pátroclo até Heitor ou mantendo-o longe. A balança só deixa claro o que está em jogo.
 - **As recompensas da promessa:**
   1. **O dano fica:** todo ferimento que Pátroclo fizer em Heitor continua na missão seguinte.
   2. **A ira de Aquiles:** Aquiles volta com todas as habilidades e, na primeira rodada dele, os troianos que estiverem por perto fogem de medo.
   3. **A honra dos deuses:** +2 de Favor.
   4. **A glória de Pátroclo** fica registrada para o epílogo da campanha.
+
+### A cena da balança (texto aprovado em 03/10/2026)
+
+**1. A visita (quando Heitor sai do portão)**
+
+> *O céu escurece sobre a planície. Por um instante, o barulho da batalha some, e Pátroclo ouve apenas o próprio coração dentro da armadura emprestada.*
+>
+> *No alto do Ida, Zeus ergue a balança de ouro. Num prato, põe a sorte de Pátroclo; no outro, a de Heitor.*
+>
+> **"Filho de Menécio. Vestes o bronze de Aquiles, e Troia inteira te teme por causa dele. Heitor saiu do portão. Vai ao encontro dele, e os deuses lembrarão o teu nome."**
+
+**Os dois pratos:**
+
+| ⚖️ Enfrentar Heitor | ⚖️ Afastar-se dele |
+|---|---|
+| *"O bronze cai, mas o golpe fica."* | *"Viverás, à sombra de quem não voltará."* |
+| O estrago que fizeres em Heitor ele levará consigo. | Pátroclo segue lutando, sem a força de Aquiles. |
+| Aquiles voltará, e os troianos fugirão diante da ira dele. | Aquiles não volta mais à guerra. |
+| Os deuses honrarão a tua coragem: +2 de Favor. | — |
+| O teu nome ficará entre os que não se esquecem. | — |
+
+> *A balança oscila e não decide. A escolha é tua.*
+
+**2. Se Pátroclo morre de frente para Heitor**
+
+> *Pátroclo cai com a lança de Heitor no peito. O elmo de Aquiles rola pela poeira.*
+>
+> *Nos navios negros, Aquiles ouve a notícia e solta um grito que atravessa a planície. Os cavalos troianos recuam. Os homens de Heitor olham para o mar, e pela primeira vez sentem medo.*
+>
+> **Aquiles volta à guerra.**
+
+**3. Se Pátroclo morre de outro jeito**
+
+> *Pátroclo cai longe de Heitor, numa escaramuça sem nome. Aquiles chora o amigo e volta à guerra, mas a balança de Zeus não se mexeu: essa morte não foi a que os deuses pesaram.*
+
+**4. Se a missão termina e Pátroclo continua vivo**
+
+> *Pátroclo sobrevive ao dia. Nos navios negros, Aquiles continua de braços cruzados. A balança de Zeus volta a subir; ela será pesada outra vez.*
 
 ### Sem Briseida: o duelo de egos
 

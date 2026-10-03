@@ -1,152 +1,95 @@
 # Da praia aos portões de Troia
 
-Missões 1 e 2 jogáveis; módulo 3 disponível como protótipo de defesa. Capítulos 4–6 planejados.
+Índice da campanha cooperativa: sete missões. Cada missão tem o seu doc de cenário (`CENARIO-MISSAO-N.md`), que é a fonte de verdade dela. As regras que valem para todas estão em `REGRAS-CAMPANHA.md`; os dilemas, em `DILEMAS.md`; os pergaminhos, em `MECANICA-PERGAMINHOS.md`.
+
+Atualizado em 03/10/2026. Missões 1 a 3 jogáveis; 4 a 7 em desenho.
+
+> A página `cooperativo/campanha.html` ainda mostra o plano antigo de seis capítulos (`cooperativo/campaign-plan.json`). Ela será atualizada junto com o código.
 
 ## Regras de projeto
 
 - 1–5 jogadores locais. Um ou dois jogadores controlam três heróis; três a cinco jogadores controlam um herói cada. Odisseu e Agamêmnon são obrigatórios na seleção inicial; Aquiles, Ájax e Menelau completam a equipe.
-- A geografia vem antes dos recortes: água, barrancos e rochas limitam o território. Uma região representa um trecho percorrível, não uma distância fixa em metros. As conexões marcam deslocamentos permitidos. O desenho final das peças e a escala das miniaturas dependem do teste de mesa.
-- A base aqueia é um lugar de partida, abastecimento e retirada. Seu contingente não gera ataques automáticos nem soldados controláveis. Defesa da base ocorre apenas quando prevista pelo cenário: enquanto é construída no capítulo 1 e durante o contra-ataque do capítulo 3.
-- Comida, evoluções, territórios revelados, heróis mortos e comandantes mortos persistem. Vida, ações e habilidades reutilizáveis são preparadas na nova missão. Madeira será persistente após a descoberta do plano do cavalo.
-- Cada missão tem salvamento próprio. Vitórias registram capítulos concluídos, equipe sobrevivente e recursos. Heróis caídos e não socorridos até o fim morrem permanentemente; a campanha pode continuar com menos heróis, inclusive apenas um.
-- A pressão aumenta por escolhas simultâneas, objetivos diferentes e tropas adicionais conforme a quantidade de heróis. Heitor e Páris não podem morrer nas missões 2 e 3: recuam ao chegar a 1 de vida. Enéias e Sarpedon podem morrer definitivamente desde a missão 3.
-
-## 1. O Desembarque
-
-**Jogável; mapa natural em teste**
-
-**Situação:** A frota acaba de chegar. O acampamento ainda não oferece segurança: é preciso estabelecê-lo antes de avançar.
-
-**Objetivo:** Transportar uma caixa por herói de N1/N2 até A1, instalar a base e concluir duas respostas consecutivas com A1 livre de inimigos e um herói de pé.
-
-**Território:** 11 peças do tabuleiro final: N1–N4, A1–A2, P1–P3, P6 e C2. Movimento nas praias restrito à areia.
-
-**Acontecimentos:** Exploradores iniciais e lanceiros no contra-ataque; instalação em A1.
-
-**Vitória:** Base instalada e defendida por duas respostas consecutivas. Tendas aparecem como marcadores sobre a clareira.
-
-**Derrota:** Três danos ao campo, todos caídos ou fim da rodada 10 sem concluir. A segunda defesa na rodada 10 vale vitória.
-
-**Consequência:** Registra o capítulo concluído, suprimentos iguais às caixas entregues e zero materiais do cavalo. Abre narrativamente a aproximação às muralhas.
-
-**Pressão e dificuldade:** Introdução: transportar, abrir caminho e escolher o momento de instalar. Não exige procurar objetos escondidos.
-
-**Componentes:** Nove regiões, caixas, fichas de inimigos e tendas removíveis. No protótipo digital as tendas são marcadores; STL e peças físicas ainda não foram produzidos.
-
-## 2. Diante das muralhas
-
-**Jogável; extensão esquemática das muralhas**
-
-**Situação:** Com a base pronta, os aqueus tentam encontrar uma entrada. O reconhecimento revela que o assalto frontal seria insustentável.
-
-**Objetivo:** Derrotar o guarda, Atacar o portão M1 e recuar com os sobreviventes para A1.
-
-**Território:** As 11 peças do desembarque, acrescidas de P7, P4, M1, M4 e B5: 16 peças.
-
-**Acontecimentos:** Guardas defendem M1; arqueiros cobrem os acessos. P2 revela P5/C1 e uma evolução; B5 revela M5/M2/B1, comida e patrulha; N4 revela N5 e comida. O ataque ao portão fracassa e chama lanceiros, Heitor e Páris sem remover as tropas que já estão em campo.
-
-**Vitória:** Portão atacado e todos os sobreviventes em A1; gastar 1 ação para concluir a retirada.
-
-**Derrota:** Todos caídos ou resposta troiana da rodada limite sem retirada concluída. Prazo inicial: rodada 14.
-
-**Consequência:** Registra o alarme, as peças reveladas, evoluções, comandantes e sobreviventes. Abre a defesa do acampamento.
-
-**Pressão e dificuldade:** N2 recomendado para os primeiros testes com tropas diferenciadas; prazo 14, reduzido para a rodada do reconhecimento + 6, limitado a 14.
-
-**Componentes:** Extensão de muralhas, dois marcadores de reconhecimento e ficha de retirada. Primeiro testar com formas simples antes da arte final.
-
-## 3. Segurar a linha
-
-**Protótipo jogável — defesa.html**
-
-**Situação:** Heitor lidera o contra-ataque e Páris cobre a ofensiva à distância. A base agora pode ser invadida.
-
-**Objetivo:** Resistir a dez respostas de Troia e encerrar a décima com A1 livre de inimigos e um defensor de pé.
-
-**Território:** Começa com as 22 peças disponíveis ao fim da missão 2. M3 permanece sob névoa até explorar P3; B2, B3 e B4 permanecem sob névoa até explorar C1. A1 deixa de ser uma zona segura.
-
-**Acontecimentos:** P3 e C1 recebem fichas obrigatórias. Toda a ofensiva parte de M1 e M2, com uma nova onda após cada resposta anterior à última: exploradores e Enéias entram na rodada 2; Heitor na 3; Páris e Sarpedon na 4; lanceiros na 5; guarda na 6; arqueiros na 7; lanceiros na 8; guarda e lanceiros na 9; arqueiros e lanceiros na 10. A quantidade regular cresce para equipes de quatro e cinco heróis.
-
-**Vitória:** P3 e C1 explorados, dez respostas concluídas, A1 livre e ao menos um defensor de pé; não exige derrotar os comandantes.
-
-**Derrota:** Cinco danos à base, todos caídos, ou término da rodada 10 sem consolidar a defesa.
-
-**Consequência:** A base resiste e o mapa externo fica completo. Páris recua imediatamente com 1 de vida; Heitor recua uma área por resposta até entrar em M1. Enéias e Sarpedon mortos não retornam. Heróis aqueus não socorridos também são removidos da campanha.
-
-**Pressão e dificuldade:** Maior concentração de combate. Heitor: vida 10, ataque 3, Armadura 1; Páris: vida 6, ataque 3, Armadura 0, alcance 2. Valores provisórios.
-
-**Componentes:** Mesma montagem e miniaturas de tropas; fichas de exploração; Heitor e Páris como combatentes.
-
-## 4. Outro caminho
-
-**Planejado**
-
-**Situação:** A força não resolveu o cerco. Surge uma operação de reconhecimento e coleta que prepara o plano do cavalo.
-
-**Objetivo:** Encontrar materiais no bosque e alcançar a colina para observar uma oportunidade, depois retornar à base.
-
-**Território:** Bosque e colina da imagem atual. Previsão de B1–B4 e C1–C3; C1 é acesso e C2/C3 são os dois pontos de busca. Esses limites ainda serão desenhados e testados.
-
-**Acontecimentos:** Um esconderijo por objetivo é sorteado no início. Um ponto de risco tem pistas visíveis; cruzá-lo ou investigá-lo ativa uma emboscada uma única vez. A tropa aparece por um acesso conhecido e age na fase seguinte.
-
-**Vitória:** Materiais obrigatórios e reconhecimento concluídos, com a equipe de volta à base.
-
-**Derrota:** Retirada não concluída no prazo ou equipe incapacitada. Buscar recursos opcionais sem preservar a rota de volta pode causar uma derrota real.
-
-**Consequência:** Materiais do cavalo obtidos são registrados. Material opcional reduz trabalho na construção; a coleta mínima sempre permite tentar o capítulo 5.
-
-**Pressão e dificuldade:** Exploração arriscada: caminho curto exposto versus caminho mais longo. Não deve depender de acertar uma busca por sorte para ser vencível.
-
-**Componentes:** Pontos de busca, pistas e marcador de emboscada resolvida. Reutilizar a arte atual, sem revelar inimigos pintados nela.
-
-## 5. Construir o cavalo
-
-**Planejado**
-
-**Situação:** O plano exige uma construção convincente enquanto patrulhas ainda ameaçam a operação.
-
-**Objetivo:** Completar etapas de construção, obter materiais restantes e impedir a interrupção dos trabalhos.
-
-**Território:** Clareira ou área de construção próxima da base e caminhos de coleta. O cavalo aparece como peça removível em estágios, não como pintura fixa.
-
-**Acontecimentos:** Cada etapa terminada aumenta o progresso e anuncia uma mudança de pressão. Os heróis escolhem quem trabalha, quem busca material e quem intercepta uma patrulha.
-
-**Vitória:** Construção concluída e equipe preparada para a falsa retirada.
-
-**Derrota:** Local de trabalho perdido, prazo encerrado ou equipe incapacitada. Uma tentativa perdida não consome definitivamente todo o material da campanha.
-
-**Consequência:** Cavalo pronto; suprimentos restantes servem à preparação final. Bônus opcionais facilitam a infiltração, sem torná-la automática.
-
-**Pressão e dificuldade:** Alta por divisão de tarefas. Nenhum herói específico deve ser obrigatório para construir.
-
-**Componentes:** Peça de cavalo em estágios, marcadores de trabalho e materiais. Protótipo plano primeiro; impressão 3D depois da definição de escala.
-
-## 6. A falsa retirada
-
-**Planejado**
-
-**Situação:** Os aqueus encenam a partida. O cavalo é aceito em Troia e o destacamento infiltrado precisa abrir os portões.
-
-**Objetivo:** Preparar o sinal, infiltrar o destacamento e abrir o acesso para o contingente aqueu. A falsa retirada é uma etapa do plano, não o abandono da guerra.
-
-**Território:** Costa como abertura narrativa e nova extensão do interior de Troia, conectada aos portões. A entrada do cavalo será uma transição de cenário, sem tentar simular toda a cidade.
-
-**Acontecimentos:** Transição do exterior ao interior; patrulhas e alerta limitam as ações. Sinal e abertura dos portões formam dois objetivos coordenados.
-
-**Vitória:** Sinal enviado e portão aberto antes de a guarda impedir a operação.
-
-**Derrota:** Alerta ou prazo excedido, destacamento incapacitado ou operação interrompida conforme condições anunciadas.
-
-**Consequência:** Encerra o arco da campanha. Recursos opcionais podem afetar o resultado narrativo, sem exigir um sétimo capítulo.
-
-**Pressão e dificuldade:** Clímax que combina movimento, cooperação e combate. Regras novas de alerta devem ser poucas e ensinadas na preparação.
-
-**Componentes:** Portões, ruas ou pátios, sinal e marcador de alerta. Arte final apenas após validar o percurso com protótipo.
+- A geografia vem antes dos recortes: água, barrancos e rochas limitam o território. Uma região representa um trecho percorrível, não uma distância fixa em metros. O desenho final das peças e a escala das miniaturas dependem do teste de mesa.
+- A base aqueia é um lugar de partida, abastecimento e retirada. Seu contingente não gera ataques automáticos nem soldados controláveis. Ela só é atacada quando o cenário prevê: na instalação (missão 1) e no contra-ataque de Heitor (missão 3).
+- Comida, evoluções, habilidades aprendidas, pergaminhos, territórios revelados, heróis mortos e comandantes mortos persistem. Vida vem do armazém na preparação. Madeira será persistente depois que o plano do cavalo for revelado.
+- Cada missão tem salvamento próprio. Heróis caídos e não socorridos até o fim morrem permanentemente; a campanha pode continuar com menos heróis, inclusive apenas um. **Nenhum herói morre por roteiro.**
+- **Heitor** não pode morrer nas missões 2 e 3 (recua ferido). Na missão 4 ele pode morrer pelas mãos de qualquer herói. **Aquiles e Páris** seguem vivos até a missão 7, salvo morte em jogo. Enéias e Sarpédon podem morrer definitivamente desde a missão 3.
+
+## As sete missões
+
+### 1. O Desembarque — jogável (`cooperativo/index.html`, motor `landing.js`)
+A frota chega a uma costa desconhecida. A expedição revela o território, recolhe as caixas espalhadas pelas praias, toma o posto de vigia troiano em A1 e instala ali o acampamento. Encontros: os náufragos e o velho do círculo de pedras (Zeus ou espião). **Revisão aprovada em 03/10, ainda não programada:** P1 vazio, vigia em A1 e exploração por missão. Doc: `CENARIO-MISSAO-1.md`.
+
+### 2. Diante das muralhas — jogável (`reconhecimento.html`)
+A expedição sobe a planície para reconhecer o portão de Troia e volta com todos de pé, perseguida depois do reconhecimento. No santuário de Apolo (C1), a decisão de tomar ou respeitar Criseida. Doc: `CENARIO-MISSAO-2.md`. A missão 2 antiga (`muralhas.html`) fica só como referência.
+
+### 3. Segurar a linha — jogável (`segurar.html`)
+Heitor lidera o contra-ataque contra o acampamento; os gregos precisam ferir Heitor até ele recuar. Se Criseida foi tomada, Crises pede a filha e vem a peste, ou Agamêmnon toma Briseida e começa a ira de Aquiles: **Pátroclo** entra no lugar dele. Doc: `CENARIO-MISSAO-3.md`. A defesa antiga (`defesa.html`) fica só como referência.
+
+### Pátroclo (só se Briseida for tomada)
+Pátroclo não tem morte por roteiro: ele morre ou sobrevive em jogo. Se cair, não há socorro, e Aquiles volta movido pela ira. Se o jogador o mantiver vivo, Aquiles nunca volta. A embaixada de Odisseu ou Ájax sempre falha. Regra completa em `CENARIO-MISSAO-3.md`.
+
+### 4. A ira de Aquiles — em desenho
+Heitor fica diante do portão, e a equipe o isola dos reforços. A missão tem dois caminhos, decididos na missão 3:
+- **Briseida foi tomada:** se Pátroclo ainda estiver vivo, ele enfrenta Heitor, e a morte dele é quase inevitável; ela traz Aquiles de volta para vingá-lo. Se Pátroclo sobreviver, Aquiles nunca volta, e Heitor cai pelas mãos dos outros heróis.
+- **Briseida não foi tomada:** Pátroclo nunca entra. O encontro de Aquiles com Heitor é um duelo de egos: quem é o maior guerreiro.
+
+Qualquer herói pode matar Heitor; o golpe final de Aquiles é o feito dele.
+
+**Se Heitor não morrer** (decidido em 03/10/2026): a missão não é repetida. Como em *Jornadas na Terra-média*, falhar o objetivo torna a missão seguinte muito mais difícil: sem velório não há trégua, e Heitor vivo comanda a vigilância da cidade na missão 5. Heitor vivo também defende o portão na missão 7. A própria missão 4 é bem mais difícil que a 3: Heitor, mais forte, corre pela muralha de volta ao portão, um passo por rodada, com reforços todas as rodadas; se chegar, escapa. Atena, disfarçada de Deífobo, pode fazê-lo parar uma rodada (Favor). Doc: `CENARIO-MISSAO-4.md` (rascunho).
+
+### Interlúdio — o resgate do corpo
+Príamo pede o corpo de Heitor e começa a trégua do velório.
+
+### 5. O Paládio — em desenho
+Durante a trégua, Odisseu entra sozinho em Troia, disfarçado de mendigo, e rouba o Paládio. É de lá que ele traz a ideia do cavalo: a forma (Troia venera o cavalo), o motivo (expiar o roubo), a medida do portão e quem vai desconfiar. Os outros heróis ficam no acampamento, distraindo Troia e preparando a saída de Odisseu. Se Heitor estiver vivo, não há trégua e a missão fica perto de um fracasso. Com o Paládio fora de Troia, Atena deixa de proteger a cidade; o roubo também dá o motivo do cavalo (a oferenda para expiar o sacrilégio). Doc: `CENARIO-MISSAO-5.md` (rascunho).
+
+### 6. Construir o cavalo — planejado
+O plano exige uma construção convincente enquanto patrulhas ainda ameaçam a operação. Os heróis dividem-se entre trabalhar, buscar material e interceptar patrulhas. O cavalo aparece como peça removível em estágios. Nenhum herói específico deve ser obrigatório para construir. A madeira e os pergaminhos reunidos antes reduzem o trabalho; a coleta mínima sempre permite tentar. Sem doc de cenário ainda.
+
+### Interlúdio — a falsa partida
+A frota finge partir para Tênedos e deixa o cavalo na praia.
+
+### 7. A noite do cavalo — planejado
+Dois mapas em jogo ao mesmo tempo, com o mesmo Alarme: no mapa da cidade, os infiltrados saem do cavalo e abrem o portão; no mapa externo, a frota volta em silêncio e se aproxima sem ser descoberta. Vitória com o portão aberto e a força de fora chegando a ele. Sem o Paládio roubado, a missão fica mais difícil, mas continua jogável. Epílogo: a Glória registrada nos feitos e o destino de Aquiles (a profecia de que morrerá depois de Troia). Sem doc de cenário ainda.
+
+## Decisões de 03/10/2026
+
+- **Sete missões**, na ordem acima. A morte de Heitor vem antes do Paládio, como na tradição; o roubo do Paládio deixa de ser o que torna Heitor mortal.
+- **Heitor** pode morrer na missão 4 pelas mãos de qualquer herói; o golpe final de Aquiles é o feito dele (Aquiles não é obrigatório na equipe).
+- **Aquiles e Páris vivos até a missão 7.** Nenhuma morte por roteiro; sem julgamento das armas nem suicídio de Ájax.
+- **Pátroclo** entra só se Agamêmnon tomar Briseida de Aquiles (missão 3, opção B), com a força inicial de Aquiles e uma habilidade. Morre sem socorro e, só então, Aquiles volta com tudo o que tinha. Vivo, Aquiles nunca volta. A embaixada sempre falha. Sem Briseida, o encontro de Aquiles com Heitor é um duelo de egos. Regra completa em `CENARIO-MISSAO-3.md`.
+- **Missão 5 solo:** só Odisseu entra em Troia; os outros ficam no acampamento. Como a mesa participa ainda está em aberto.
+- **Feitos a partir da missão 3:** +1 Favor e Glória (registro narrativo para o epílogo, sem efeito de regra). Ver `REGRAS-CAMPANHA.md`.
+- **Suspeita** é o Alarme com outro nome, na missão 5.
+- **Exploração por missão** no lugar da exploração por movimento. Ver `REGRAS-CAMPANHA.md`.
+- **Missão 1:** P1 começa vazio e a vigia troiana fica em A1. Ver `CENARIO-MISSAO-1.md`.
+- **Missão 1, a rendição da vigia:** o batedor substituto aparece descendo o morro quando o posto é descoberto; se chegar antes, Alarme +2 e ele fica no posto.
+- **Falhar não repete a missão 4:** Heitor escapa correndo até o portão. Vivo, ele torna a missão 5 muito mais difícil (sem trégua, cidade vigiada por ele) e defende o portão na missão 7.
+- **Zeus e a balança de ouro:** Zeus mostra a Pátroclo as recompensas de morrer de frente para Heitor (o dano fica em Heitor, a ira de Aquiles, +2 Favor, a glória de Pátroclo). Ver `CENARIO-MISSAO-3.md`.
+- **As quatro descobertas de Odisseu** (a forma, garantida; o motivo; a medida; quem vai desconfiar) originam o cavalo. Os outros jogadores distraem Troia e preparam a saída. Ver `CENARIO-MISSAO-5.md`.
+- **A ideia do cavalo vem de Odisseu,** trazida de dentro de Troia na missão 5. Os outros não buscam madeira nessa missão.
+
+## Cronologia e tradição
+
+| O jogo | A tradição |
+|---|---|
+| Desembarque e acampamento (1) | Desembarque nove anos antes da Ilíada; o jogo comprime o tempo |
+| Reconhecimento do portão (2) | Invenção do jogo (a tradição tem uma embaixada de Odisseu e Menelau antes da guerra) |
+| Criseida tomada no santuário (2) | Na Ilíada, capturada no saque de Tebas |
+| Crises, peste, Briseida e ira (3) | Ilíada, canto 1; o jogo separa em opções |
+| Heitor ataca o acampamento (3) | Batalha junto às naus, cantos 12 a 15 |
+| Pátroclo joga no lugar de Aquiles e morre diante de Heitor | Canto 16; no jogo ele pode sobreviver, e aí Aquiles não volta |
+| A embaixada a Aquiles sempre falha | Canto 9 |
+| Morte de Heitor (4) | Canto 22, com Atena disfarçada de Deífobo |
+| Resgate do corpo e trégua | Canto 24 |
+| Odisseu mendigo e o Paládio (5) | Na tradição, duas incursões separadas, bem depois do velório e da morte de Aquiles e de Páris; o jogo junta as duas na trégua |
+| Construção do cavalo (6) e noite do cavalo (7) | Epeu, Sínon, Laocoonte e o saque |
+| Aquiles e Páris vivos até o fim | Na tradição, Páris mata Aquiles, e Filoctetes mata Páris, antes do cavalo |
 
 ## Validação antes das próximas artes
 
 - Testar o Desembarque com três, quatro e cinco heróis, mantendo escolhas viáveis para todos os elencos.
 - Medir rodadas, tempo real, ações ociosas, dificuldade de ler caminhos e frequência de derrotas. Não transformar rodadas simuladas em promessa de minutos de partida.
 - Conferir em papel se miniaturas e marcadores cabem nas regiões; o tabuleiro digital ainda não determina tamanho físico.
-- Testar busca com cada esconderijo possível e emboscada acionada cedo ou tarde; garantir repetição impossível e persistência ao recarregar.
-- Só fechar cortes de peças e produzir a extensão de Troia depois de validar as necessidades dos capítulos 2 e 6.
+- Só fechar cortes de peças e produzir a extensão de Troia (mapa da cidade) depois de validar as necessidades das missões 5 e 7.

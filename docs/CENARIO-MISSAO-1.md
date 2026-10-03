@@ -1,6 +1,8 @@
 # Missão 1 · O Desembarque (proposta de cenário com revelação do mapa)
 
-Status: **programado** em `cooperativo/landing.js` e `landing-app.js` (01/10/2026), aguardando teste de mesa.
+Status: **programado** em `cooperativo/landing.js` e `landing-app.js` (01/10/2026), aguardando teste de mesa. A revisão de 03/10/2026 (fim deste doc) ainda não está programada.
+
+> Partes deste doc foram superadas por revisões posteriores. As condições de vitória e os patamares do Alarme em vigor estão em `REGRAS-CAMPANHA.md`; as revisões de 02/10 e 03/10, no fim deste doc, valem sobre o que vem antes delas.
 
 ## A ideia em uma frase
 
@@ -130,15 +132,17 @@ No início de cada rodada (da 2 à 12), o app narra um acontecimento. Alguns tra
 
 ## Feitos pessoais
 
-| Herói | Feito | Objetivo | Recompensa |
-|---|---|---|---|
-| Aquiles | Glória | Derrotar 2 tropas | Alarme −1 e recupera 2 de vida |
-| Odisseu | Batedor da frota | Revelar 3 peças | Alarme −1 e +1 comida |
-| Agamêmnon | Senhor do acampamento | Estar em A1 na instalação | Proteção 2 em A1 na resposta seguinte |
-| Menelau | Irmão de armas | Socorrer ou curar um aliado, ou ajudar nos náufragos | +1 comida e prepara as habilidades |
-| Ájax | Muralha dos aqueus | Resistir de pé a 3 ataques | Recupera 2 de vida e prepara as habilidades |
+Corrigido em 03/10/2026 conforme o código (`landing.js`). As recompensas antigas (Alarme −1, cura, preparar habilidades) saíram na revisão de 02/10.
 
-Cada feito vale uma vez por missão. Com crônica e feitos, a simulação segue vencível para todas as equipes, em 9 a 14 rodadas.
+| Herói | Feito | Objetivo |
+|---|---|---|
+| Aquiles | Glória | Derrotar 2 tropas |
+| Odisseu | Batedor da frota | Revelar 3 peças desconhecidas (com a exploração por missão: investigar 3 indícios) |
+| Agamêmnon | Senhor do acampamento | Estar em A1 quando o acampamento for instalado |
+| Menelau | Irmão de armas | Socorrer ou curar um aliado, ou ajudar a resgatar os náufragos |
+| Ájax | Muralha dos aqueus | Resistir de pé a 3 ataques |
+
+**Recompensa de todos:** +1 Favor e uma habilidade nova, à escolha do jogador. Cada feito vale uma vez por missão.
 
 ## O que passa para a campanha
 
@@ -160,7 +164,7 @@ Cada feito vale uma vez por missão. Com crônica e feitos, a simulação segue 
 
 ## Decisões em aberto
 
-1. Valores do Alarme (patamares 3, 6, 9 e 12) são iniciais e precisam de teste.
+1. Valores do Alarme: os patamares atuais (4, 7, 11, 15 e 18, em `REGRAS-CAMPANHA.md`) nunca passaram por teste de mesa.
 2. **Evolução no mirante** já na missão 1: aceitável? Ela consome uma das recompensas do limite da campanha (heróis + 2).
 3. Efeito da **bênção de Zeus** na missão 2.
 
@@ -172,7 +176,7 @@ O teste mostrou a missão fácil demais: dava para cumprir tudo, e os deuses e o
 
 **Deuses (agem sobre o mundo):** Atena (1 Favor) revela uma ficha; Poseidon (2) agita o mar e o Alarme cai 2; Zeus (2) cumpre o pedido da crônica da rodada. Hera e o raio de Zeus saíram.
 
-**Feitos:** Aquiles e Ájax, Alarme −1; Agamêmnon, Alarme −2; Odisseu, Alarme −1 e +1 comida; Menelau, +1 comida. A bênção de Zeus (o velho) dá Favor e Alarme −2, sem cura. A crônica dos remadores virou só narrativa.
+**Feitos** (superado no mesmo dia por "Habilidades conquistadas", abaixo): Aquiles e Ájax, Alarme −1; Agamêmnon, Alarme −2; Odisseu, Alarme −1 e +1 comida; Menelau, +1 comida. A bênção de Zeus (o velho) dá Favor e Alarme −2, sem cura. A crônica dos remadores virou só narrativa.
 
 **Pressão de Troia:**
 - As tropas caçam quem carrega caixa a até duas peças de distância. Carregar sozinho é perigoso; o grupo precisa escoltar.
@@ -190,3 +194,30 @@ O teste mostrou a missão fácil demais: dava para cumprir tudo, e os deuses e o
 - **Cumprir o feito pessoal ensina uma nova habilidade**, à escolha do jogador, que vira a carta. Essa é a recompensa do feito (o Alarme −1 e afins saíram); o feito ainda dá +1 Favor.
 - Uma passiva (o Sobrevivente do Ájax) só age depois de aprendida.
 - Simulação: com uma habilidade inicial, todas as equipes vencem nos dois roteiros. As equipes de 5 têm teto de Alarme 22 (18 + 4), por terem 5 caixas a buscar.
+
+## Revisão de 03/10/2026 (aprovada, não programada)
+
+### A vigia troiana em A1
+
+O acampamento grego não nasce numa clareira vazia: a expedição toma um posto de vigia troiano e se instala no lugar dele.
+
+1. **P1 começa vazio.** O explorador que hoje fica de vigia em P1 deixa de existir: a vigia de lá saiu na troca de turno. O mirante de P1 continua como está, inclusive a companhia que o guarnece no Alarme 8.
+2. **A vigia da praia fica em A1.** Um explorador parado em A1 representa a vigia. Ele fica escondido e aparece junto com A1.
+3. **A1 começa escondido** e só aparece por uma interação em A2: investigar a ficha (lupa) dessa peça.
+4. **Ao revelar A1,** uma caixa de diálogo avisa sobre o posto de vigia.
+5. **O posto precisa ser tomado antes que chegue o próximo explorador** (a rendição do turno). Tomar o posto é deixar A1 livre de inimigos.
+6. **Se a rendição chegar com o posto ainda troiano, o Alarme sobe.**
+7. Tomado o posto, entra o diálogo atual de A1 (a fogueira ainda morna) e o resto da missão segue como hoje: entregar as caixas, instalar e defender.
+
+**A rendição (decidido em 03/10/2026):**
+- Quando o posto é descoberto, o batedor substituto aparece no mapa, descendo o morro em direção a A1. Ele chega em 2 ou 3 passos (a distância exata sai do teste), e os jogadores podem atacar o posto ou cortar o caminho dele.
+- Se ele chegar com o posto ainda troiano, **o Alarme sobe 2 e ele fica no posto**, junto com a vigia.
+
+### Exploração por missão
+
+A missão 1 é a primeira a usar a exploração por missão (`REGRAS-CAMPANHA.md`): as peças aparecem por indícios investigados com a lupa, pelo avanço da história ou por tropas de Troia, não por andar até a borda. A distribuição dos indícios peça por peça ainda será desenhada.
+
+### Odisseu
+
+- O Caminho Seguro volta a alcançar só peças reveladas (desfaz a mudança de 02/10).
+- O feito Batedor da frota passa a ser investigar 3 indícios.

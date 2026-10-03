@@ -86,12 +86,17 @@ Dois pergaminhos possíveis por missão, como decidido; o II de Rotas da costa �
 ## Crônica e feitos
 
 - **Crônica** com 10 a 12 entradas próprias (sons de trompas na cidade, Heitor nas muralhas, Páris observando, chuva, cavalos troianos, um corvo no portão), algumas com pedidos.
-- **Feitos pessoais** novos para cada herói, cada um ensinando uma habilidade:
-  - Aquiles: derrotar o guarda do portão.
-  - Ájax: estar em M1 ou M4 e não cair na missão.
-  - Odisseu: revelar M1.
-  - Menelau: socorrer um aliado caído.
-  - Agamêmnon: estar em A1 quando a expedição voltar completa.
+- **Feitos pessoais** (aprovados em 03/10/2026, conforme o código em `reconhecimento.js`). Recompensa: +1 Favor e uma habilidade nova, à escolha do jogador.
+
+| Herói | Feito | Meta |
+|---|---|---|
+| Aquiles | O guarda do portão | Derrotar o guarda do portão |
+| Odisseu | Olhos de Ítaca | Ser o primeiro a ver o portão: revelar M1 |
+| Agamêmnon | Ninguém fica na planície | Estar em A1 quando a expedição voltar completa |
+| Menelau | Irmão de armas | Socorrer ou curar um aliado |
+| Ájax | Escudo diante das muralhas | Resistir de pé a 2 ataques perto das muralhas (P3, P7, P4, M4 ou M1) |
+
+  O feito de Ájax foi alinhado ao código; a versão anterior deste doc ("estar em M1 ou M4 e não cair na missão") foi descartada.
 
 ## O que passa para a missão 3
 
@@ -103,4 +108,4 @@ Dois pergaminhos possíveis por missão, como decidido; o II de Rotas da costa �
 
 1. Aprovar o cenário em linhas gerais.
 2. A retirada com perseguição (Alarme +2 por resposta) é a pressão certa, ou prefere um prazo fixo de respostas depois do reconhecimento?
-3. Os feitos pessoais propostos.
+3. ~~Os feitos pessoais propostos.~~ Aprovados em 03/10/2026.

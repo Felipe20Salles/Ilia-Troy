@@ -25,8 +25,8 @@ test('all defeat conditions end the game',()=>{
  s=G.newGame();s.round=G.MAX_ROUNDS;s.enemies=[];assert.equal(G.trojanTurn(s).result,'defeat');
  s=G.newGame();s.enemies[0].zone='P1';s.heroes.forEach(h=>{h.zone='P1';h.hp=0;});s.heroes[0].hp=1;assert.equal(G.trojanTurn(s).result,'defeat');
 });
-test('rescue revives without granting extra actions during that round',()=>{
- let s=G.newGame();s.heroes[1].hp=0;s.heroes[1].ap=0;s=G.act(s,'aquiles','rescue','ajax').state;assert.equal(s.heroes[1].hp,2);assert.equal(s.heroes[1].ap,0);
+test('rescue revives with one available action',()=>{
+ let s=G.newGame();s.heroes[1].hp=0;s.heroes[1].ap=0;s=G.act(s,'aquiles','rescue','ajax').state;assert.equal(s.heroes[1].hp,2);assert.equal(s.heroes[1].ap,1);
 });
 test('all nine abilities have valid effects and consume one action',()=>{
  for(const def of G.HEROES)for(let i=0;i<def.cards.length;i++){

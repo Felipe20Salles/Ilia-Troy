@@ -1,15 +1,15 @@
 /* Shared artwork is clipped into complementary puzzle pieces. */
 .game-layout>div,.command{min-width:0}
-.puzzle-scroll{overflow-x:auto;overscroll-behavior-x:contain;margin:12px 0;scrollbar-color:#cbb078 #202a28}
+.puzzle-scroll{overflow-x:auto;overscroll-behavior-x:contain;margin:12px 0;scrollbar-color:#cbb078 #2c241e}
 .puzzle-map{position:relative;aspect-ratio:1;min-width:560px;isolation:isolate}
 .puzzle-art{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 3px 3px #0008)}
 .puzzle-cell{position:absolute;width:25%;height:25%;padding:15px 16px;display:flex;flex-direction:column;pointer-events:none}
-.piece-label{display:flex;gap:5px;align-items:center;align-self:flex-start;padding:2px 6px;border-radius:3px;background:#14211fea;color:#fff0d0;font-size:10px;line-height:1.4}
+.piece-label{display:flex;gap:5px;align-items:center;align-self:flex-start;padding:2px 6px;border-radius:3px;background:#221a13ea;color:#fff0d0;font-size:10px;line-height:1.4}
 .piece-label b{font-size:17px;color:#f5d391}.piece-label span{max-width:83px;overflow-wrap:anywhere}
 .piece-tokens{display:flex;gap:3px;flex-wrap:wrap;margin-top:5px;overflow:auto;pointer-events:auto;max-height:56%}
 .piece-tokens .token{font-size:9px;min-height:21px;padding:1px 5px}
-.piece-status{margin-top:auto;align-self:flex-start;font-size:10px;line-height:1.4;padding:3px 6px;color:#fff2d2;background:#19251fee;border-radius:3px}
-.piece-status.found{background:#244e41}.puzzle-cell.selected .piece-label{outline:2px solid #f5d391}
+.piece-status{margin-top:auto;align-self:flex-start;font-size:10px;line-height:1.4;padding:3px 6px;color:#fff2d2;background:#261e18ee;border-radius:3px}
+.piece-status.found{background:#4f3623}.puzzle-cell.selected .piece-label{outline:2px solid #f5d391}
 .artifact-list{display:flex;gap:12px;padding:14px 4px;font-size:12px}.artifact-list>div{flex:1}.artifact-list small{display:block;color:#c4c9b9;font-size:10px}
 .map-panel{background:#272b25;border-color:#75684b;padding:0 12px;border-radius:8px;box-shadow:0 12px 36px #0003}
 .section-label{margin:0 -12px;border-color:#665b42;color:#d5c6a7;background:#292b25;align-items:center}
@@ -19,15 +19,15 @@
 .zone{width:48%;max-width:none;min-height:0;aspect-ratio:1;padding:0;border:2px solid #978364;border-radius:3px;overflow:hidden;background:#494431;box-shadow:0 3px 5px #0009;isolation:isolate}
 .terrain-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
 .zone.current{border-color:#ffe0a0;box-shadow:0 0 0 2px #d4a550,0 4px 12px #0009}
-.zone-caption{position:absolute;bottom:0;left:0;right:0;padding:36px 12px 10px;background:linear-gradient(transparent,#101b19dd 42%,#101b19f5);pointer-events:none}
+.zone-caption{position:absolute;bottom:0;left:0;right:0;padding:36px 12px 10px;background:linear-gradient(transparent,#1c150fdd 42%,#1c150ff5);pointer-events:none}
 .zone h3{font-family:Georgia,serif;font-size:clamp(15px,1.7vw,23px);font-weight:400;line-height:1.1;margin:0 0 5px;text-shadow:0 1px 3px #000;color:#fff0d0}
 .zone small{font-size:11px;line-height:1.3;color:#ece3cf}
 .tokens{position:absolute;top:9px;left:9px;right:9px;max-height:58%;overflow:auto;margin:0;align-content:flex-start;gap:5px;min-height:0}
-.token{min-height:29px;padding:3px 8px;border:1px solid #e7e1b7;border-radius:16px;background:#244e41;color:#efffdc;font-size:11px;box-shadow:0 2px 5px #0009}
+.token{min-height:29px;padding:3px 8px;border:1px solid #e7e1b7;border-radius:16px;background:#4f3623;color:#efffdc;font-size:11px;box-shadow:0 2px 5px #0009}
 .token.enemy{background:#7b3026;color:#fff3dc;border-color:#e6af80}
 .token.down{background:#4c4c4a;color:#ddd;border-color:#aaa}
-.zone .guard-badge{position:absolute;top:47px;left:9px;background:#122d28ed;border:1px solid #9bc7ac;padding:3px 6px;border-radius:3px;font-size:10px}
-.map-note{margin:0 -12px;background:#202a28;border-color:#665b42;line-height:1.6}
+.zone .guard-badge{position:absolute;top:47px;left:9px;background:#2d1e12ed;border:1px solid #9bc7ac;padding:3px 6px;border-radius:3px;font-size:10px}
+.map-note{margin:0 -12px;background:#2c241e;border-color:#665b42;line-height:1.6}
 .map-note b{color:#e9c98b}
 @media(min-width:901px){.command{position:sticky;top:16px;align-self:start}}
 @media(max-width:600px){.map-panel{padding:0 7px}.section-label,.map-note{margin-left:-7px;margin-right:-7px}.section-label{letter-spacing:0;font-size:8px;gap:5px}.section-label span:first-child{letter-spacing:1px}.map{margin:7px 0}.zone-caption{padding:24px 7px 7px}.zone h3{font-size:15px;margin-bottom:3px}.zone small{font-size:9px}.tokens{top:5px;left:5px;right:5px;gap:3px}.token{font-size:9px;min-height:23px;padding:2px 5px}.map-note{font-size:11px}.zone .guard-badge{top:32px;left:5px;font-size:8px}}

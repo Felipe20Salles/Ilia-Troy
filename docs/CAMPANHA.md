@@ -4,13 +4,12 @@ Missões 1 e 2 jogáveis; módulo 3 disponível como protótipo de defesa. Capí
 
 ## Regras de projeto
 
-- 1–5 jogadores locais. Um ou dois jogadores controlam três heróis; três a cinco jogadores controlam um herói cada. Aquiles, Ájax, Odisseu, Menelau e Agamêmnon permanecem disponíveis, sem personagem obrigatório para cumprir objetivos.
+- 1–5 jogadores locais. Um ou dois jogadores controlam três heróis; três a cinco jogadores controlam um herói cada. Odisseu e Agamêmnon são obrigatórios na seleção inicial; Aquiles, Ájax e Menelau completam a equipe.
 - A geografia vem antes dos recortes: água, barrancos e rochas limitam o território. Uma região representa um trecho percorrível, não uma distância fixa em metros. As conexões marcam deslocamentos permitidos. O desenho final das peças e a escala das miniaturas dependem do teste de mesa.
 - A base aqueia é um lugar de partida, abastecimento e retirada. Seu contingente não gera ataques automáticos nem soldados controláveis. Defesa da base ocorre apenas quando prevista pelo cenário: enquanto é construída no capítulo 1 e durante o contra-ataque do capítulo 3.
-- Suprimentos e materiais do cavalo são os únicos recursos persistentes propostos. Vida, ações, habilidades e inimigos reiniciam a cada missão. Suprimentos poderão comprar preparação; materiais apoiarão a construção. Custos, limites e carregamento entre capítulos ainda serão definidos.
-- Cada missão tem salvamento próprio. Vitórias registram capítulos concluídos e preservam recursos anteriores; repetir o Desembarque não acumula suprimentos. A equipe é sugerida para a missão seguinte. Custos entre capítulos ainda não estão ativos.
-- Emboscada implementada no capítulo 2: indícios em B1, primeira chegada revela tropas em B2 uma única vez, com estado salvo. Elas agem apenas na próxima resposta de Troia; cinco heróis enfrentam dois grupos, os demais um.
-- A pressão aumenta por escolhas simultâneas e objetivos diferentes, não apenas por mais inimigos. Números finais de dificuldade e duração serão escolhidos após testes. Paris, Heitor, o duelo com Aquiles e aliados de Troia ficam para cenários posteriores, sem regras especiais agora.
+- Comida, evoluções, territórios revelados, heróis mortos e comandantes mortos persistem. Vida, ações e habilidades reutilizáveis são preparadas na nova missão. Madeira será persistente após a descoberta do plano do cavalo.
+- Cada missão tem salvamento próprio. Vitórias registram capítulos concluídos, equipe sobrevivente e recursos. Heróis caídos e não socorridos até o fim morrem permanentemente; a campanha pode continuar com menos heróis, inclusive apenas um.
+- A pressão aumenta por escolhas simultâneas, objetivos diferentes e tropas adicionais conforme a quantidade de heróis. Heitor e Páris não podem morrer nas missões 2 e 3: recuam ao chegar a 1 de vida. Enéias e Sarpedon podem morrer definitivamente desde a missão 3.
 
 ## 1. O Desembarque
 
@@ -40,17 +39,17 @@ Missões 1 e 2 jogáveis; módulo 3 disponível como protótipo de defesa. Capí
 
 **Situação:** Com a base pronta, os aqueus tentam encontrar uma entrada. O reconhecimento revela que o assalto frontal seria insustentável.
 
-**Objetivo:** Reconhecer M1 livre de inimigos e retornar com toda a equipe de pé a A1.
+**Objetivo:** Derrotar o guarda, Atacar o portão M1 e recuar com os sobreviventes para A1.
 
 **Território:** As 11 peças do desembarque, acrescidas de P7, P4, M1, M4 e B5: 16 peças.
 
-**Acontecimentos:** Heitor e Páris são presenças narrativas nas muralhas. Guardas defendem M1; arqueiros cobrem os acessos. Fichas de exploração substituem nomes de recursos no mapa. Arma em P2 ignora 1 de Armadura no ataque básico. O reconhecimento inicia a retirada e um contra-ataque de lanceiros.
+**Acontecimentos:** Guardas defendem M1; arqueiros cobrem os acessos. P2 revela P5/C1 e uma evolução; B5 revela M5/M2/B1, comida e patrulha; N4 revela N5 e comida. O ataque ao portão fracassa e chama lanceiros, Heitor e Páris sem remover as tropas que já estão em campo.
 
-**Vitória:** M1 reconhecido; todos de pé em A1; gastar 1 ação para concluir a retirada.
+**Vitória:** Portão atacado e todos os sobreviventes em A1; gastar 1 ação para concluir a retirada.
 
 **Derrota:** Todos caídos ou resposta troiana da rodada limite sem retirada concluída. Prazo inicial: rodada 14.
 
-**Consequência:** Registra as informações de M1/M2 e preserva os suprimentos anteriores. O efeito dessas informações na missão 3 ainda será implementado.
+**Consequência:** Registra o alarme, as peças reveladas, evoluções, comandantes e sobreviventes. Abre a defesa do acampamento.
 
 **Pressão e dificuldade:** N2 recomendado para os primeiros testes com tropas diferenciadas; prazo 14, reduzido para a rodada do reconhecimento + 6, limitado a 14.
 
@@ -62,17 +61,17 @@ Missões 1 e 2 jogáveis; módulo 3 disponível como protótipo de defesa. Capí
 
 **Situação:** Heitor lidera o contra-ataque e Páris cobre a ofensiva à distância. A base agora pode ser invadida.
 
-**Objetivo:** Resistir a seis respostas de Troia e encerrar uma resposta com A1 livre de inimigos e um defensor de pé.
+**Objetivo:** Resistir a dez respostas de Troia e encerrar a décima com A1 livre de inimigos e um defensor de pé.
 
-**Território:** As mesmas 16 peças da missão 2; caminhos preservados. A1 deixa de ser uma zona segura.
+**Território:** Começa com as 22 peças disponíveis ao fim da missão 2. M3 permanece sob névoa até explorar P3; B2, B3 e B4 permanecem sob névoa até explorar C1. A1 deixa de ser uma zona segura.
 
-**Acontecimentos:** Explorador na rodada 2; Heitor na 3; Páris na 4; lanceiro na 5; guarda na 6. N2 e armas preparadas sugeridos. Reparar A1 custa 1 ação e 1 comida e remove 1 dano.
+**Acontecimentos:** P3 e C1 recebem fichas obrigatórias. Toda a ofensiva parte de M1 e M2, com uma nova onda após cada resposta anterior à última: exploradores e Enéias entram na rodada 2; Heitor na 3; Páris e Sarpedon na 4; lanceiros na 5; guarda na 6; arqueiros na 7; lanceiros na 8; guarda e lanceiros na 9; arqueiros e lanceiros na 10. A quantidade regular cresce para equipes de quatro e cinco heróis.
 
-**Vitória:** Seis respostas concluídas, A1 livre e ao menos um defensor de pé; não exige derrotar os comandantes.
+**Vitória:** P3 e C1 explorados, dez respostas concluídas, A1 livre e ao menos um defensor de pé; não exige derrotar os comandantes.
 
-**Derrota:** Cinco danos à base, todos caídos, ou término da rodada 8 sem consolidar a defesa.
+**Derrota:** Cinco danos à base, todos caídos, ou término da rodada 10 sem consolidar a defesa.
 
-**Consequência:** A base resiste, os comandantes recuam e a campanha segue para a busca de outro caminho.
+**Consequência:** A base resiste e o mapa externo fica completo. Páris recua imediatamente com 1 de vida; Heitor recua uma área por resposta até entrar em M1. Enéias e Sarpedon mortos não retornam. Heróis aqueus não socorridos também são removidos da campanha.
 
 **Pressão e dificuldade:** Maior concentração de combate. Heitor: vida 10, ataque 3, Armadura 1; Páris: vida 6, ataque 3, Armadura 0, alcance 2. Valores provisórios.
 

@@ -31,7 +31,7 @@ A exploração de 16 peças continua disponível em `cooperativo/exploracao.html
 
 Execute `node --test tests/*.test.cjs` (ou `npm test`). A suíte cobre as 16 equipes possíveis de três a cinco heróis, partidas solo e com dois jogadores, todas as 15 habilidades, caixas, defesa, derrotas e persistência, além da exploração anterior. A suíte verifica vitórias dentro do prazo com todas as equipes; isso não estabelece duração mínima ou balanceamento definitivo.
 
-Execute `node scripts/preview.cjs` (ou `npm run preview`) e abra `http://127.0.0.1:4173`. O competitivo online precisa de Netlify Functions. Requer Node.js 18 ou superior.
+Execute `node scripts/preview.cjs` (ou `npm run preview`) e abra `http://127.0.0.1:4180`. O competitivo online precisa de Netlify Functions. Requer Node.js 18 ou superior.
 
 Arquivos da missão: `heroes.js` (elenco), `landing.js` (regras), `landing-app.js` (preparação, interface e salvamento), `territory.js` (áreas), `natural-map.js` (tabuleiro), `landing.css` (layout). A exploração mantém `game.js`, `app.js` e `puzzle.js`. Nenhuma arte nova foi gerada para o Desembarque.
 

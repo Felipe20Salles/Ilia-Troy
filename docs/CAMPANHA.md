@@ -61,15 +61,15 @@ Missões 1 e 2 jogáveis; módulo 3 disponível como protótipo de defesa. Capí
 
 **Situação:** Heitor lidera o contra-ataque e Páris cobre a ofensiva à distância. A base agora pode ser invadida.
 
-**Objetivo:** Resistir a oito respostas de Troia e encerrar a oitava com A1 livre de inimigos e um defensor de pé.
+**Objetivo:** Resistir a dez respostas de Troia e encerrar a décima com A1 livre de inimigos e um defensor de pé.
 
 **Território:** Começa com as 22 peças disponíveis ao fim da missão 2. M3 permanece sob névoa até explorar P3; B2, B3 e B4 permanecem sob névoa até explorar C1. A1 deixa de ser uma zona segura.
 
-**Acontecimentos:** P3 e C1 recebem fichas obrigatórias. Toda a ofensiva parte de M1 e M2, com uma nova onda após cada resposta anterior à última: exploradores e Enéias entram na rodada 2; Heitor na 3; Páris e Sarpedon na 4; lanceiros na 5; guarda na 6; arqueiros na 7; lanceiros na 8. A quantidade regular cresce para equipes de quatro e cinco heróis.
+**Acontecimentos:** P3 e C1 recebem fichas obrigatórias. Toda a ofensiva parte de M1 e M2, com uma nova onda após cada resposta anterior à última: exploradores e Enéias entram na rodada 2; Heitor na 3; Páris e Sarpedon na 4; lanceiros na 5; guarda na 6; arqueiros na 7; lanceiros na 8; guarda e lanceiros na 9; arqueiros e lanceiros na 10. A quantidade regular cresce para equipes de quatro e cinco heróis.
 
-**Vitória:** P3 e C1 explorados, oito respostas concluídas, A1 livre e ao menos um defensor de pé; não exige derrotar os comandantes.
+**Vitória:** P3 e C1 explorados, dez respostas concluídas, A1 livre e ao menos um defensor de pé; não exige derrotar os comandantes.
 
-**Derrota:** Cinco danos à base, todos caídos, ou término da rodada 8 sem consolidar a defesa.
+**Derrota:** Cinco danos à base, todos caídos, ou término da rodada 10 sem consolidar a defesa.
 
 **Consequência:** A base resiste e o mapa externo fica completo. Páris recua imediatamente com 1 de vida; Heitor recua uma área por resposta até entrar em M1. Enéias e Sarpedon mortos não retornam. Heróis aqueus não socorridos também são removidos da campanha.
 

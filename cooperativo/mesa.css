@@ -1,0 +1,612 @@
+/* Interface de mesa: o mapa no centro, Troia à direita, heróis embaixo. */
+.icon .icon,svg.icon{display:block;flex:none}
+
+/* Barra superior só com ícones */
+.topbar .back-link{margin-right:auto}
+.icon-button,.topbar .audio-control{display:inline-grid;place-items:center;width:42px;height:42px;min-height:0;padding:0;border:1px solid var(--line);border-radius:50%;background:#23170e;color:var(--ink);text-decoration:none;font:400 19px/1 'Marcellus',Georgia,serif}
+.icon-button:hover,.topbar .audio-control:hover{border-color:var(--gold);color:var(--gold);background:#2c1f15}
+.topbar .audio-control b{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.topbar .audio-control.muted{color:var(--muted)}
+body.game-active .topbar{gap:10px}
+
+/* Grade principal */
+body.mesa-mode.game-active #app{display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:minmax(0,1fr) auto;gap:0;height:calc(100vh - 58px);height:calc(100dvh - 58px)}
+.mesa{display:contents}
+.mesa-board{grid-column:1;grid-row:1;position:relative;min-width:0;min-height:0;container-type:size;display:grid;place-items:center;padding:10px;background:radial-gradient(ellipse at 40% 60%,#2b1e14 0%,#160f0a 70%)}
+
+/* Recorte do mapa: guarda a faixa escura do alto para o bloco da missão */
+.mesa-natural .landscape{position:absolute;inset:0;width:100%;height:100%}
+
+/* Peças clicáveis */
+.zone-layer{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.zone-shape{fill:transparent;stroke:none;cursor:pointer}
+/* Marcadores no centro da peça, em vez de contornos */
+.zone-beacon{display:none;width:16px;height:16px;margin:0 auto 3px;border-radius:50%;border:2px solid #f2c86a;background:#f2c86a40;box-shadow:0 0 0 3px #17100a80,0 0 12px #f2c86a99}
+.board-counters.actionable .zone-beacon{display:block}
+.board-counters.hostile .zone-beacon{display:block;border-color:#ff8f73;background:#ff6b4a50;box-shadow:0 0 0 3px #17100a80,0 0 12px #ff8f73aa}
+.board-counters.current .zone-beacon{display:none}
+.board-counters.focus .zone-beacon{display:block;border-color:#ff8f73;background:#ff8f73}
+.board-counters.open .zone-beacon{display:block;background:#f2c86a}
+.board-counters.ping .zone-beacon{display:block;animation:token-ping .6s ease-out 3}
+
+.mesa-natural .board-counters{z-index:2;padding:4px;border:0;background:none;color:inherit;font:inherit;cursor:pointer;border-radius:12px}
+.mesa-natural .board-counters:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.mesa-natural .board-counters.ping .territory-tokens{animation:token-ping .6s ease-out 3}
+@keyframes token-ping{0%{transform:scale(1.25)}100%{transform:scale(1)}}
+.mesa-natural .territory-tokens{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;max-width:126px}
+.mesa-natural .unit-token.greek-unit{width:34px;height:34px;border-color:#9fc4d9;background-color:#432d1c}
+.mesa-natural .unit-token.selected{border-color:var(--gold);box-shadow:0 0 0 3px #e4bd7766,0 2px 8px #000c}
+.mesa-natural .unit-token.focused{box-shadow:0 0 0 3px #ff8f73aa,0 2px 8px #000c}
+.crate-chip{display:inline-flex!important;align-items:center;gap:3px}
+.crate-chip .icon{width:12px;height:12px}
+.route-chip{position:absolute;z-index:3;right:10px;top:42%;display:flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid #ffffff22;border-radius:20px;background:#120c0899;color:var(--muted);font-size:11px;cursor:pointer}
+.mesa-board .route-overlay{display:none;z-index:1}
+.mesa-board:has(#show-routes:checked) .route-overlay{display:block}
+
+/* Avatares recortados da arte dos heróis */
+.mesa-avatar{background-image:url('../assets/troy-heroes.png');background-size:600% auto;background-repeat:no-repeat;background-position-y:50%}
+.mesa-avatar.hero-aquiles{background-position-x:4%}
+.mesa-avatar.hero-ajax{background-position-x:30%}
+.mesa-avatar.hero-odisseu{background-position-x:51%}
+.mesa-avatar.hero-menelau{background-position-x:74%}
+.mesa-avatar.hero-agamemnon{background-position-x:98%}
+
+/* Bloco da missão, dentro do quadro do mapa */
+
+.mesa-result{position:absolute;z-index:6;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,90%);margin:0;box-shadow:0 20px 60px #000c}
+
+/* Painel de Troia */
+.mesa-troy{grid-column:2;grid-row:1/3;min-height:0;overflow:auto;padding:16px 14px;border-left:1px solid #3d3524;background:#17100a}
+.mesa-troy h2{margin:0;font-size:26px;color:#f3b6a5}
+.troy-sub{margin:0 0 10px;color:var(--muted);font-size:12px}
+.troy-list{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.troy-unit{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;padding:7px;border:1px solid #40332a;border-radius:8px;background:#22170f;color:var(--ink);text-align:left;font:inherit}
+.troy-unit:hover,.troy-unit.active{border-color:#ff8f73}
+.troy-unit.commander{border-color:#6d5a36}
+.troy-thumb.enemy-miniature{width:44px;height:50px;border-radius:5px;box-shadow:none}
+.troy-info{display:grid;gap:2px;min-width:0}
+.troy-info b{font-size:13px;line-height:1.2}
+.troy-meta{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11px}
+.zone-chip{padding:0 6px;border-radius:4px;background:#2b2216;color:var(--gold);font-weight:700}
+.troy-info small{color:#e9b9a8;font-size:11px;line-height:1.3}
+.hpbar{display:block;height:4px;border-radius:2px;background:#392f28;overflow:hidden}
+.hpbar span{display:block;height:100%;background:#e5735a}
+.troy-hp{font:400 22px/1 'Marcellus',Georgia,serif}
+.troy-hp small{color:var(--muted);font-size:12px}
+.troy-empty{color:var(--muted);font-size:13px}
+.troy-next{margin:12px 0;padding:8px 10px;border-left:3px solid var(--gold);background:#271b12;font-size:12px;line-height:1.4}
+.mesa-troy .event-log{display:grid;gap:4px;margin-top:14px;font-size:12px;line-height:1.4;color:var(--muted)}
+.mesa-troy .event-log b{color:var(--ink);font-size:12px}
+.mesa-troy .event-log p{margin:0;padding-left:8px;border-left:1px solid #4f3e31}
+.troy-exit{margin-top:16px;width:100%;font-size:12px}
+
+/* Faixa de heróis */
+body.mesa-mode .mesa-heroes{margin:0;color:var(--ink);font-size:inherit;grid-column:1;grid-row:2;display:flex;align-items:stretch;gap:12px;padding:10px 12px;border-top:1px solid #3d3524;background:#140d08}
+.hero-row{display:flex;gap:8px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin;padding-right:28px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+.mesa-hero{display:grid;grid-template-columns:52px auto auto;align-items:center;gap:10px;padding:6px 12px 6px 6px;border:1px solid #3d2f24;border-radius:40px;background:#21160e;color:var(--ink);text-align:left;font:inherit;flex:none}
+.mesa-hero:hover{border-color:#6d5a36}
+.mesa-hero.active{border-color:var(--gold);background:#261f19}
+.mesa-hero.down{opacity:.6}
+.mesa-hero.spent:not(.active){opacity:.6}
+.mesa-hero.down .mesa-avatar{filter:grayscale(1)}
+.mesa-hero .mesa-avatar{position:relative;width:52px;height:52px;border-radius:50%;border:2px solid #554538}
+.mesa-hero.active .mesa-avatar{border-color:var(--gold)}
+.mesa-avatar em{position:absolute;right:-4px;bottom:-4px;padding:1px 4px;border-radius:6px;background:#18110b;border:1px solid #6d5a36;color:var(--gold);font:700 9px/1.2 'DM Sans',sans-serif}
+.mesa-hero-id{display:grid;min-width:0}
+.mesa-hero-id b{font:400 17px/1.15 'Marcellus',Georgia,serif;white-space:nowrap}
+.mesa-hero-id small{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:11px;white-space:nowrap}
+.mesa-hero-id small .icon{width:13px;height:13px;color:var(--gold)}
+.mesa-hero-stats{display:grid;gap:1px;padding-left:10px;border-left:1px solid #3d2f24}
+.mesa-hero-stats .stat{display:flex;align-items:center;gap:4px;font-size:13px;line-height:1.2}
+.mesa-hero-stats .stat small{color:var(--muted);font-size:10px}
+.mesa-hero-stats .icon{width:13px;height:13px}
+.stat.hp .icon{color:#e5735a}
+.stat.ap .icon{color:var(--gold)}
+.stat.food .icon{color:#d5604a}
+.pips{display:flex;gap:3px}
+.pips i{width:8px;height:8px;border-radius:50%;border:1px solid var(--gold)}
+.pips i.on{background:var(--gold)}
+.mesa-end{position:relative;flex:none;display:flex;align-items:center;padding-left:12px;border-left:1px solid #3d2f24}
+.hourglass{display:grid;place-items:center;width:64px;height:64px;padding:0;border:2px solid #b8853d;border-radius:50%;background:radial-gradient(circle at 50% 40%,#2c2817,#160f0a 75%);box-shadow:0 6px 18px #000a;transition:transform .15s,border-color .15s}
+.hourglass .hourglass-art{width:46px;height:46px}
+.hourglass:hover{border-color:#f3d38b;transform:rotate(-8deg)}
+.hourglass:active{transform:rotate(180deg)}
+.end-confirm{position:absolute;right:0;bottom:calc(100% + 10px);z-index:30;display:grid;gap:8px;width:260px;padding:14px;border:1px solid var(--gold);border-radius:8px;background:#19110b;box-shadow:0 14px 40px #000c}
+.end-confirm p{margin:0;font-size:13px}
+
+/* Menu da peça */
+.mesa-pop{position:fixed;z-index:40;left:-999px;top:0;width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;padding:10px;border:1px solid #b08e52;border-radius:10px;background:linear-gradient(180deg,#271b12,#1a120c);box-shadow:0 18px 50px #000d;visibility:hidden}
+.mesa-pop.placed{visibility:visible}
+.mesa-pop header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.mesa-pop header b{margin-right:8px;color:var(--gold);font:400 22px/1 'Marcellus',Georgia,serif}
+.mesa-pop header span{color:var(--ink);font-size:14px}
+.pop-close{display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--muted)}
+.pop-close:hover{color:var(--ink);background:#ffffff12}
+.pop-units{display:grid;gap:2px;margin:0 0 8px;padding:6px 8px;list-style:none;border-radius:6px;background:#160f0a;font-size:12px}
+.pop-units li{display:flex;justify-content:space-between;gap:8px}
+.pop-units li span{color:var(--muted)}
+.pop-units li.foe{color:#f3b6a5}
+.pop-units li.down{opacity:.6}
+.pop-label{margin:10px 2px 4px;color:var(--muted);font-size:11px}
+.pop-group{display:grid;gap:4px}
+.pop-option{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;align-items:start;width:100%;padding:8px 10px;border:1px solid #40332a;border-radius:7px;background:#21160e;color:var(--ink);text-align:left;font:inherit}
+.pop-option .icon{margin-top:1px;color:var(--gold)}
+.pop-option.attack .icon{color:#ff8f73}
+.pop-option.card .icon{color:#9fc4d9}
+.pop-option b{display:block;font-size:13px;line-height:1.3}
+.pop-option small{display:block;color:var(--muted);font-size:11px;line-height:1.35}
+.pop-option:hover:not(:disabled){border-color:var(--gold);background:#2b1f16}
+.pop-option:disabled{opacity:.45;cursor:not-allowed}
+.pop-empty{margin:6px 2px;color:var(--muted);font-size:13px}
+
+@media (max-width:1100px){
+ body.mesa-mode.game-active #app{grid-template-columns:minmax(0,1fr) 250px}
+ .mesa-hero{grid-template-columns:44px auto auto;gap:8px;padding-right:10px}
+ .mesa-hero .mesa-avatar{width:44px;height:44px}
+ .mesa-hero-id b{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){.board-counters.ping .territory-tokens,.board-counters.ping .zone-beacon{animation:none}}
+
+/* Névoa: o que ainda não está na mesa */
+.fog-layer{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;filter:blur(3px)}
+.fog-layer polygon{fill:#120c07;stroke:#120c07;stroke-width:1.2;vector-effect:non-scaling-stroke}
+.unknown-mark{display:grid;place-items:center;width:34px;height:34px;border:2px dashed #8a7a55;border-radius:50%;background:#18110bd9;color:#d6c194;font:400 20px/1 'Marcellus',Georgia,serif}
+.board-counters.actionable .unknown-mark{border-style:solid;border-color:#f2c86a;color:#f2c86a;box-shadow:0 0 14px #f2c86a66}
+.unknown-zone .zone-beacon{display:none!important}
+
+/* Marcas sobre as peças reveladas */
+.zone-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;margin-bottom:3px}
+.zone-chips small{margin:0!important}
+.token-chip{display:inline-grid!important;place-items:center;width:22px;height:22px;padding:0!important;border-radius:50%!important;background:#2b2216!important;color:var(--gold)!important;box-shadow:0 0 0 1px #b8853d}
+.token-chip .icon{width:14px;height:14px}
+.story-chip{background:#3b2a1a!important;color:#ffd9a0!important;box-shadow:0 0 0 1px #b8853d}
+
+/* Aviso de peça revelada */
+.reveal-card{width:min(720px,94vw)}
+.reveal-list{display:grid;gap:10px;margin:12px 0}
+.reveal-list article{display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:start;padding:10px;border:1px solid #3d3524;border-radius:8px;background:#21160e}
+.reveal-id{display:grid;place-items:center;height:56px;border-radius:8px;background:#2b2216;color:var(--gold);font:400 22px/1 'Marcellus',Georgia,serif}
+.reveal-list p{margin:2px 0 4px;color:#d9d2bf;font-size:14px;font-style:italic}
+.reveal-list small{color:var(--muted);font-size:13px;line-height:1.4}
+.reveal-map{position:relative;width:100%;aspect-ratio:1.537;margin:0 0 14px;overflow:hidden;border-radius:8px;background:#120c07}
+.reveal-map .mesa-natural.natural-map{position:absolute;left:0;top:0;width:119.05%;min-width:0;aspect-ratio:3/2;margin:-14.29% 0 0}
+.reveal-map .landscape{position:absolute;inset:0;width:100%;height:100%}
+.reveal-pin{position:absolute;z-index:3;transform:translate(-50%,-50%);padding:3px 8px;border:2px solid var(--gold);border-radius:6px;background:#18110be6;color:var(--gold);font:400 16px/1 'Marcellus',Georgia,serif;box-shadow:0 0 18px #f2c86a88}
+
+/* Encontros */
+.encounter-card{width:min(560px,94vw)}
+.encounter-text{padding:12px 14px;border-left:3px solid var(--gold);background:#271b12;color:#efe6cf;font:italic 500 19px/1.45 'Cormorant Garamond',Georgia,serif}
+
+/* Escolha do roteiro */
+.route-choice{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:6px}
+.route-choice legend{padding:0 6px;color:var(--gold)}
+.route-choice label{display:flex;gap:6px;align-items:center}
+.route-choice small{flex-basis:100%;color:var(--muted)}
+
+/* Crônica da rodada */
+.chronicle-card{width:min(560px,94vw)}
+.chronicle-prev{margin:0 0 10px;padding:8px 12px;border-radius:6px;background:#271b12;color:var(--muted);font-size:13px}
+.chronicle-demand{display:grid;gap:2px;margin:12px 0 16px;padding:10px 12px;border:1px solid var(--gold);border-radius:8px;background:#2b2216;color:#ffe6b8;font-size:14px;line-height:1.45}
+.chronicle-demand b{color:var(--gold);font-size:12px}
+
+/* Feitos pessoais */
+.feat-line{display:block;color:#d6c194!important;font-size:11px;white-space:nowrap}
+.feat-line.done{color:var(--teal)!important}
+.feat-card{width:min(560px,94vw)}
+.feat-card article{display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center;margin:8px 0 16px}
+.feat-card .mesa-avatar{width:72px;height:72px;border:2px solid var(--gold);border-radius:50%;box-shadow:0 0 24px #f2c86a55}
+.feat-card h2{margin:0 0 4px;font-size:24px}
+.feat-card p{margin:0 0 4px;color:var(--muted)}
+.feat-card b{color:var(--gold)}
+.feat-list{display:grid;gap:6px;margin:14px 0 0;padding:0;list-style:none;text-align:left}
+.feat-list li{display:grid;gap:2px;padding:8px 12px;border:1px solid var(--line);border-radius:6px}
+.feat-list span{color:var(--muted);font-size:13px}
+
+
+/* Câmera: o mapa ocupa todo o quadro e se move para manter a ação no centro */
+.mesa-map-wrap{position:relative;width:100%;height:100%;overflow:hidden;border-radius:10px;box-shadow:0 0 0 1px #3d3524,0 18px 50px #000a;background:radial-gradient(ellipse at 40% 60%,#2b1e14 0%,#160f0a 75%)}
+body.mesa-mode .mesa-map-wrap>.camera-map{position:absolute;left:0;top:0;width:100%;min-width:0;max-width:none;height:auto;aspect-ratio:3/2;margin:0;transform-origin:0 0;transition:transform .5s cubic-bezier(.3,.7,.2,1)}
+.camera-map .board-counters{transform:translate(-50%,-50%) scale(calc(1 / var(--zoom,1)))}
+.camera-controls{position:absolute;z-index:5;right:10px;bottom:10px;display:flex;gap:6px}
+.camera-controls button{display:grid;place-items:center;min-width:38px;height:38px;padding:0 10px;border:1px solid #ffffff26;border-radius:19px;background:#120c08d9;color:var(--ink);font:600 13px/1 'DM Sans',sans-serif}
+.camera-controls button:hover{border-color:var(--gold);color:var(--gold)}
+.camera-controls button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+.route-chip{top:auto!important;right:auto!important;left:10px!important;bottom:10px!important}
+@media (prefers-reduced-motion:reduce){.mesa-map-wrap>.camera-map{transition:none}}
+
+/* Bloco da missão compacto */
+.mission-card{position:absolute;z-index:4;top:10px;left:10px;width:min(460px,calc(100% - 20px));padding:10px 12px;border:1px solid #6d5a36;border-radius:8px;background:#19110be6;box-shadow:0 10px 30px #0008}
+.mission-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mission-num{display:grid;margin:0;color:var(--gold);font-size:11px;font-weight:700;line-height:1.2}
+.mission-num b{color:var(--ink);font:400 20px/1.1 'Marcellus',Georgia,serif}
+.mission-stats{display:flex;gap:4px;margin:0}
+.mission-stats div{min-width:52px;padding:4px 8px;border-radius:6px;background:#271b12;text-align:center}
+.mission-stats dt{color:var(--muted);font-size:9px;line-height:1.2;white-space:nowrap}
+.mission-stats dd{margin:1px 0 0;font:400 18px/1.1 'Marcellus',Georgia,serif;color:var(--ink)}
+.mission-stats dd small{color:var(--muted);font-size:11px}
+.mission-stats .alert dd{color:var(--red)}
+.mission-goal{margin:6px 0 0;color:#d9d2bf;font-size:12px;line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mission-card.open .mission-goal{white-space:normal}
+.mission-track{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 0;padding:0;list-style:none}
+.mission-track li{padding:2px 8px;border:1px solid #534337;border-radius:12px;color:var(--muted);font-size:11px}
+.mission-track li.current{border-color:var(--gold);color:var(--gold)}
+.mission-track li.done{border-color:#81624b;color:var(--teal)}
+.mission-track li.done:before{content:'✓ '}
+.mission-toggle{margin-top:6px;padding:0;border:0;background:none;color:var(--gold);font:600 11px/1.2 'DM Sans',sans-serif}
+
+/* Bloco da missão acima do mapa; o mapa ocupa o resto do quadro */
+body.mesa-mode .mesa-board{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:8px 10px}
+body.mesa-mode .mesa-board>.mission-card{position:relative;top:auto;left:auto;width:auto;flex:none;padding:8px 12px;box-shadow:none}
+body.mesa-mode .mesa-board>.mesa-map-wrap{flex:1;min-height:0;height:auto}
+body.mesa-mode .mission-head{flex-wrap:wrap}
+.mesa-map-wrap{cursor:grab;touch-action:none}
+.mesa-map-wrap.dragging{cursor:grabbing}
+.mesa-map-wrap.dragging .board-counters{pointer-events:none}
+
+/* Invocações dos deuses no menu da peça */
+.pop-option.god{border-color:#4a3f6b}
+.pop-option.god .icon{color:#cdb8ff}
+
+/* Barra da missão em uma linha */
+body.mesa-mode .mesa-board>.mission-card{display:flex;align-items:center;gap:10px;padding:6px 10px;width:auto}
+.mission-title{display:flex;align-items:baseline;gap:8px;flex:1;min-width:0;padding:0;border:0;background:none;color:var(--ink);text-align:left;font:inherit}
+.mission-title .mission-num{display:inline;color:var(--gold);font-size:11px;font-weight:700;white-space:nowrap}
+.mission-title b{overflow:hidden;font:400 18px/1.1 'Marcellus',Georgia,serif;white-space:nowrap;text-overflow:ellipsis}
+.mission-title em{flex:none;padding:1px 8px;border:1px solid var(--gold);border-radius:10px;color:var(--gold);font:600 11px/1.5 'DM Sans',sans-serif;font-style:normal;white-space:nowrap}
+.mission-title i{color:var(--gold);font-style:normal;font-size:11px}
+body.mesa-mode .mission-stats{display:flex;flex:none;gap:4px}
+body.mesa-mode .mission-stats div{display:flex;align-items:baseline;gap:5px;min-width:0;padding:3px 8px;border-radius:6px;background:#271b12}
+body.mesa-mode .mission-stats dt{font-size:10px}
+body.mesa-mode .mission-stats dd{margin:0;font-size:16px}
+.mission-drop{position:absolute;z-index:8;top:calc(100% + 6px);left:0;width:min(440px,92vw);padding:10px 12px;border:1px solid #6d5a36;border-radius:8px;background:#19110bf5;box-shadow:0 14px 40px #000c}
+.mission-drop .mission-goal{margin:0;white-space:normal;font-size:13px}
+.mission-toggle{display:none}
+.troy-toggle{display:none;flex:none;padding:5px 12px;border:1px solid #6b3b31;border-radius:14px;background:#2a1714;color:#f3b6a5;font:600 12px/1.2 'DM Sans',sans-serif}
+
+/* Telas baixas (celular na horizontal) ou estreitas: Troia vira gaveta, tudo fica mais fino */
+@media (max-height:560px),(max-width:960px){
+ body.game-active .topbar{height:42px;padding:4px 12px}
+ .icon-button,.topbar .audio-control{width:34px;height:34px;font-size:16px}
+ body.mesa-mode.game-active #app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;height:calc(100vh - 42px);height:calc(100dvh - 42px)}
+ .mesa-troy{position:fixed;z-index:35;top:42px;right:0;bottom:0;width:min(320px,82vw);border-left:1px solid #6b3b31;box-shadow:-20px 0 50px #000c;transform:translateX(105%);transition:transform .3s ease}
+ body.troy-open .mesa-troy{transform:none}
+ .troy-toggle{display:block}
+ body.mesa-mode .mesa-board{padding:4px 6px;gap:4px}
+ body.mesa-mode .mesa-board>.mission-card{padding:4px 8px;gap:6px}
+ .mission-title .mission-num{display:none}
+ .mission-title b{font-size:15px}
+ body.mesa-mode .mission-stats div{padding:2px 6px}
+ body.mesa-mode .mission-stats dd{font-size:14px}
+ body.mesa-mode .mesa-heroes{padding:4px 6px;gap:6px}
+ .mesa-hero{grid-template-columns:36px auto auto;gap:6px;padding:3px 8px 3px 3px}
+ .mesa-hero .mesa-avatar{width:36px;height:36px}
+ .mesa-hero-id b{font-size:13px}
+ .mesa-hero-id small{font-size:10px}
+ .mesa-hero-stats .stat{font-size:11px}
+ .mesa-hero-stats{padding-left:6px}
+ .feat-line{display:none!important}
+ .hourglass{width:46px;height:46px}
+ .hourglass .hourglass-art{width:32px;height:32px}
+ .mesa-end{padding-left:6px}
+ .camera-controls button{min-width:32px;height:32px;font-size:12px}
+ .route-chip{display:none}
+}
+@media (max-height:560px) and (max-width:720px){
+ body.mesa-mode .mission-stats dt{display:none}
+}
+
+/* Botão de fechar a gaveta de Troia (só nas telas compactas) */
+.troy-close{display:none;position:absolute;top:8px;right:8px;width:34px;height:34px;padding:0;place-items:center;border:1px solid #ffffff22;border-radius:50%;background:#18110b;color:var(--ink)}
+@media (max-height:560px),(max-width:960px){.mesa-troy{padding-top:14px}.troy-close{display:grid}}
+
+/* Escolha ao encontrar uma missão salva */
+.confirm-choices{display:grid;gap:8px;margin-top:14px}
+.confirm-choices .button,.confirm-choices .quiet{justify-content:center;width:100%;text-align:center}
+.danger-quiet{border-color:#7a3a30!important;color:#f3b6a5!important}
+
+/* Avisos sempre cabem na tela, inclusive no celular deitado */
+.arrival-card{max-height:calc(100dvh - 24px)}
+@media (max-height:560px){.arrival-backdrop{padding:10px}.arrival-card{padding:16px 18px}.arrival-card h2{font-size:22px}}
+
+/* Distribuição de alimentos: herói à esquerda, contador à direita */
+.food-list{display:grid;gap:6px}
+.food-list article{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 10px;border:1px solid #3d2f24;border-radius:8px;background:#21160e}
+.food-list article>div:first-child{display:grid;gap:0}
+.food-list article small{color:var(--muted)}
+.food-counter{display:flex;align-items:center;gap:8px;margin:0}
+
+/* Revelação: cena curta, depois a instrução de mesa */
+.scene-card{width:min(480px,94vw)}
+.scene-card .scene+.scene{margin-top:14px;padding-top:12px;border-top:1px solid #3d2f24}
+.scene-card h2{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 8px}
+.scene-card h2 span{color:var(--gold);font-size:16px}
+.scene-card .encounter-text{margin:0 0 14px}
+.place-card{width:min(560px,94vw)}
+.place-steps{display:grid;gap:8px;margin:0 0 12px;padding-left:20px}
+.place-steps li{font-size:17px;line-height:1.35}
+.place-steps span{display:block;color:var(--muted);font-size:14px}
+@media (max-height:560px){.place-card .reveal-map{width:min(100%,calc(44dvh * 1.537));margin-inline:auto}}
+
+/* Botão e menu dos deuses na barra da missão */
+.gods-toggle{display:flex;align-items:center;gap:5px;flex:none;padding:4px 10px;border:1px solid #4a3f6b;border-radius:14px;background:#1b1730;color:#cdb8ff;font:600 12px/1.2 'DM Sans',sans-serif}
+.gods-toggle .icon{width:15px;height:15px}
+.gods-menu{position:absolute;z-index:9;top:calc(100% + 6px);right:0;width:min(360px,92vw);padding:10px;border:1px solid #4a3f6b;border-radius:10px;background:#0f0d1c;box-shadow:0 18px 50px #000d}
+.gods-note{margin:8px 2px 0;color:var(--muted);font-size:11px}
+@media (max-height:560px),(max-width:960px){.gods-toggle span{display:none}}
+
+/* Pedido da crônica marcado no mapa */
+.chronicle-chip{background:#3a2a10!important;color:#ffd27a!important;box-shadow:0 0 0 1px #e4bd77,0 0 12px #e4bd7766;font-weight:700}
+
+/* Escolha da habilidade inicial na preparação */
+.ability-setup{margin-top:18px}
+.ability-setup h3{margin:0 0 4px}
+.ability-pick{margin:10px 0 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.ability-pick legend{padding:0 6px;color:var(--gold);font-weight:700}
+.ability-pick>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.ability-pick label{display:grid;gap:2px;padding:8px;border:1px solid #3d2f24;border-radius:6px;background:#21160e;cursor:pointer}
+.ability-pick label.chosen{border-color:var(--gold);background:#261f19}
+.ability-pick input{position:absolute;opacity:0;pointer-events:none}
+.ability-pick b{font-size:13px}
+.ability-pick small{color:var(--muted);font-size:11px;line-height:1.35}
+@media (max-width:720px){.ability-pick>div{grid-template-columns:1fr}}
+.ability-pick label:focus-within{outline:2px solid var(--gold);outline-offset:2px}
+
+/* Tropas troianas sem fundo, com a arte da miniatura no mapa e no painel */
+.enemy-miniature{background-color:transparent!important;border-color:transparent!important;box-shadow:none!important}
+.unit-token.troop-art{width:38px;height:42px;border:0;border-radius:0;background-size:contain;background-position:center bottom;background-repeat:no-repeat;filter:drop-shadow(0 2px 3px #000c)}
+.unit-token.troop-art.focused{filter:drop-shadow(0 0 6px #ff8f73) drop-shadow(0 2px 3px #000c)}
+.unit-token.troop-art b{right:-8px;bottom:-4px}
+.review-story{margin-top:10px;width:100%;font-size:12px}
+.story-review{width:min(640px,94vw)}
+
+/* Retratos dos heróis (assets/identidade): avatares e cartas da escolha de heróis */
+.mesa-avatar.hero-aquiles{background-image:url('assets/identidade/avatar-aquiles.webp');background-size:cover;background-position:center}
+.hero-choice.hero-aquiles .hero-portrait{background-image:url('assets/identidade/card-aquiles.webp');background-size:cover;background-position:center 22%}
+.mesa-avatar.hero-ajax{background-image:url('assets/identidade/avatar-ajax.webp');background-size:cover;background-position:center}
+.hero-choice.hero-ajax .hero-portrait{background-image:url('assets/identidade/card-ajax.webp');background-size:cover;background-position:center 22%}
+.mesa-avatar.hero-odisseu{background-image:url('assets/identidade/avatar-odisseu.webp');background-size:cover;background-position:center}
+.hero-choice.hero-odisseu .hero-portrait{background-image:url('assets/identidade/card-odisseu.webp');background-size:cover;background-position:center 22%}
+.mesa-avatar.hero-menelau{background-image:url('assets/identidade/avatar-menelau.webp');background-size:cover;background-position:center}
+.hero-choice.hero-menelau .hero-portrait{background-image:url('assets/identidade/card-menelau.webp');background-size:cover;background-position:center 22%}
+.mesa-avatar.hero-agamemnon{background-image:url('assets/identidade/avatar-agamemnon.webp');background-size:cover;background-position:center}
+.hero-choice.hero-agamemnon .hero-portrait{background-image:url('assets/identidade/card-agamemnon.webp');background-size:cover;background-position:center 22%}
+/* História em quadros: ilustração com o parágrafo logo abaixo. */
+.story-panel{margin:0 0 18px}
+.story-panel img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.story-panel figcaption{padding-top:10px}
+.story-panel figcaption p{margin:0}
+.story-panel figcaption .encounter-text{margin-top:2px}
+.story-review{max-height:90vh;overflow-y:auto}
+/* Preparação: a história passa um quadro por vez, imagem e texto lado a lado, sem rolar a tela. */
+.story-slide{animation:slide-in .5s ease both}
+.story-slide .story-panel{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:center;margin:0}
+.story-slide .story-panel img{max-height:calc(100dvh - 260px);width:100%;height:auto;object-fit:cover}
+.story-slide .story-panel figcaption{padding-top:0;font-size:16px;line-height:1.6}
+.story-slide .story-panel figcaption .lead{font-size:20px}
+.story-count{margin:12px 0 0;color:var(--muted);font-size:12px;text-align:right}
+@keyframes slide-in{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.onboard-actions .button.story-wait{position:relative;overflow:hidden;opacity:.55}
+.onboard-actions .button.story-wait::after{content:'';position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--gold);transform-origin:left;animation:story-wait 2s linear both}
+@keyframes story-wait{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media(prefers-reduced-motion:reduce){.story-slide{animation:none}}
+/* Celular e tablet deitados: cabeçalho e moldura compactos para o quadro caber inteiro. */
+@media(orientation:landscape) and (max-height:820px){
+ .onboard-banner{padding:8px 0 6px}
+ .onboard-banner h1{font-size:clamp(24px,4.4vh,40px)}
+ .onboard-content{min-height:0;padding:16px 18px}
+ .onboard-actions{margin:10px 0}
+ .onboard-actions .button{min-height:44px}
+ .saved-note{display:none}
+ .story-slide .story-panel img{max-height:calc(100dvh - 190px)}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .onboard-banner .eyebrow{display:none}
+ .onboard-banner h1{font-size:22px;margin:0}
+ .onboard-content{padding:10px 12px}
+ .story-slide .story-panel{gap:14px}
+ .story-slide .story-panel img{max-height:calc(100dvh - 196px)}
+ .story-slide .story-panel figcaption{font-size:14px;line-height:1.5}
+ .story-slide .story-panel figcaption .lead{font-size:16px}
+ .story-count{margin-top:4px}
+}
+@media(orientation:portrait){.story-slide .story-panel{display:block}.story-slide .story-panel figcaption{padding-top:12px}}
+@media(orientation:landscape) and (max-height:500px){
+ body:not(.game-active) .topbar{height:42px;min-height:0;padding:3px 12px}
+ body:not(.game-active) .topbar button,body:not(.game-active) .topbar a{width:34px;height:34px;min-height:0}
+ body:not(.game-active) main#app{padding-top:4px;padding-bottom:0}
+ .onboarding{padding-bottom:0}
+ .onboard-banner{padding:2px 0 4px}
+ .onboard-actions{margin:6px 0 0;padding:6px 0}
+ .onboard-actions .button{min-height:40px;padding:6px 10px}
+}
+/* Etapa do tabuleiro: no aparelho deitado, instruções e roteiro ao lado do mapa. */
+@media(orientation:landscape) and (max-height:820px){
+ .board-step{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:20px;align-items:center}
+ .board-step .board-text p{margin:0 0 10px}
+ .board-step .route-choice{margin-top:6px}
+ .board-step .reveal-map{width:min(100%,calc((100dvh - 200px) * 1.537));margin:0 auto}
+}
+/* Avisos de mesa: a miniatura que deve ser posicionada aparece com a sua imagem. */
+.place-troops{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.place-troops figure{display:flex;align-items:center;gap:8px;margin:0}
+.place-troops figcaption{font-size:13px;color:var(--ink)}
+.place-troops .enemy-miniature,.arrival-list .enemy-miniature{width:64px;height:72px;flex:none;background-color:#2f2319;border-color:#6d5a3a;box-shadow:none}
+.arrival-list article:has(.enemy-miniature){display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center}
+@media(orientation:landscape) and (max-height:500px){
+ .place-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-rows:auto 1fr auto;column-gap:18px;align-items:start}
+ .place-card>.eyebrow,.place-card>.place-steps,.place-card>button{grid-column:1}
+ .place-card>.reveal-map{grid-column:2;grid-row:1/4;align-self:center;width:100%;margin:0}
+ .place-card>button{align-self:end}
+}
+.encounter-token{color:var(--muted);font-size:13px}
+/* Etapa dos heróis: cada um no seu navio, com o contingente. */
+.deployment-list.hero-ships{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:12px 0}
+.deployment-list.hero-ships li{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:2px;padding:0 0 10px;overflow:hidden;border-radius:6px;min-height:0}
+.deployment-list.hero-ships img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;margin-bottom:6px}
+.deployment-list.hero-ships b,.deployment-list.hero-ships small,.deployment-list.hero-ships span{padding:0 10px}
+.deployment-list.hero-ships small{color:var(--muted);font-size:12px}
+@media(orientation:landscape) and (max-height:500px){
+ .deployment-list.hero-ships{gap:8px;margin:8px 0}
+ .deployment-list.hero-ships img{aspect-ratio:9/4}
+ .onboard-content>p{margin:6px 0;font-size:14px}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .deployment-list.hero-ships li{padding-bottom:6px;gap:0}
+ .deployment-list.hero-ships img{margin-bottom:4px}
+ .deployment-list.hero-ships b{font-size:14px}
+ .deployment-list.hero-ships small,.deployment-list.hero-ships span{font-size:11px}
+}
+/* Ficha de progresso da rodada e ordens do comandante. */
+.round-progress{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin:8px 0 12px}
+.round-progress span{display:flex;flex-direction:column;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:#22170e;color:var(--muted);font-size:12px;line-height:1.3}
+.round-progress b{color:var(--ink);font-size:16px}
+.round-progress .urgent{border-color:#ae6959;background:#42272266}
+.round-progress .urgent b{color:#f0b27d}
+.command-card article{display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:start}
+.command-card .mesa-avatar{width:64px;height:64px;border-radius:50%;border:2px solid var(--gold)}
+.command-card h2{margin:0 0 8px}
+/* Cena ilustrada no topo dos diálogos, recortada numa faixa larga. */
+.scene-art{display:block;width:100%;height:auto;aspect-ratio:12/5;max-height:30vh;object-fit:cover;object-position:center;margin:0 0 14px;border-radius:6px}
+@media(orientation:landscape) and (max-height:500px){.scene-art{aspect-ratio:4/1;max-height:24vh;margin-bottom:8px}}
+@media(orientation:landscape) and (max-height:500px){
+ .arrival-card:has(>.scene-art){display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);column-gap:16px;align-content:start;width:min(860px,96vw)}
+ .arrival-card:has(>.scene-art)>*{grid-column:2}
+ .arrival-card:has(>.scene-art)>.scene-art{grid-column:1;grid-row:1/span 12;align-self:stretch;height:100%;min-height:0;max-height:none;aspect-ratio:auto;margin:0}
+ .arrival-card:has(>.scene-art) .encounter-text{font-size:17px;line-height:1.35}
+}
+/* Caixas de diálogo em bronze: faixa de meandro grego no topo e na base, desenhada em SVG (nítida em qualquer tela). */
+:root{--bronze:#b98d4f;--meander:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Cpath d='M0 11H20M0 1H20M14 11V3.5H4V8.5H10V6H7' fill='none' stroke='%23b98d4f' stroke-width='1.4' stroke-linecap='square'/%3E%3C/svg%3E")}
+.arrival-card{border:1px solid #8a6a3a;box-shadow:0 0 0 1px #0008,inset 0 0 0 1px #e4bd7722,0 28px 80px #000;background:var(--meander) left 10px top 8px/20px 12px repeat-x,var(--meander) left 10px bottom 8px/20px 12px repeat-x,linear-gradient(145deg,#2d2016,#1c130d);background-origin:padding-box;padding-top:34px;padding-bottom:34px}
+.arrival-card .eyebrow{font-family:'Marcellus',Georgia,serif;letter-spacing:.14em;color:var(--bronze)}
+.arrival-card h2{font-family:'Marcellus',Georgia,serif;font-weight:400;letter-spacing:.01em}
+@media(orientation:landscape) and (max-height:500px){.arrival-card{padding-top:26px;padding-bottom:24px;background-position:left 10px top 6px,left 10px bottom 6px,0 0}}
+/* Trilha do Alarme com os patamares de reforço. */
+.alarm-track{position:relative;height:8px;margin:8px 4px 34px;border-radius:4px;background:#3c2d22}
+.alarm-fill{position:absolute;inset:0 auto 0 0;border-radius:4px;background:linear-gradient(90deg,#c58b45,#c0573c)}
+.alarm-mark{position:absolute;top:-3px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--muted);white-space:nowrap}
+.alarm-mark b{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:#2b1f15;border:1px solid #6d5a3a;font-size:8px;color:var(--ink)}
+.alarm-mark.fired b{background:#c0573c;border-color:#f0b27d}
+.alarm-mark.hero b{width:18px;height:18px;margin-top:-2px;border-color:var(--gold)}
+.alarm-mark:last-child{transform:translateX(-90%);align-items:flex-end}
+.mesa-troy .alarm-track{margin-bottom:14px}.mesa-troy .alarm-mark small{display:none}
+/* Selo da fase da rodada no título da missão. */
+.phase-seal{margin-left:8px;padding:2px 8px;border:1px solid #6d5a3a;border-radius:999px;color:var(--bronze,#b98d4f);font:500 11px/1.4 'Marcellus',Georgia,serif;letter-spacing:.06em;white-space:nowrap}
+@media(orientation:landscape) and (max-height:500px){.phase-seal{display:none}}
+/* Preparação como um livro: as folhas viram para a frente e para trás. */
+.onboard-content.book{transform-style:preserve-3d;position:relative}
+.onboard-content.turn-next{animation:page-next .55s cubic-bezier(.2,.7,.2,1) both;transform-origin:left center}
+.onboard-content.turn-back{animation:page-back .55s cubic-bezier(.2,.7,.2,1) both;transform-origin:right center}
+.onboard-content.turn-next::after,.onboard-content.turn-back::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;animation:page-shade .55s ease both}
+.onboard-content.turn-next::after{background:linear-gradient(90deg,#0000 40%,#0006)}
+.onboard-content.turn-back::after{background:linear-gradient(270deg,#0000 40%,#0006)}
+@keyframes page-next{from{transform:perspective(1800px) rotateY(-62deg);opacity:.2}to{transform:perspective(1800px) rotateY(0);opacity:1}}
+@keyframes page-back{from{transform:perspective(1800px) rotateY(62deg);opacity:.2}to{transform:perspective(1800px) rotateY(0);opacity:1}}
+@keyframes page-shade{from{opacity:1}to{opacity:0}}
+.onboard-content.book .story-slide{animation:none}
+@media(prefers-reduced-motion:reduce){.onboard-content.turn-next,.onboard-content.turn-back{animation:none}.onboard-content.turn-next::after,.onboard-content.turn-back::after{display:none}}
+/* Páginas do manual: título curto e tópicos. */
+.manual-page figcaption h2{margin:0 0 10px;font-size:26px}
+.manual-page figcaption ul{margin:0;padding-left:18px;display:grid;gap:8px}
+.manual-page figcaption li{line-height:1.5}
+.manual-page .alarm-track{margin:16px 6px 30px}
+.manual-note,.story-sign{color:var(--muted);font-size:13px;margin:10px 0 0}
+.story-panel.manual-page:not(:has(img)){display:block}
+.setup-checklist{margin:0;padding-left:20px;display:grid;gap:10px;line-height:1.5}
+@media(orientation:landscape) and (max-height:500px){.manual-page figcaption h2{font-size:19px;margin-bottom:6px}.manual-page figcaption ul{gap:4px}.manual-page figcaption li{font-size:13px;line-height:1.4}.setup-checklist{gap:4px;font-size:13px}}
+.manual-page figcaption ul li{margin:0}
+.manual-page figcaption ul li p{margin:0}
+@media(orientation:landscape) and (max-height:500px){
+ .onboard-content.book{padding:8px 12px}
+ .onboard-content.book .story-panel img{max-height:calc(100dvh - 170px)}
+ .manual-page .alarm-track{margin:10px 6px 24px}
+}
+
+/* ===== Diálogos · proposta 2: faixa curta presa à base da tela, marcada por um selo ===== */
+:root{--umber:#1c1410;--umber-2:#2a1e16;--ochre:#d29a4a;--ochre-deep:#9c6a2c;--troy:#b5482c;--sheet-line:#4a3826}
+.arrival-backdrop{place-items:end center;padding:0 16px 16px;background:linear-gradient(180deg,#0000 25%,#0b0705d9 100%);backdrop-filter:none}
+.arrival-backdrop>.arrival-card{width:min(780px,100%);max-height:min(64dvh,620px);overflow:auto;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--ochre-deep) #0000;
+  padding:14px 18px 16px;background:linear-gradient(180deg,#22180fee,#170f0bf5);border:1px solid var(--sheet-line);border-top:2px solid var(--ochre-deep);border-radius:4px 4px 10px 10px;box-shadow:0 18px 40px #000b,inset 0 1px 0 #ffffff10;animation:sheet-in .28s ease-out both}
+@keyframes sheet-in{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.arrival-backdrop>.arrival-card{animation:none}}
+.arrival-backdrop>.arrival-card .eyebrow{font:400 11px/1.2 'Marcellus',Georgia,serif;letter-spacing:.16em;text-transform:uppercase;color:var(--ochre);margin:0 0 6px}
+.arrival-backdrop>.arrival-card h2{font:400 22px/1.15 'Marcellus',Georgia,serif;margin:0 0 6px}
+.arrival-backdrop>.arrival-card .encounter-text{padding:0;border:0;background:none;font:italic 500 17px/1.35 'Cormorant Garamond',Georgia,serif;color:#e9dcc0;margin:0 0 8px}
+.arrival-backdrop>.arrival-card p{margin:0 0 8px}
+.arrival-backdrop>.arrival-card .button,.arrival-backdrop>.arrival-card .action:not(.quiet){border:0;border-radius:3px;background:var(--ochre);color:#1a1006;font:700 13px/1 'DM Sans',sans-serif;padding:12px 16px;min-height:0}
+.arrival-backdrop>.arrival-card .quiet{border:1px solid var(--sheet-line);border-radius:3px;background:#0000;color:var(--ink);font:600 13px/1 'DM Sans',sans-serif;padding:11px 16px;min-height:0}
+.arrival-backdrop>.arrival-card .actions-row,.arrival-backdrop>.arrival-card .confirm-choices{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.arrival-backdrop>.arrival-card .chronicle-demand{padding:8px 10px;border:1px solid var(--sheet-line);border-left:3px solid var(--ochre);border-radius:3px;background:#0000;font-size:13px;margin:4px 0 8px}
+.arrival-backdrop>.arrival-card .chronicle-demand b{display:block;color:var(--ochre);font:400 11px/1.4 'Marcellus',Georgia,serif;letter-spacing:.12em;text-transform:uppercase}
+/* O selo: a cena da história num círculo de pedra gravada, à esquerda. */
+.arrival-backdrop>.arrival-card:has(>.scene-art){display:grid;grid-template-columns:96px minmax(0,1fr);column-gap:18px;align-items:start}
+.arrival-backdrop>.arrival-card:has(>.scene-art)>*{grid-column:2}
+.arrival-backdrop>.arrival-card:has(>.scene-art)>.scene-art{grid-column:1;grid-row:1/span 30;width:96px;height:96px;max-height:none;aspect-ratio:1;margin:2px 0 0;border-radius:50%;object-fit:cover;
+  box-shadow:0 0 0 2px #120c09,0 0 0 4px var(--ochre-deep),0 0 0 5px #120c09,0 6px 16px #0009}
+/* Miniaturas e retratos também viram selos. */
+.arrival-backdrop .enemy-miniature,.arrival-backdrop .response-order .enemy-miniature{width:72px;height:72px;flex:none;border:0;border-radius:50%;background-color:#3a2418;background-size:70%;background-position:center;box-shadow:0 0 0 2px #120c09,0 0 0 4px var(--troy),0 0 0 5px #120c09}
+.arrival-backdrop .mesa-avatar{border-radius:50%;box-shadow:0 0 0 2px #120c09,0 0 0 4px var(--ochre-deep),0 0 0 5px #120c09}
+.arrival-backdrop .arrival-list{gap:6px;margin:8px 0}
+.arrival-backdrop .arrival-list article{grid-template-columns:72px 1fr;gap:14px;padding:6px 4px;border:0;border-bottom:1px solid var(--sheet-line);border-radius:0;background:#0000}
+.arrival-backdrop .arrival-list strong{font-size:15px;margin:2px 0}
+.arrival-backdrop .response-order{display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center;padding:0;border:0;background:#0000;margin:4px 0 8px}
+/* A vez de Troia: selo e borda vermelhos. */
+.arrival-backdrop>.response-card,.arrival-backdrop>.arrival-card:has(.arrival-list){border-top-color:var(--troy)}
+.arrival-backdrop>.response-card .eyebrow,.arrival-backdrop>.arrival-card:has(.arrival-list) .eyebrow{color:#f08f6c}
+.arrival-backdrop>.response-card .button,.arrival-backdrop>.arrival-card:has(.arrival-list) .button{background:var(--troy);color:#fff3ea}
+/* Telas que precisam de espaço continuam no centro. */
+.arrival-backdrop:has(>.story-review),.arrival-backdrop:has(>.food-allocation){place-items:center}
+.arrival-backdrop>.story-review{max-height:88dvh}
+@media(orientation:landscape) and (max-height:500px){
+ .arrival-backdrop{padding:0 10px 8px}
+ .arrival-backdrop>.arrival-card{max-height:72dvh;padding:10px 14px 12px}
+ .arrival-backdrop>.arrival-card:has(>.scene-art){grid-template-columns:64px minmax(0,1fr);column-gap:12px;width:min(820px,100%)}
+ .arrival-backdrop>.arrival-card:has(>.scene-art)>.scene-art{width:64px;height:64px}
+ .arrival-backdrop>.arrival-card h2{font-size:18px}
+ .arrival-backdrop>.arrival-card .encounter-text{font-size:15px}
+ .arrival-backdrop .enemy-miniature,.arrival-backdrop .response-order .enemy-miniature{width:56px;height:56px}
+ .arrival-backdrop .arrival-list article,.arrival-backdrop .response-order{grid-template-columns:56px 1fr}
+}
+
+/* ===== Barra da missão: a chama do Alarme e os recursos gregos agrupados ===== */
+.mission-hud{display:flex;align-items:center;gap:6px;margin-left:auto}
+.alarm-flame{position:relative;display:flex;align-items:center;gap:6px;padding:3px 10px 3px 6px;border:1px solid var(--sheet-line);border-radius:999px;background:#1a120c;color:var(--ink);font:400 18px/1 'Marcellus',Georgia,serif}
+.alarm-flame svg{width:22px;height:26px;overflow:visible}
+.alarm-flame .f-out{fill:#c0573c}.alarm-flame .f-in{fill:#f0b27d}
+.alarm-flame .flame{transform-origin:50% 100%;transform-box:fill-box;animation:flicker 1.6s ease-in-out infinite}
+.alarm-flame[data-heat="1"] .flame{animation-duration:1.1s}
+.alarm-flame[data-heat="2"] .flame{animation-duration:.7s}.alarm-flame[data-heat="2"] .f-out{fill:#d9542c}
+.alarm-flame[data-heat="3"] .flame{animation-duration:.45s}.alarm-flame[data-heat="3"] .f-out{fill:#ef4a22}.alarm-flame[data-heat="3"]{box-shadow:0 0 14px #ef4a2266}
+.alarm-flame small{color:var(--muted);font:600 11px 'DM Sans',sans-serif}
+.alarm-flame .next{color:var(--muted);font:600 10px/1.1 'DM Sans',sans-serif;max-width:84px}
+@keyframes flicker{0%,100%{transform:scale(1,1) skewX(0)}25%{transform:scale(.92,1.08) skewX(-4deg)}50%{transform:scale(1.05,.94) skewX(3deg)}75%{transform:scale(.96,1.05) skewX(-2deg)}}
+@media(prefers-reduced-motion:reduce){.alarm-flame .flame{animation:none}}
+.res-toggle{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;border:1px solid var(--sheet-line);border-radius:999px;background:#1a120c;color:var(--ink);font:600 12px 'DM Sans',sans-serif;cursor:pointer}
+.res-toggle svg{width:22px;height:22px}
+.res-toggle[aria-expanded="true"]{border-color:var(--ochre)}
+.res-toggle .warn{width:8px;height:8px;border-radius:50%;background:#ef4a22}
+.res-panel{position:absolute;right:8px;top:calc(100% + 6px);z-index:30;min-width:220px;padding:10px 12px;border:1px solid var(--sheet-line);border-top:2px solid var(--ochre-deep);border-radius:4px 4px 8px 8px;background:#1c1410f5;box-shadow:0 14px 30px #000a}
+.res-panel dl{margin:0;display:grid;gap:6px}
+.res-panel div{display:flex;justify-content:space-between;gap:16px;align-items:baseline}
+.res-panel dt{color:var(--muted);font-size:12px}
+.res-panel dd{margin:0;font:400 18px/1 'Marcellus',Georgia,serif}
+.res-panel .alert dd{color:var(--red)}
+.mission-card{position:relative}
+@media(orientation:landscape) and (max-height:500px){.alarm-flame .next,.res-toggle .res-label{display:none}}
+
+/* ===== Preparação: a folha vira como num códice ===== */
+.onboard-content.book{position:relative;perspective:2200px;background:linear-gradient(180deg,#22180f,#170f0b);border:1px solid var(--sheet-line);border-top:2px solid var(--ochre-deep);border-radius:4px 4px 10px 10px}
+.onboard-content.book.turn-next,.onboard-content.book.turn-back{animation:none}
+.onboard-content.book .story-slide{animation:leaf-content .7s ease both}
+.onboard-content.book.turn-next::before,.onboard-content.book.turn-back::before{content:'';position:absolute;inset:-1px;z-index:5;pointer-events:none;border-radius:inherit;backface-visibility:hidden;
+  background:linear-gradient(90deg,#2b1f16,#1d150f 60%,#120c09);box-shadow:inset -30px 0 40px #0006}
+.onboard-content.book.turn-next::before{transform-origin:left center;animation:leaf-next .7s cubic-bezier(.4,.1,.3,1) forwards}
+.onboard-content.book.turn-back::before{transform-origin:right center;animation:leaf-back .7s cubic-bezier(.4,.1,.3,1) forwards}
+.onboard-content.book.turn-next::after,.onboard-content.book.turn-back::after{display:none}
+@keyframes leaf-next{0%{transform:rotateY(0);filter:brightness(1)}100%{transform:rotateY(-178deg);filter:brightness(.5)}}
+@keyframes leaf-back{0%{transform:rotateY(0);filter:brightness(1)}100%{transform:rotateY(178deg);filter:brightness(.5)}}
+@keyframes leaf-content{0%,35%{opacity:0}100%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.onboard-content.book::before{display:none}.onboard-content.book .story-slide{animation:none}}
+/* Selo das tropas nos avisos (vence a regra que tira o fundo das miniaturas no mapa). */
+.arrival-backdrop .enemy-miniature{background-color:#3a2418!important;box-shadow:0 0 0 2px #120c09,0 0 0 4px var(--troy),0 0 0 5px #120c09!important;background-size:72% auto!important}
+.arrival-backdrop>.arrival-card .button{width:auto}
+.arrival-backdrop>.arrival-card>button,.arrival-backdrop>.arrival-card>.button{justify-self:start;width:auto}

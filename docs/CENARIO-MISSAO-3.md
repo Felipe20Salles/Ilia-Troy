@@ -1,6 +1,6 @@
 # Cenário da missão 3 — Segurar a linha
 
-Status: **jogável** em `cooperativo/segurar.html` (motor `segurar.js`). Este doc foi escrito em 03/10/2026 a partir do código e registra a regra de Pátroclo aprovada nesse dia, **ainda não programada**. Substitui a defesa antiga (`defesa.html`), que fica no repositório só como referência.
+Status: **jogável** em `cooperativo/segurar.html` (motor `segurar.js`). A regra de Pátroclo, a balança de Zeus e os feitos com Glória foram programados em 03/10/2026. Substitui a defesa antiga (`defesa.html`), que fica no repositório só como referência.
 
 Mesmas regras da campanha (`REGRAS-CAMPANHA.md`) e o episódio de Criseida (`DILEMAS.md`).
 
@@ -59,7 +59,7 @@ Se Criseida foi tomada, Crises pede a filha no início. As opções A a D e a pe
 
 ### Opção B: Agamêmnon toma Briseida, e Pátroclo entra (regra aprovada em 03/10/2026)
 
-Substitui o retorno de Aquiles pela embaixada aos Mirmidões, que o código ainda usa.
+Substitui o retorno de Aquiles pela embaixada aos Mirmidões.
 
 1. **Gatilho exclusivo.** Pátroclo só existe se Agamêmnon tomar Briseida de Aquiles. Em qualquer outra escolha, ou se Aquiles não estiver na equipe, Pátroclo nunca entra em cena e o jogo segue normal.
 2. **Aquiles sai, Pátroclo entra.** O jogador de Aquiles passa a jogar Pátroclo, que veste a armadura de Aquiles: tem a **força inicial de Aquiles** (N1: vida 6, ataque 2) e **apenas uma habilidade**.
@@ -68,9 +68,13 @@ Substitui o retorno de Aquiles pela embaixada aos Mirmidões, que o código aind
 5. **Pátroclo vivo é uma desvantagem assumida.** O jogador pode jogar com cuidado para manter Pátroclo vivo. Nesse caso, **Aquiles nunca volta**: a campanha segue com Pátroclo, mais fraco, no lugar dele, e não existe o duelo entre Aquiles e Heitor.
 6. **O duelo entre Pátroclo e Heitor tende a acontecer.** Heitor marcha sobre o acampamento, e Pátroclo usa a armadura de Aquiles: a morte de Pátroclo é quase inevitável, e a consequência dela é a ira de Aquiles.
 
-**Padrões propostos para a programação** (mudar se não fizer sentido):
+**Como foi programado** (03/10/2026):
 - Aquiles volta na rodada seguinte à morte de Pátroclo, nos navios negros (N4).
-- A habilidade de Pátroclo é a habilidade inicial que o jogador escolheu para Aquiles.
+- A habilidade de Pátroclo é a primeira habilidade de Aquiles (a de menor número entre as que ele conhece), já que o jogo não guarda qual foi a escolha inicial depois que Aquiles aprende outras.
+- Pátroclo entra em A1, com a vida cheia, logo depois da decisão.
+- Quando Aquiles volta com a ira, os troianos a até uma peça dos navios negros recuam uma peça e não atacam na fase seguinte.
+- O registro da missão guarda para a missão 4: se Pátroclo vive, se caiu de frente para Heitor, o dano que ele fez em Heitor e o tipo de duelo (ira ou egos).
+- A balança é um diálogo com um só botão ("A escolha é tua"): a escolha é feita jogando.
 - Pátroclo não evolui nem cumpre os feitos de Aquiles.
 - A morte de Pátroclo não diminui a equipe: Aquiles ocupa o lugar dele.
 
@@ -153,7 +157,7 @@ Se Briseida não for tomada, Pátroclo nunca entra. Aquiles segue na equipe, e o
 | Ájax | Muralha dos aqueus | Resistir de pé a 3 ataques no acampamento (A1 ou A2) |
 | Agamêmnon | Rei dos reis | Estar de pé em A1 quando Heitor recuar |
 
-Recompensa: +1 Favor e Glória (`REGRAS-CAMPANHA.md`). O código ainda dá uma habilidade nova, quando o herói tem alguma a aprender.
+Recompensa: +1 Favor e Glória (`REGRAS-CAMPANHA.md`). A partir desta missão, o feito não ensina habilidades.
 
 ## O que passa para a missão 4
 

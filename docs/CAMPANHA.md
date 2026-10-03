@@ -21,10 +21,10 @@ Atualizado em 03/10/2026. Missões 1 a 3 jogáveis; 4 a 7 em desenho.
 A frota chega a uma costa desconhecida. A expedição revela o território, recolhe as caixas espalhadas pelas praias, toma o posto de vigia troiano em A1 e instala ali o acampamento. Encontros: os náufragos e o velho do círculo de pedras (Zeus ou espião). **Revisão de 03/10 programada:** P1 vazio, vigia em A1 e exploração por missão. Doc: `CENARIO-MISSAO-1.md`.
 
 ### 2. Diante das muralhas — jogável (`reconhecimento.html`)
-A expedição sobe a planície para reconhecer o portão de Troia e volta com todos de pé, perseguida depois do reconhecimento. No santuário de Apolo (C1), a decisão de tomar ou respeitar Criseida. Doc: `CENARIO-MISSAO-2.md`. A missão 2 antiga (`muralhas.html`) fica só como referência.
+A expedição sobe a planície para reconhecer o portão de Troia e volta com todos de pé, perseguida depois do reconhecimento. No santuário de Apolo (C1), a decisão de tomar ou respeitar Criseida. Exploração por indícios programada em 03/10. Doc: `CENARIO-MISSAO-2.md`. A missão 2 antiga (`muralhas.html`) fica só como referência.
 
 ### 3. Segurar a linha — jogável (`segurar.html`)
-Heitor lidera o contra-ataque contra o acampamento; os gregos precisam ferir Heitor até ele recuar. Se Criseida foi tomada, Crises pede a filha e vem a peste, ou Agamêmnon toma Briseida e começa a ira de Aquiles: **Pátroclo** entra no lugar dele. Doc: `CENARIO-MISSAO-3.md`. A defesa antiga (`defesa.html`) fica só como referência.
+Heitor lidera o contra-ataque contra o acampamento; os gregos precisam ferir Heitor até ele recuar. Se Criseida foi tomada, Crises pede a filha e vem a peste, ou Agamêmnon toma Briseida e começa a ira de Aquiles: **Pátroclo** entra no lugar dele. Pátroclo, a balança de Zeus e os feitos com Glória programados em 03/10. Doc: `CENARIO-MISSAO-3.md`. A defesa antiga (`defesa.html`) fica só como referência.
 
 ### Pátroclo (só se Briseida for tomada)
 Pátroclo não tem morte por roteiro: ele morre ou sobrevive em jogo. Se cair, não há socorro, e Aquiles volta movido pela ira. Se o jogador o mantiver vivo, Aquiles nunca volta. A embaixada de Odisseu ou Ájax sempre falha. Regra completa em `CENARIO-MISSAO-3.md`.

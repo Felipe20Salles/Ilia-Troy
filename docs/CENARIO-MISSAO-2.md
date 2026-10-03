@@ -1,6 +1,6 @@
 # Cenário da missão 2 — Diante das muralhas (proposta)
 
-Status: **jogável** (02/10/2026) em `cooperativo/reconhecimento.html` (motor `reconhecimento.js`). Substitui a missão 2 antiga (`muralhas.js`), que fica no repositório só como referência.
+Status: **jogável** (02/10/2026) em `cooperativo/reconhecimento.html` (motor `reconhecimento.js`). Substitui a missão 2 antiga (`muralhas.js`), que fica no repositório só como referência. A exploração por indícios foi programada em 03/10/2026 (ver "Exploração por missão", abaixo).
 
 **Ajustes feitos ao programar (depois das simulações):**
 - Reconhecer o portão custa **2 ações em M1**, sem inimigos na peça (o guarda precisa cair ou ser intimidado). Quem completa **leva o relato** e precisa voltar de pé a A1.
@@ -91,7 +91,7 @@ Dois pergaminhos possíveis por missão, como decidido; o II de Rotas da costa �
 | Herói | Feito | Meta |
 |---|---|---|
 | Aquiles | O guarda do portão | Derrotar o guarda do portão |
-| Odisseu | Olhos de Ítaca | Ser o primeiro a ver o portão: revelar M1 |
+| Odisseu | Olhos de Ítaca | Investigar 2 fichas de exploração (até 03/10/2026: revelar M1) |
 | Agamêmnon | Ninguém fica na planície | Estar em A1 quando a expedição voltar completa |
 | Menelau | Irmão de armas | Socorrer ou curar um aliado |
 | Ájax | Escudo diante das muralhas | Resistir de pé a 2 ataques perto das muralhas (P3, P7, P4, M4 ou M1) |
@@ -103,6 +103,19 @@ Dois pergaminhos possíveis por missão, como decidido; o II de Rotas da costa �
 - Criseida tomada ou não (peste).
 - Segredos de Troia I / Rotas da costa II / Favor dos pastores I.
 - Heróis caídos que não voltaram: começam a missão 3 com 1 de vida a menos.
+
+## Exploração por missão (programada em 03/10/2026)
+
+- Só se anda por peças reveladas. A costa da missão 1 começa toda revelada, e Agamêmnon aponta a planície: P3 também começa na mesa.
+- Quem tomou o mirante na missão 1 já começa vendo a torre de vigia (M4).
+
+| Investigar… | Revela… |
+|---|---|
+| Torres no horizonte (P3, ficha nova; não faz barulho) | M4 e P7 |
+| Trilha dos pinheiros (P7) | P4 e M1 |
+| Rebanho troiano (P4) | B5 |
+
+As tropas continuam revelando as peças onde entram. O Caminho Seguro de Odisseu só vai a peças reveladas.
 
 ## Decisões em aberto
 

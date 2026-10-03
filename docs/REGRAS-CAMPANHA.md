@@ -68,7 +68,7 @@ Substitui "revelar ao mover" (`CENARIO-MISSAO-1.md`, regra 1), no estilo de *Jor
   2. **Avanço da história:** cumprir uma etapa do objetivo faz o app colocar as próximas peças.
   3. **Troia revela:** uma tropa que surge traz a peça de onde veio, como hoje.
 - O Caminho Seguro de Odisseu volta a alcançar só peças reveladas.
-- Prioridade de aplicação: missões 1, 2 e 5. Na missão 3, o mapa já é conhecido e quase nada muda. **Programada na missão 1** (03/10/2026); seguir pegadas, sem achado, não faz barulho.
+- Prioridade de aplicação: missões 1, 2 e 5. Na missão 3, o mapa já é conhecido e quase nada muda. **Programada nas missões 1 e 2** (03/10/2026); seguir uma pista sem achado não faz barulho.
 
 ### Feitos a partir da missão 3
 

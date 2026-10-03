@@ -16,17 +16,21 @@ function play(ids,players=ids.length,route='A',abilities){let s=ready(G.newGame(
    const def=G.HEROES.find(d=>d.id===id),foe=s.enemies.find(e=>e.zone===h.zone);
    if(foe){const here=s.enemies.filter(e=>e.zone===h.zone),multi=def.cards.findIndex((c,n)=>c.type==='multiRanged'&&!h.used.includes(n)&&h.known.includes(n));if(multi>=0){doAct(id,'card:'+multi,here.slice(0,2).map(e=>e.id).join(','));continue;}const c=def.cards.findIndex((c,n)=>c.type==='attack'&&!h.used.includes(n)&&h.known.includes(n));doAct(id,c<0?'attack':'card:'+c,foe.id);continue;}
    const down=s.heroes.find(a=>a.zone===h.zone&&!a.hp);if(down&&h.hp>=3){doAct(id,'rescue',down.id);continue;}
-   const option=G.interactions(s,h).find(x=>x.available&&(['deliver','pickup','install','castaways'].includes(x.id)||(x.id==='explore'&&h.hp<=G.HEROES.stats(h).maxHp-2)));if(option){doAct(id,'interact',option.id);continue;}
+   const opens=z=>(G.CLUES[z]||[]).some(x=>!G.isRevealed(s,x));
+   const option=G.interactions(s,h).find(x=>x.available&&(['deliver','pickup','install','castaways'].includes(x.id)||(x.id==='explore'&&(opens(h.zone)||h.hp<=G.HEROES.stats(h).maxHp-2))));if(option){doAct(id,'interact',option.id);continue;}
    const scout=!h.cargo&&h.hp>=5&&!s.built&&s.delivered<s.required&&!s.enemies.some(x=>x.type!=='explorador'&&G.isRevealed(s,x.zone)&&G.distance(h.zone,x.zone)<=1)&&s.enemies.find(e=>e.type==='explorador'&&G.isRevealed(s,e.zone)&&G.ZONES[h.zone].links.includes(e.zone)&&s.enemies.filter(x=>x.zone===e.zone).length===1);
    if(scout){const charge=def.cards.findIndex((c,n)=>c.type==='charge'&&!h.used.includes(n)&&h.known.includes(n));doAct(id,charge>=0?'card:'+charge:'move',charge>=0?scout.id:scout.zone);continue;}
-   let goal='A1';if(!h.cargo&&s.delivered<s.required){const supply=Object.keys(s.supplies).filter(k=>s.supplies[k]>0).sort((a,b)=>G.distance(h.zone,a)-G.distance(h.zone,b));if(supply.length)goal=supply[0];}
+   const kd=(a,b)=>G.knownDistance(s,a,b);
+   let goal='A1',lost=false;if(!h.cargo&&s.delivered<s.required){const supply=Object.keys(s.supplies).filter(k=>s.supplies[k]>0&&kd(h.zone,k)<Infinity).sort((a,b)=>kd(h.zone,a)-kd(h.zone,b));if(supply.length)goal=supply[0];else lost=s.delivered+s.heroes.filter(a=>a.cargo).length<s.required;}
    // Depois de instalar: caçar Enéias (se desceu) ou as tropas perto do acampamento.
    const campZones=['A1','P1','A2','N1'],eneias=s.enemies.find(e=>e.type==='eneias'),near=s.enemies.filter(e=>campZones.includes(e.zone)).sort((a,b)=>G.distance(h.zone,a.zone)-G.distance(h.zone,b.zone))[0];
    if(s.built&&!h.cargo)goal=eneias?eneias.zone:near?near.zone:'A1';
    // Um guardião em A1 quando Troia ameaça as caixas entregues.
    const raider=s.enemies.find(e=>!e.hold&&G.distance(e.zone,'A1')<=1);if(!h.cargo&&s.delivered>0&&raider&&!s.heroes.some(a=>a.id!==id&&a.hp>0&&a.zone==='A1')){const keeper=s.heroes.filter(a=>a.hp>=3&&!a.cargo).sort((a,b)=>G.distance(a.zone,'A1')-G.distance(b.zone,'A1'))[0];if(keeper&&keeper.id===id)goal='A1';}
    const threatened=!h.cargo&&s.heroes.find(x=>x.id!==h.id&&x.hp>0&&x.cargo&&s.enemies.some(e=>G.isRevealed(s,e.zone)&&G.distance(e.zone,x.zone)<=2));if(threatened)goal=threatened.zone;
-   if(goal!==h.zone&&(!h.cargo||h.moves===0)){const danger=z=>s.enemies.filter(e=>e.zone===z).length;const step=G.ZONES[h.zone].links.slice().sort((a,b)=>G.distance(a,goal)-G.distance(b,goal)||(h.cargo?danger(a)-danger(b):0))[0];const safer=h.cargo?G.ZONES[h.zone].links.filter(z=>G.distance(z,goal)<=G.distance(step,goal)+1&&G.distance(z,goal)<=G.distance(h.zone,goal)).sort((a,b)=>danger(a)-danger(b)||G.distance(a,goal)-G.distance(b,goal))[0]:step;doAct(id,'move',safer||step);continue;}
+   // Sem caminho conhecido até o objetivo: ir investigar a ficha mais próxima que abre território.
+   if(lost||kd(h.zone,goal)===Infinity){const clue=s.revealed.filter(z=>s.tokens[z]&&!s.tokens[z].resolved&&opens(z)&&kd(h.zone,z)<Infinity).sort((a,b)=>kd(h.zone,a)-kd(h.zone,b))[0];if(clue)goal=clue;}
+   if(goal!==h.zone&&kd(h.zone,goal)<Infinity&&(!h.cargo||h.moves===0)){const danger=z=>s.enemies.filter(e=>e.zone===z).length,links=G.ZONES[h.zone].links.filter(z=>G.isRevealed(s,z));const step=links.slice().sort((a,b)=>kd(a,goal)-kd(b,goal)||(h.cargo?danger(a)-danger(b):0))[0];const safer=h.cargo?links.filter(z=>kd(z,goal)<=kd(step,goal)+1&&kd(z,goal)<=kd(h.zone,goal)).sort((a,b)=>danger(a)-danger(b)||kd(a,goal)-kd(b,goal))[0]:step;doAct(id,'move',safer||step);continue;}
    if(h.used.length&&!s.enemies.some(e=>e.zone===h.zone)){doAct(id,'rest');continue;}
    const guard=def.cards.findIndex((c,n)=>c.type==='guard'&&!h.used.includes(n)&&h.known.includes(n));if(guard>=0&&h.zone==='A1'){doAct(id,'card:'+guard);continue;}break;
   }
@@ -39,7 +43,8 @@ function play(ids,players=ids.length,route='A',abilities){let s=ready(G.newGame(
 test('the bot wins most legal rosters of 3, 4 or 5 heroes on both routes',()=>{let wins=0,games=0;
  const ids=G.HEROES.map(h=>h.id);
  for(const route of ['A','B'])for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];const s=play(team,team.length,route);games++;if(s.result!=='victory')continue;wins++;assert.equal(s.delivered,team.length);assert.equal(s.outcome.next,'Diante das muralhas');assert.equal(s.outcome.supplies,s.delivered-s.burned);assert.ok(s.outcome.revealedZones.includes('A1'));}
- assert.ok(wins/games>=.7,'vitórias do robô: '+wins+'/'+games);
+ // Com o posto de A1 e a exploração por indícios (03/10/2026), a missão ficou mais difícil de propósito: o teste de mesa a achou fácil.
+ assert.ok(wins/games>=.6,'vitórias do robô: '+wins+'/'+games);
 });
 test('solo and two player teams finish, ownership and setup validate',()=>{
  for(const players of [1,2]){const s=play(['menelau','agamemnon','odisseu'],players);assert.equal(s.result,'victory');assert.ok(G.validSave(s));}
@@ -51,38 +56,39 @@ test('player names persist with the expedition and remain valid in saved games',
  const invalid=structuredClone(s);invalid.playerNames=['Felipe',''];assert.equal(G.validSave(invalid),false);
 });
 test('the expedition starts with only N1, every hero there and the cargo spread along the beaches',()=>{
- const s=setup();assert.deepEqual(s.revealed,['N1']);assert.ok(s.heroes.every(h=>h.zone==='N1'));assert.deepEqual(s.supplies,{N1:1,N3:1,N4:1});assert.equal(s.enemies[0].zone,'P1');assert.equal(G.isRevealed(s,'P1'),false);
+ const s=setup();assert.deepEqual(s.revealed,['N1']);assert.ok(s.heroes.every(h=>h.zone==='N1'));assert.deepEqual(s.supplies,{N1:1,N3:1,N4:1});assert.equal(s.enemies.length,1,'o mirante de P1 começa vazio');assert.equal(s.enemies[0].zone,'A1');assert.ok(s.enemies[0].hold&&s.enemies[0].watch,'a vigia fica parada em A1');assert.equal(G.isRevealed(s,'A1'),false);assert.equal(s.post.status,'hidden');
  assert.deepEqual(setup({route:'B'}).supplies,{N1:1,N2:1,N4:1});
  const five=G.newGame({players:5,heroes:G.HEROES.map(h=>h.id)});assert.deepEqual(five.supplies,{N1:2,N2:1,N3:1,N4:1});for(const zone of Object.keys(five.supplies))assert.ok(G.BEACHES.includes(zone));
 });
 test('failed actions neither mutate state nor spend actions',()=>{
  const s=setup(),before=JSON.stringify(s);assert.equal(G.act(s,'aquiles','move','P2').ok,false);assert.equal(G.act(s,'aquiles','attack','e1').ok,false);assert.equal(G.act(s,'aquiles','card:2').ok,false);assert.equal(JSON.stringify(s),before);
 });
-test('moving into an unknown piece reveals it; hidden enemies cannot be targeted',()=>{
- let s=setup();assert.equal(G.act(s,'aquiles','card:1','e1').ok,false);s=act(s,'aquiles','move','A1');assert.ok(G.isRevealed(s,'A1'));assert.deepEqual(s.lastReveals,['A1']);assert.equal(hero(s,'aquiles').zone,'A1');
- s=act(s,'odisseu','card:2','A1');assert.equal(G.act(s,'odisseu','card:2','P1').ok,false,'Caminho Seguro só vai a peças reveladas');
+test('heroes only move between revealed pieces; investigating a clue reveals where it points',()=>{
+ let s=setup();assert.equal(G.act(s,'aquiles','card:1','e1').ok,false,'inimigo escondido não é alvo');assert.equal(G.act(s,'aquiles','move','A2').ok,false,'não se anda para o desconhecido');
+ const alarm=s.alarm;s=act(s,'aquiles','interact','explore');assert.deepEqual(s.lastReveals,['A2','N2']);assert.equal(s.alarm,alarm,'seguir as pegadas não faz barulho');assert.match(s.lastFind.text,/pegadas/);
+ s=act(s,'aquiles','move','A2');assert.equal(hero(s,'aquiles').zone,'A2');assert.equal(G.isRevealed(s,'A1'),false,'A1 só aparece com a busca em A2');
 });
 test('a carried crate allows only one movement per round, but fighting and interacting stay free',()=>{
- let s=setup();s=act(s,'aquiles','interact','pickup');s=act(s,'aquiles','move','A1');assert.equal(G.act(s,'aquiles','move','N1').ok,false);
+ let s=setup();s.revealed.push('A1','A2');s=act(s,'aquiles','interact','pickup');s=act(s,'aquiles','move','A1');assert.equal(G.act(s,'aquiles','move','N1').ok,false);
  hero(s,'aquiles').ap=1;s.enemies[0].zone='A1';s=act(s,'aquiles','attack','e1');assert.equal(hero(s,'aquiles').ap,0);
  s=G.trojanTurn(s);if(!s.result){s.enemies=[];s=act(s,'aquiles','move','N1');assert.equal(hero(s,'aquiles').moves,1);}
- let t=setup();t=act(t,'odisseu','interact','pickup');t=act(t,'aquiles','move','A1');t=act(t,'aquiles','move','A2');t.revealed.push('P2');t.visited.push('P2');assert.equal(G.act(t,'odisseu','card:2','P2').ok,false,'com caixa, Caminho Seguro só cobre uma peça');
+ let t=setup();t.revealed.push('A1','A2');t=act(t,'odisseu','interact','pickup');t=act(t,'aquiles','move','A1');t=act(t,'aquiles','move','A2');t.revealed.push('P2');t.visited.push('P2');assert.equal(G.act(t,'odisseu','card:2','P2').ok,false,'com caixa, Caminho Seguro só cobre uma peça');
 });
 test('the alarm rises with time, scouts and the ship, and its steps bring reinforcements up to Troy in force',()=>{
  let s=setup();s.enemies=[];s=G.trojanTurn(s);assert.equal(s.alarm,1);
  s.revealed.push('A1','P1');s.heroes.forEach(h=>h.zone='A1');s.visited.push('A1');s.enemies=[G.TROOPS.create('e9','A1','lanceiro')];s.nextEnemy=10;
  s.enemies.push(G.TROOPS.create('e8','A1','explorador'));s=G.trojanTurn(s);assert.equal(s.alarm,3,'tempo e um batedor que avistou os heróis');s.enemies=[];s=G.trojanTurn(s);assert.ok(s.alarmFired.includes(4));assert.ok(s.enemies.some(e=>e.zone==='C2'));assert.ok(G.isRevealed(s,'C2'),'tropas revelam a peça onde surgem');
- let ship=setup();ship.revealed.push('N2','N3');ship.visited.push('N2','N3');hero(ship,'aquiles').zone='N3';ship=act(ship,'aquiles','move','N4');assert.equal(ship.alarm,1);
+ let ship=setup();ship.revealed.push('N2','N3','N4');ship.visited.push('N2','N3');hero(ship,'aquiles').zone='N3';ship=act(ship,'aquiles','move','N4');assert.equal(ship.alarm,1);
  let end=setup();end.enemies=[];end.alarm=G.ALARM_MAX-1;end.alarmFired=[4,7,11,15];end=G.trojanTurn(end);assert.equal(end.result,null,'o Alarme 18 não derrota sozinho');assert.equal(end.enemies.filter(e=>e.type==='lanceiro'&&!e.hold).length,end.heroes.length-1);assert.equal(end.enemies.filter(e=>e.type==='arqueiro').length,1);
  let en=setup();en.enemies=[];en.alarm=14;en.alarmFired=[4,7,11];en=G.trojanTurn(en);const ene=en.enemies.find(e=>e.type==='eneias');assert.ok(ene);assert.equal(ene.hp,7);assert.equal(ene.attack,2);assert.equal(ene.armor,1);
 });
 test('castaways need two actions before the alarm limit, reward food and reveal the cargo beaches',()=>{
- let s=setup();s.revealed.push('N2');s.visited.push('N2');hero(s,'aquiles').zone='N2';s=act(s,'aquiles','move','N3');assert.equal(s.encounter.id,'castaways');assert.equal(G.act(s,'odisseu','move','A1').ok,false,'o encontro pausa a partida');
+ let s=setup();s.revealed.push('N2','N3');s.visited.push('N2');hero(s,'aquiles').zone='N2';s=act(s,'aquiles','move','N3');assert.equal(s.encounter.id,'castaways');assert.equal(G.act(s,'odisseu','move','A1').ok,false,'o encontro pausa a partida');
  s=G.choose(s,'rescue').state;s.enemies=[];const food=s.campFood;s=act(s,'aquiles','interact','castaways');assert.equal(s.castaways.progress,1);hero(s,'odisseu').zone='N3';s=act(s,'odisseu','interact','castaways');assert.equal(s.castaways.status,'rescued');assert.equal(s.campFood,food+1);assert.ok(G.isRevealed(s,'N4'));
  let lost=setup();lost.enemies=[];lost.alarm=G.CASTAWAY_LIMIT-1;lost=G.trojanTurn(lost);assert.equal(lost.castaways.status,'lost');
 });
 test('the beggar becomes Zeus when fed and escorted to the fire, or a spy when refused or forgotten',()=>{
- const atC1=()=>{let s=setup();s.revealed.push('A1','A2','P2');s.visited.push('A1','A2','P2');s.enemies=[];hero(s,'odisseu').zone='P2';s=act(s,'odisseu','move','C1');assert.equal(s.encounter.id,'beggar');return s;};
+ const atC1=()=>{let s=setup();s.revealed.push('A1','A2','P2','C1');s.visited.push('A1','A2','P2');s.enemies=[];hero(s,'odisseu').zone='P2';s=act(s,'odisseu','move','C1');assert.equal(s.encounter.id,'beggar');return s;};
  let refused=G.choose(atC1(),'refuse').state;assert.equal(refused.beggar.status,'spy');assert.equal(refused.alarm,2);assert.ok(refused.enemies.some(e=>e.zone==='C1'&&e.type==='lanceiro'));
  let s=G.choose(atC1(),'accept').state;s.enemies=[];s.alarm=4;hero(s,'aquiles').hp=2;s=act(s,'odisseu','interact','feed');assert.equal(s.beggar.escort,'odisseu');
  s=G.trojanTurn(s);s.enemies=[];s=act(s,'odisseu','move','P2');s=act(s,'odisseu','move','A2');s=G.trojanTurn(s);s.enemies=[];const before=s.alarm;s=act(s,'odisseu','move','A1');assert.equal(s.beggar.status,'zeus');assert.equal(hero(s,'aquiles').hp,2,'a bênção não cura');assert.ok(s.alarm<before);
@@ -96,7 +102,7 @@ test('exploration food heals whoever found it and the surplus goes to the store;
 });
 test('boxes are conserved across collection, carrying, delivery and save reload',()=>{
  let s=setup();s=act(s,'aquiles','interact','pickup');assert.equal(hero(s,'aquiles').cargo,true);assert.equal(s.supplies.N1,0);assert.equal(G.act(s,'aquiles','interact','pickup').ok,false);
- s=act(s,'aquiles','move','A1');hero(s,'aquiles').ap=1;s=act(s,'aquiles','interact','deliver');assert.equal(s.delivered,1);assert.ok(G.validSave(JSON.parse(JSON.stringify(s))));
+ s.revealed.push('A1');s.enemies=[];s=act(s,'aquiles','move','A1');hero(s,'aquiles').ap=1;s=act(s,'aquiles','interact','deliver');assert.equal(s.delivered,1);assert.ok(G.validSave(JSON.parse(JSON.stringify(s))));
 });
 test('falling drops cargo; rescue costs no action and transfers 1 life from the rescuer',()=>{
  let s=setup();s=act(s,'aquiles','interact','pickup');s.revealed.push('N2');s.visited.push('N2');const aquiles=hero(s,'aquiles');aquiles.zone='N2';aquiles.hp=1;s.enemies[0].zone='N2';s=G.trojanTurn(s);assert.equal(hero(s,'aquiles').hp,0);assert.equal(hero(s,'aquiles').cargo,false);assert.equal(s.supplies.N2,1);assert.ok(G.validSave(s));
@@ -116,12 +122,12 @@ test('the Greeks win by clearing the camp surroundings, or by killing Aeneas onc
  e=act(e,'aquiles','attack','e90');assert.equal(e.result,'victory');assert.equal(e.enemies.length,0,'as tropas recuam com Enéias');
 });
 test('Troy attacks the camp: a standing hero shields it, otherwise it takes damage and loses a crate',()=>{
- let s=setup();s.revealed.push('A1');s.delivered=2;s.supplies.N1=0;s.supplies={N3:1};s.heroes.forEach(h=>h.zone='N1');s.enemies=[G.TROOPS.create('e90','A1','explorador')];s.nextEnemy=91;
+ let s=setup();s.revealed.push('A1');s.post.status='taken';s.delivered=2;s.supplies.N1=0;s.supplies={N3:1};s.heroes.forEach(h=>h.zone='N1');s.enemies=[G.TROOPS.create('e90','A1','explorador')];s.nextEnemy=91;
  s=G.trojanTurn(s);assert.equal(s.campDamage,1);assert.equal(s.burned,1);
- let d=setup();d.revealed.push('A1');d.enemies=[G.TROOPS.create('e90','A1','explorador')];d.nextEnemy=91;hero(d,'agamemnon').zone='A1';d=G.trojanTurn(d);assert.equal(d.campDamage,0,'o guardião luta no lugar das tendas');
+ let d=setup();d.revealed.push('A1');d.post.status='taken';d.enemies=[G.TROOPS.create('e90','A1','explorador')];d.nextEnemy=91;hero(d,'agamemnon').zone='A1';d=G.trojanTurn(d);assert.equal(d.campDamage,0,'o guardião luta no lugar das tendas');
 });
 test('sabotage and incapacitation cause defeat',()=>{
- let s=setup();s.campDamage=2;s.enemies[0].zone='A1';assert.equal(G.trojanTurn(s).result,'defeat');
+ let s=setup();s.revealed.push('A1');s.post.status='taken';s.campDamage=2;s.enemies=[G.TROOPS.create('e90','A1','explorador')];s.nextEnemy=91;assert.equal(G.trojanTurn(s).result,'defeat');
  s=setup();s.heroes.forEach(h=>{h.hp=0;h.ap=0;});s.heroes[0].hp=1;s.enemies[0].zone='N1';assert.equal(G.trojanTurn(s).result,'defeat');
 });
 test('all fourteen active skills have a legal effect and spend one action',()=>{
@@ -160,7 +166,7 @@ test('each hero starts with the chosen ability and every personal feat teaches a
  k.enemies[0].hp=1;k=act(k,'aquiles','attack','e8');k.enemies=[G.TROOPS.create('e9','N1','explorador')];k.nextEnemy=10;k.enemies[0].hp=1;const alarm=k.alarm,favor=k.favor;k=act(k,'aquiles','attack','e9');
  assert.equal(k.personal.aquiles.done,true);assert.equal(k.encounter.id,'ability');assert.deepEqual(k.encounter.choices,[1,2]);assert.equal(k.alarm,alarm,'o feito não mexe no Alarme');assert.equal(k.favor,favor+1);
  assert.equal(G.act(k,'odisseu','move','A1').ok,false,'a escolha pausa a partida');assert.equal(G.choose(k,0).ok,false);k=G.choose(k,2).state;assert.deepEqual(hero(k,'aquiles').known,[0,2]);assert.ok(G.validSave(k));
- let o=setup({abilities:start});o.enemies=[];o=act(o,'odisseu','move','A1');o=act(o,'odisseu','move','A2');o=G.trojanTurn(o);o.enemies=[];o=act(o,'odisseu','move','N2');assert.equal(o.encounter.id,'ability');o=G.choose(o,0).state;assert.deepEqual(hero(o,'odisseu').known,[0,1]);
+ let o=setup({abilities:start});o.enemies=[];o=act(o,'odisseu','interact','explore');o=act(o,'odisseu','move','A2');o=G.trojanTurn(o);o.enemies=[];o=act(o,'odisseu','interact','explore');o=act(o,'odisseu','move','N2');o=G.trojanTurn(o);o.enemies=[];assert.equal(o.encounter,null);o=act(o,'odisseu','interact','explore');assert.equal(o.encounter.id,'ability','três fichas investigadas');o=G.choose(o,0).state;assert.deepEqual(hero(o,'odisseu').known,[0,1]);
  let g=setup({abilities:start});g.revealed.push('A1');g.heroes.forEach(h=>h.zone='A1');g.delivered=g.required;g.supplies={};g.enemies=[];g=act(g,'agamemnon','interact','install');assert.equal(g.encounter.id,'ability');assert.equal(g.encounter.hero,'agamemnon');
  let m=ready(G.newGame({heroes:['odisseu','agamemnon','menelau'],abilities:start}));m.enemies=[];hero(m,'odisseu').hp=0;hero(m,'odisseu').ap=0;m=act(m,'menelau','rescue','odisseu');assert.equal(m.encounter.hero,'menelau');
  let a=ready(G.newGame({heroes:['odisseu','agamemnon','ajax'],abilities:start}));a.revealed.push('A1');a.visited.push('A1');hero(a,'ajax').zone='A1';for(let i=0;i<3;i++){a.enemies=[G.TROOPS.create('e'+(9+i),'A1','explorador')];a.nextEnemy=10+i;a.enemies[0].attack=1;hero(a,'ajax').hp=6;a=G.trojanTurn(a);if(a.encounter)break;}
@@ -173,7 +179,7 @@ test('favor rises with honor, falls with impiety and pays for one divine invocat
  assert.equal(G.invoke(s,'hera','aquiles').ok,false,'Hera não existe mais');s.favor=6;assert.equal(G.invoke(s,'poseidon').ok,false,'uma invocação por rodada');
  s=G.trojanTurn(s);s.enemies=[];s.alarm=5;const fav=s.favor;s=G.invoke(s,'poseidon').state;assert.equal(s.alarm,3);assert.equal(s.favor,fav-2);
  s=G.trojanTurn(s);s.enemies=[];assert.equal(s.chronicle.id,'sinal');s=G.invoke(s,'zeus').state;assert.equal(s.chronicle.favored,true);const calm=s.alarm;s=G.trojanTurn(s);assert.equal(s.chronicleResult.status,'success');assert.equal(s.alarm,calm+1,'só o tempo: o sinal foi abafado pelo presságio');assert.ok(G.validSave(s));
- let refused=setup();refused.revealed.push('A1','A2','P2');refused.visited.push('A1','A2','P2');refused.enemies=[];hero(refused,'odisseu').zone='P2';refused=act(refused,'odisseu','move','C1');refused=G.choose(refused,'refuse').state;assert.equal(refused.favor,0);
+ let refused=setup();refused.revealed.push('A1','A2','P2','C1');refused.visited.push('A1','A2','P2');refused.enemies=[];hero(refused,'odisseu').zone='P2';refused=act(refused,'odisseu','move','C1');refused=G.choose(refused,'refuse').state;assert.equal(refused.favor,0);
 });
 test('route B hides danger behind the same clues: a snake in the wreckage and an ambush on the trail',()=>{
  let s=setup({route:'B'});s.revealed=[...ALL];s.visited=[...ALL];s.enemies=[];
@@ -187,18 +193,18 @@ test('Troy hunts crate carriers, garrisons the lookout and the beggar does not w
  let s=setup();s.revealed=[...ALL];s.visited=[...ALL];s.enemies=[G.TROOPS.create('e9','P2','lanceiro')];s.nextEnemy=10;hero(s,'aquiles').zone='N3';hero(s,'aquiles').cargo=true;s.supplies.N1--;
  assert.equal(G.huntGoal(s,s.enemies[0]),'N3');assert.match(G.intent(s.enemies[0],s),/Caçar/);s=G.trojanTurn(s);assert.equal(s.enemies[0].zone,'N3','a tropa vai atrás de quem carrega');
  let g=setup();g.enemies=[];g.alarm=7;g=G.trojanTurn(g);const post=g.enemies.find(e=>e.zone==='P1');assert.ok(post&&post.hold,'Troia guarnece o mirante');g=G.trojanTurn(g);assert.equal(g.enemies.find(e=>e.id===post.id).zone,'P1','a guarnição não sai do posto');
- let b=setup();b.revealed.push('A1','A2','P2');b.visited.push('A1','A2','P2');b.enemies=[];hero(b,'odisseu').zone='P2';b=act(b,'odisseu','move','C1');b=G.choose(b,'accept').state;b.alarm=9;b=G.trojanTurn(b);assert.equal(b.beggar.status,'spy','o velho foi embora sem o pão');
+ let b=setup();b.revealed.push('A1','A2','P2','C1');b.visited.push('A1','A2','P2');b.enemies=[];hero(b,'odisseu').zone='P2';b=act(b,'odisseu','move','C1');b=G.choose(b,'accept').state;b.alarm=9;b=G.trojanTurn(b);assert.equal(b.beggar.status,'spy','o velho foi embora sem o pão');
 });
 test('starting with a single chosen ability, the bot still wins most rosters',()=>{let wins=0,games=0;
  const abilities={aquiles:0,ajax:1,odisseu:1,menelau:0,agamemnon:2},ids=G.HEROES.map(h=>h.id);
  for(const route of ['A','B'])for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];const s=play(team,team.length,route,abilities);games++;if(s.result==='victory')wins++;}
- assert.ok(wins/games>=.6,'vitórias do robô: '+wins+'/'+games);
+ assert.ok(wins/games>=.45,'vitórias do robô: '+wins+'/'+games);
 });
 
 test('the trail and the castaways each offer two hidden-outcome choices',()=>{
  let s=setup();s.revealed=[...ALL];s.visited=[...ALL];s.enemies=[];s.alarm=4;hero(s,'odisseu').zone='P6';s=act(s,'odisseu','interact','explore');const before=s.alarm;s=G.choose(s,'erase').state;
  assert.equal(s.alarm,before-1,'apagar os rastros acalma Troia');assert.equal(s.tokens.P6.resolved,true);assert.equal(s.enemies.length,0);assert.equal(G.choose(s,'follow').ok,false);
- let c=setup();c.revealed.push('N2');c.visited.push('N2');c.enemies=[];hero(c,'aquiles').zone='N2';c=act(c,'aquiles','move','N3');const food=c.campFood;c=G.choose(c,'cargo').state;
+ let c=setup();c.revealed.push('N2','N3');c.visited.push('N2');c.enemies=[];hero(c,'aquiles').zone='N2';c=act(c,'aquiles','move','N3');const food=c.campFood;c=G.choose(c,'cargo').state;
  assert.equal(c.castaways.status,'abandoned');assert.equal(c.campFood,food+1);assert.equal(G.interactions(c,hero(c,'aquiles')).some(x=>x.id==='castaways'),false,'não há mais quem resgatar');assert.ok(G.validSave(c));
 });
 
@@ -227,8 +233,29 @@ test('archers neither strike back nor suffer the Greek rebound; Odysseus, an arc
  let l=setup();l.revealed.push('A1');l.enemies=[G.TROOPS.create('e90','N1','explorador')];l.nextEnemy=91;l.heroes.forEach(h=>h.zone='A1');hero(l,'aquiles').zone='N1';l=G.trojanTurn(l);assert.ok(l.enemies[0].hp<G.TROOPS.types.explorador.hp,'os demais heróis devolvem golpe');
 });
 
-test('Safe Path moves Odysseus up to two pieces, into the unknown too, revealing the way',()=>{
+test('Safe Path moves Odysseus up to two revealed pieces, never into the unknown',()=>{
  let s=setup({abilities:{aquiles:0,odisseu:2,agamemnon:0}});s.enemies=[];
- s=act(s,'odisseu','card:2','P1');assert.equal(hero(s,'odisseu').zone,'P1');assert.ok(s.revealed.includes('A1')&&s.revealed.includes('P1'),'a peça do meio e o destino se revelam');
- assert.equal(G.act(s,'odisseu','card:2','C2').ok,false,'mais de duas peças, não');
+ assert.equal(G.act(s,'odisseu','card:2','A2').ok,false,'peça ainda não revelada');
+ s.revealed.push('A2','P6','C2');s=act(s,'odisseu','card:2','P6');assert.equal(hero(s,'odisseu').zone,'P6');
+ assert.equal(G.act(s,'odisseu','card:2','P1').ok,false,'P1 continua escondido');
+});
+test('searching the high beach reveals the post in A1; the relief walks down by the trail and the lookout',()=>{
+ let s=setup();s.revealed.push('A2');hero(s,'aquiles').zone='A2';
+ s=act(s,'aquiles','interact','explore');assert.ok(G.isRevealed(s,'A1'));assert.equal(s.post.status,'found');assert.match(s.lastFind.text,/posto/);
+ const relief=s.enemies.find(e=>e.relief);assert.equal(relief.zone,'C2','a rendição aparece descendo a colina');assert.ok(G.isRevealed(s,'C2'));
+ s=G.trojanTurn(s);assert.equal(s.enemies.find(e=>e.id===relief.id).zone,'P6');s=G.trojanTurn(s);assert.equal(s.enemies.find(e=>e.id===relief.id).zone,'P1');
+ const before=s.alarm;s=G.trojanTurn(s);const arrived=s.enemies.find(e=>e.id===relief.id);assert.equal(arrived.zone,'A1');assert.ok(arrived.watch&&arrived.hold,'a rendição fica no posto');assert.ok(s.alarm>=before+3,'tempo e o posto ainda troiano: Alarme +2');
+ assert.equal(s.enemies.filter(e=>e.zone==='A1').length,2);assert.equal(s.campDamage,0,'a vigia não ataca as tendas');assert.ok(G.validSave(s));
+});
+test('taking the post before the relief arrives makes A1 the camp, and the relief becomes a common scout',()=>{
+ let s=setup();s.revealed.push('A2');hero(s,'aquiles').zone='A2';s=act(s,'aquiles','interact','explore');
+ const watch=s.enemies.find(e=>e.watch);watch.hp=1;hero(s,'aquiles').zone='A1';s=act(s,'aquiles','attack',watch.id);
+ assert.equal(s.post.status,'taken');assert.match(s.lastFind.text,/acampamento/);assert.ok(!s.enemies.some(e=>e.relief),'a rendição vira um batedor comum');
+ const crate=setup();crate.revealed.push('A1');crate.enemies=[];hero(crate,'odisseu').zone='A1';hero(crate,'odisseu').cargo=true;crate.supplies.N1--;assert.ok(G.interactions(crate,hero(crate,'odisseu')).some(x=>x.id==='deliver'&&x.available));
+});
+test('before the post is taken, Trojans reaching A1 reinforce it instead of attacking tents',()=>{
+ let s=setup();s.revealed.push('A1','A2');s.enemies.push(G.TROOPS.create('e90','A1','lanceiro'));s.nextEnemy=91;s=G.trojanTurn(s);assert.equal(s.campDamage,0);assert.match(G.intent(s.enemies.find(e=>e.id==='e90'),s),/posto/);
+});
+test('the standing watch in A1 does not raise the alarm when it sees the heroes',()=>{
+ let s=setup();s.revealed.push('A2','A1');hero(s,'aquiles').zone='A2';const alarm=s.alarm;s=G.trojanTurn(s);assert.equal(s.alarm,alarm+1,'só o tempo');
 });

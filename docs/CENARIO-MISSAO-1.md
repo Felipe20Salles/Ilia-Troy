@@ -1,6 +1,6 @@
 # Missão 1 · O Desembarque (proposta de cenário com revelação do mapa)
 
-Status: **programado** em `cooperativo/landing.js` e `landing-app.js` (01/10/2026), aguardando teste de mesa. A revisão de 03/10/2026 (fim deste doc) ainda não está programada.
+Status: **programado** em `cooperativo/landing.js` e `landing-app.js` (01/10/2026), aguardando teste de mesa. A revisão de 03/10/2026 (fim deste doc) foi programada no mesmo dia.
 
 > Partes deste doc foram superadas por revisões posteriores. As condições de vitória e os patamares do Alarme em vigor estão em `REGRAS-CAMPANHA.md`; as revisões de 02/10 e 03/10, no fim deste doc, valem sobre o que vem antes delas.
 
@@ -195,7 +195,7 @@ O teste mostrou a missão fácil demais: dava para cumprir tudo, e os deuses e o
 - Uma passiva (o Sobrevivente do Ájax) só age depois de aprendida.
 - Simulação: com uma habilidade inicial, todas as equipes vencem nos dois roteiros. As equipes de 5 têm teto de Alarme 22 (18 + 4), por terem 5 caixas a buscar.
 
-## Revisão de 03/10/2026 (aprovada, não programada)
+## Revisão de 03/10/2026 (programada)
 
 ### A vigia troiana em A1
 
@@ -215,7 +215,26 @@ O acampamento grego não nasce numa clareira vazia: a expedição toma um posto 
 
 ### Exploração por missão
 
-A missão 1 é a primeira a usar a exploração por missão (`REGRAS-CAMPANHA.md`): as peças aparecem por indícios investigados com a lupa, pelo avanço da história ou por tropas de Troia, não por andar até a borda. A distribuição dos indícios peça por peça ainda será desenhada.
+A missão 1 é a primeira a usar a exploração por missão (`REGRAS-CAMPANHA.md`): as peças aparecem por indícios investigados com a lupa, pelo avanço da história ou por tropas de Troia, não por andar até a borda. Cada lupa continua dando o seu achado e, além disso, revela as peças para onde a pista aponta:
+
+| Investigar… | Revela… |
+|---|---|
+| Pegadas na areia (N1, ficha nova; não faz barulho) | A2 e N2 |
+| Barris e posto temporário (A2) | A1, com a vigia |
+| Destroços (N2) | N3 e P2 |
+| Peixe seco (N3) | N4 |
+| Tabuinha (P2) | C2 e C1 |
+| Cabras (C2) | P6 |
+| Esconderijo ou rastros apagados (P6) | P1 |
+
+Os náufragos continuam revelando as praias com caixas, e as tropas revelam as peças onde entram. As buscas de N1, A2 e N2 têm texto próprio na caixa de diálogo; as outras acrescentam ao achado uma frase sobre o que se avista.
+
+**Detalhes decididos na programação:**
+- A busca em A2 conta que ali havia um posto troiano temporário, que há outro posto na clareira acima e que o vigia já viu os navios.
+- A rendição aparece na colina (C2) e desce por P6 e P1 até A1: 3 passos, revelando o caminho.
+- Antes de o posto ser tomado, as tropas troianas que chegam a A1 reforçam o posto em vez de atacar as tendas (ainda não há tendas).
+- Ao tomar o posto, Agamêmnon declara: "Aqui será o acampamento. Tragam as caixas."
+- As crônicas das rodadas 2 e 3 falam das pegadas troianas nas dunas e da fumaça dos vigias da costa.
 
 ### Odisseu
 

@@ -70,7 +70,7 @@ const ENCOUNTERS={
   beggar:()=>({title:'O velho do círculo de pedras',text:'"Estrangeiros, a hospitalidade é sagrada. Pão, e o fogo do vosso acampamento."',detail:'Aceitar: pão aqui (quem dá perde 1 de vida) e escolta até A1 antes de instalar.',choices:[['accept','Aceitar o pedido'],['refuse','Mandá-lo embora']]})
 };
 const busy=()=>revealAlert.length||troopArrival||responseQueue.length||deathAlert?.length;
-const ORDERS={A1:'Agamêmnon decide: o acampamento será aqui. Reúnam nesta clareira toda a carga perdida.'};
+const ORDERS={A1:'Tomem o posto: derrotem a vigia de A1 antes que a rendição chegue pela trilha. Depois, a clareira será o acampamento.'};
 // Ilustração no topo dos diálogos de encontro, crônica e história.
 const SCENE_ART={castaways:'cena-naufragos',tracks:'cena-pegadas',beggar:'cena-velho-pedras',evolution:'cena-mirante'},CHRONICLE_ART={3:'cena-sinal-fumaca',9:'cena-fogueiras'};
 function sceneArt(name){return name?`<img class="scene-art" src="assets/identidade/${name}.webp" alt="" width="1100" height="619">`:'';}
@@ -145,7 +145,7 @@ function staticAlarmTrack(){return `<div class="alarm-track" role="img" aria-lab
 function manualPage(img,title,items,extra=''){return `<figure class="story-panel manual-page">${img?`<img src="${STORY_ART}${img}.webp" alt="" loading="lazy" width="1280" height="720">`:''}<figcaption><h2>${title}</h2><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul>${extra}</figcaption></figure>`;}
 function manualPages(){return [
  manualPage('03-ordem-de-agamemnon','O objetivo',['<b>Vencer:</b> levar uma caixa por herói até A1, instalar o acampamento e afastar Troia das tendas.','<b>Se Enéias descer</b> (Alarme 15), a vitória passa a ser derrubá-lo: com ele caído, Troia recua.','<b>Perder:</b> todos os heróis caídos, ou 3 danos às tendas.']),
- manualPage('04-costa-desconhecida','O mapa',['Só <b>N1</b> começa na mesa.','Mover para uma peça com <b>?</b> a revela: o app diz onde encaixá-la e o que pôr nela.','<b>Explorar</b> uma ficha custa 1 ação e faz barulho. Ninguém sabe o que há nela antes.']),
+ manualPage('04-costa-desconhecida','O mapa',['Só <b>N1</b> começa na mesa. Só se anda por peças já reveladas.','<b>Investigar</b> uma ficha custa 1 ação e revela as peças para onde a pista aponta: o app diz onde encaixá-las e o que pôr nelas.','As buscas fazem barulho (seguir pegadas, não). Ninguém sabe o que há numa ficha antes.']),
  manualPage('07-alarme-de-troia','O Alarme de Troia',['Sobe 1 a cada rodada, e mais com barulho e quando um explorador vê vocês.','Cada patamar traz tropas. Ele nunca encerra a partida sozinho: só a deixa mais difícil.'],staticAlarmTrack()),
  manualPage('02-navio-desgarrado','Vida é comida',['A vida de cada herói são <b>fichas de comida</b> no seu tabuleiro. O dano retira fichas.','Comida encontrada explorando vai para quem a achou; o que sobrar vai para o <b>armazém</b>, que só repõe vida na próxima missão.','<b>Socorrer</b> um caído não gasta ação: quem socorre passa 1 da própria vida.']),
  manualPage('06-deuses','Deuses e crônica',['Os <b>feitos</b> rendem Favor. Uma vez por rodada, o Favor invoca um deus: Atena revela uma ficha, Poseidon baixa o Alarme, Zeus cumpre o pedido da crônica.','A cada rodada, a <b>crônica</b> conta o que acontece na costa. Às vezes traz um pedido.']),
@@ -172,7 +172,7 @@ function newConfirm(){const round=saved&&!saved.result?saved.round:null;return `
 function targets(action,h){
   const seen=state.enemies.filter(e=>known(e.zone));
   const stuck=h.cargo&&h.moves>0;
-  if(action==='move')return stuck?[]:G.ZONES[h.zone].links.map(z=>[z,known(z)?G.ZONES[z].name:'o desconhecido (revela a peça)']);
+  if(action==='move')return stuck?[]:G.ZONES[h.zone].links.filter(known).map(z=>[z,G.ZONES[z].name]);
   if(action==='attack')return seen.filter(e=>G.distance(h.zone,e.zone)<=G.HEROES.stats(h).range).map(e=>[e.id,`${G.TROOPS.label(e)} · ${e.hp}♥ · ATQ ${e.attack??2} · ARM ${e.armor??0}`]);
   if(action==='rescue')return state.heroes.filter(a=>a.hp===0&&a.zone===h.zone).map(a=>[a.id,G.HEROES.find(d=>d.id===a.id).name]);
   if(action.startsWith('card:')){
@@ -187,7 +187,7 @@ function targets(action,h){
     if(c.type==='healAlly')return state.heroes.filter(a=>a.id!==h.id&&a.zone===h.zone&&a.hp<G.HEROES.stats(a).maxHp).map(a=>[a.id,G.HEROES.find(d=>d.id===a.id).name]);
     if(c.type==='grantAction')return state.heroes.filter(a=>a.id!==h.id&&a.hp>0&&a.zone===h.zone).map(a=>[a.id,G.HEROES.find(d=>d.id===a.id).name]);
     if(c.type==='guide')return state.heroes.filter(a=>a.id!==h.id&&a.hp>0&&a.zone===h.zone&&!(a.cargo&&a.moves>0)).flatMap(a=>state.revealed.filter(z=>z!==h.zone&&G.knownDistance(state,h.zone,z)<=(a.cargo?1:c.value)).map(z=>[a.id+':'+z,G.HEROES.find(d=>d.id===a.id).name+' → '+G.ZONES[z].name]));
-    if(c.type==='sprint')return Object.keys(G.ZONES).filter(z=>z!==h.zone&&G.distance(h.zone,z)<=(h.cargo?1:2)).map(z=>[z,known(z)?G.ZONES[z].name:'o desconhecido (revela)']);
+    if(c.type==='sprint')return state.revealed.filter(z=>z!==h.zone&&G.knownDistance(state,h.zone,z)<=(h.cargo?1:2)).map(z=>[z,G.ZONES[z].name]);
   }return null;
 }
 function recentEvents(){return `<div class="event-log"><b>Últimos acontecimentos</b>${state.log.slice(0,4).map(msg=>`<p>${esc(msg)}</p>`).join('')}</div>`;}
@@ -206,7 +206,7 @@ function mesaMap(byZone){
     if(!known(id)){if(!frontier(id))return '';return `<button class="board-counters zone-anchor unknown-zone ${zoneCls[id]}" data-command="zone" data-zone="${id}" data-zone-anchor="${id}" style="left:${r.x}%;top:${r.y}%" aria-label="Território desconhecido"><span class="unknown-mark" aria-hidden="true">?</span></button>`;}
     const allies=state.heroes.filter(a=>a.zone===id),enemies=state.enemies.filter(e=>e.zone===id),options=byZone[id]||[];
     const crates=state.supplies[id]||0,token=state.tokens[id]&&!state.tokens[id].resolved;
-    const chips=[id==='A1'?`<small>${state.built?'Acampamento instalado':'Clareira · acampamento'}</small>`:'',crates?`<small class="crate-chip">${M.ICONS.crate}${crates}</small>`:'',token?`<small class="token-chip" title="Ficha de exploração">${M.ICONS.explore}</small>`:'',state.castaways.zone===id&&state.castaways.status==='met'?`<small class="story-chip">Náufragos ${state.castaways.progress}/2</small>`:'',state.beggar.zone===id&&['met','waiting'].includes(state.beggar.status)?'<small class="story-chip">O velho</small>':'',chronicleMark(id)].join('');
+    const chips=[id==='A1'?`<small>${state.built?'Acampamento instalado':state.post?.status==='taken'?'Clareira · acampamento':'Posto troiano'}</small>`:'',crates?`<small class="crate-chip">${M.ICONS.crate}${crates}</small>`:'',token?`<small class="token-chip" title="Ficha de exploração">${M.ICONS.explore}</small>`:'',state.castaways.zone===id&&state.castaways.status==='met'?`<small class="story-chip">Náufragos ${state.castaways.progress}/2</small>`:'',state.beggar.zone===id&&['met','waiting'].includes(state.beggar.status)?'<small class="story-chip">O velho</small>':'',chronicleMark(id)].join('');
     return `<button class="board-counters zone-anchor ${zoneCls[id]}" data-command="zone" data-zone="${id}" data-zone-anchor="${id}" style="left:${r.x}%;top:${r.y}%" aria-label="${G.ZONES[id].name}${options.length?`, ${options.length} opções`:''}">${chips?`<span class="zone-chips">${chips}</span>`:''}<span class="zone-beacon" aria-hidden="true"></span><span class="territory-tokens">${allies.map(a=>`<span class="unit-token greek-unit mesa-avatar hero-${a.id} ${a.id===selected?'selected':''} ${a.hp===0?'down':''}" data-hero="${a.id}" title="${G.HEROES.find(d=>d.id===a.id).name} · ${a.hp} de vida"><b>${a.hp}</b></span>`).join('')}${enemies.map(e=>`<span class="unit-token troop-art enemy-miniature ${e.type} ${G.TROOPS.types[e.type]?.hero?'trojan-hero-unit':'trojan-unit'} ${focusEnemy===e.id?'focused':''}" title="${G.TROOPS.label(e)} · ${e.hp} de vida"><span aria-hidden="true"></span><b>${e.hp}</b></span>`).join('')}</span>${state.guards[id]?`<small>🛡 ${state.guards[id]}</small>`:''}</button>`;
   }).join('');
   return `<div class="natural-map mesa-natural camera-map" style="${camera?`transform:translate(${camera.tx}px,${camera.ty}px) scale(${camera.k});--zoom:${camera.k}`:''}">${landscape(state.revealed,'map','Território do Desembarque: '+state.revealed.length+' peças reveladas')}<svg class="territory-overlay route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g class="territory-routes">${edges.join('')}</g></svg><svg class="zone-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${shapes}</svg>${counters}${state.built?'<div class="camp-miniatures" style="left:9%;top:62%" role="img" aria-label="Acampamento instalado"><span>⛺</span><span>⛺</span><span>⛺</span></div>':''}</div>`;

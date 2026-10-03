@@ -18,7 +18,7 @@ Atualizado em 03/10/2026. Missões 1 a 3 jogáveis; 4 a 7 em desenho.
 ## As sete missões
 
 ### 1. O Desembarque — jogável (`cooperativo/index.html`, motor `landing.js`)
-A frota chega a uma costa desconhecida. A expedição revela o território, recolhe as caixas espalhadas pelas praias, toma o posto de vigia troiano em A1 e instala ali o acampamento. Encontros: os náufragos e o velho do círculo de pedras (Zeus ou espião). **Revisão aprovada em 03/10, ainda não programada:** P1 vazio, vigia em A1 e exploração por missão. Doc: `CENARIO-MISSAO-1.md`.
+A frota chega a uma costa desconhecida. A expedição revela o território, recolhe as caixas espalhadas pelas praias, toma o posto de vigia troiano em A1 e instala ali o acampamento. Encontros: os náufragos e o velho do círculo de pedras (Zeus ou espião). **Revisão de 03/10 programada:** P1 vazio, vigia em A1 e exploração por missão. Doc: `CENARIO-MISSAO-1.md`.
 
 ### 2. Diante das muralhas — jogável (`reconhecimento.html`)
 A expedição sobe a planície para reconhecer o portão de Troia e volta com todos de pé, perseguida depois do reconhecimento. No santuário de Apolo (C1), a decisão de tomar ou respeitar Criseida. Doc: `CENARIO-MISSAO-2.md`. A missão 2 antiga (`muralhas.html`) fica só como referência.

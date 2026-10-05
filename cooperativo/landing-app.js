@@ -343,7 +343,7 @@ function chooseEncounter(choice){const beforeCue=cueSnapshot(),beforeHeroes=stat
 function learnStory(){const l=state.lastLearn;if(!l)return;const d=G.HEROES.find(h=>h.id===l.hero);
   if(l.kind==='ability'){const c=d.cards[l.card];storyAlert={eyebrow:'Habilidade aprendida',title:d.name+' aprendeu '+c.name,text:'O que a habilidade faz está escrito na carta.',order:'Virem para cima a carta "'+c.name+'" no tabuleiro de '+d.name+'. A partir de agora ela aparece nas ações do herói.'};}
   else{storyAlert={eyebrow:'Evolução conquistada',title:d.name+' chega ao nível N'+l.level,text:'A experiência do mirante endurece '+d.name+' e os seus homens. O que muda está escrito na carta.',order:'Virem para cima a carta de evolução N'+l.level+' no tabuleiro de '+d.name+'. Os novos valores já valem nesta rodada.'};}}
-function cueSnapshot(){return {built:state.built,reveal:revealAlert.length,arrival:troopArrival,death:deathAlert,feat:featAlert.length,find:findAlert,story:storyAlert,encounter:state.encounter,round:state.round};}
+function cueSnapshot(){return {zeus:state.beggar?.status==='zeus',built:state.built,reveal:revealAlert.length,arrival:troopArrival,death:deathAlert,feat:featAlert.length,find:findAlert,story:storyAlert,encounter:state.encounter,round:state.round};}
 // Toca o som do momento mais marcante que acabou de acontecer.
 let featCued=false,trojanPhase=false,resourcesOpen=false;
 // Selo da fase de Troia nos avisos que ela abre, sempre na mesma ordem.
@@ -353,7 +353,9 @@ function soundCues(b){
   const A=window.TroyAudio;if(!A?.cue)return;
   // O som do feito toca quando o aviso do feito aparece na tela (featSound), não junto com os outros.
   const arrival=troopArrival&&troopArrival!==b.arrival;
-  if(deathAlert&&deathAlert!==b.death)A.cue('queda');
+  // O velho era Zeus: o trovão em céu limpo.
+  if(state.beggar?.status==='zeus'&&!b.zeus)A.cue('deus-zeus');
+  else if(deathAlert&&deathAlert!==b.death)A.cue('queda');
   else if(state.built&&!b.built){A.cue('acampamento');if(arrival)setTimeout(()=>A.cue('corneta'),1600);}
   else if(state.encounter&&!b.encounter&&state.encounter.id!=='ability')A.cue('encontro');
   else if(arrival)A.cue('corneta');

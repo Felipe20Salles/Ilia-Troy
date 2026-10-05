@@ -141,7 +141,10 @@
     batedores:{check:s=>!s.enemies.some(e=>e.type==='explorador'&&isRevealed(s,e.zone)),success:s=>addAlarm(s,-1,'nenhum batedor troiano vigia a planície'),fail:s=>log(s,'Crônica: os cavaleiros continuam a rondar.')},
     torres:{check:s=>s.heroes.some(h=>h.hp>0&&['P3','P7'].includes(h.zone)),success:s=>addAlarm(s,-1,'os sinais das torres foram cegados'),fail:s=>addAlarm(s,1,'as torres trocaram sinais sobre os gregos')}
   };
-  function resolveChronicle(s){const c=s.chronicle;if(!c||c.status!=='open'||s.result)return;const rule=CHRONICLE_CHECKS[c.id];const ok=c.favored||rule.check(s);c.status=ok?'success':'fail';s.chronicleResult={id:c.id,status:c.status};(ok?rule.success:rule.fail)(s);}
+  function resolveChronicle(s){const c=s.chronicle;if(!c||c.status!=='open'||s.result)return;const rule=CHRONICLE_CHECKS[c.id];const ok=c.favored||rule.check(s);c.status=ok?'success':'fail';s.chronicleResult={id:c.id,status:c.status};(ok?rule.success:rule.fail)(s);if(!ok&&!s.result)escalate(s,c.id);}
+  // Pedido descumprido: Troia manda um contingente ligado à história. Uma tropa; duas com 5 heróis.
+  const ESCALATION={"saque":["P2","explorador","Os saqueadores voltam em maior número"],"batedores":["P7","explorador","Os cavaleiros trazem outra patrulha"],"torres":["M4","arqueiro","As torres mandaram arqueiros para a muralha"]};
+  function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
   function startChronicle(s){const entry=CHRONICLE[s.round];if(!entry||s.result){s.chronicle=null;return;}s.chronicle={round:s.round,id:entry.id,status:CHRONICLE_CHECKS[entry.id]?'open':'told'};log(s,'Crônica da rodada '+s.round+': '+entry.title+'.');}
   function enter(s,h,zone){
     h.zone=zone;
@@ -280,7 +283,7 @@
   // Quem atira (arqueiros) acerta o herói de pé mais próximo dentro do alcance, sem sair do lugar; de longe, o tiro tira 1 a menos.
   function rangedTarget(s,e){const r=TROOPS.types[e.type]?.range||0;if(!r)return null;return s.heroes.filter(h=>h.hp>0&&distance(e.zone,h.zone)<=r&&isRevealed(s,h.zone)).sort((a,b)=>distance(e.zone,a.zone)-distance(e.zone,b.zone)||a.hp-b.hp)[0]||null;}
   function trojanTurn(state){
-    const s=clone(state);if(s.result||s.phase!=='heroes'||s.foodSetup)return s;s.lastAttacks=[];s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;
+    const s=clone(state);if(s.result||s.phase!=='heroes'||s.foodSetup)return s;s.lastAttacks=[];s.escalation=null;s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;
     log(s,'Troia responde na rodada '+s.round+'.');
     for(const e of [...s.enemies]){
       if(!s.enemies.some(a=>a.id===e.id))continue;

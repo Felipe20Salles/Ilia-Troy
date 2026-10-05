@@ -45,7 +45,8 @@ test('the bot wins most legal rosters of 3, 4 or 5 heroes on both routes',()=>{l
  for(const route of ['A','B'])for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];const s=play(team,team.length,route);games++;if(s.result!=='victory')continue;wins++;assert.equal(s.delivered,team.length);assert.equal(s.outcome.next,'Diante das muralhas');assert.equal(s.outcome.supplies,s.delivered-s.burned);assert.ok(s.outcome.revealedZones.includes('A1'));}
  // Com o posto de A1 e a exploração por indícios (03/10/2026), a missão ficou mais difícil de propósito: o teste de mesa a achou fácil.
  // Desde 04/10/2026 a queda de Enéias não limpa o mapa (só a guarda dele recua): mais difícil ainda.
- assert.ok(wins/games>=.5,'vitórias do robô: '+wins+'/'+games);
+ // Meta do Felipe (05/10/2026): no máximo 6 vitórias em 14 (43%). O robô ignora os pedidos da crônica, que agora trazem tropas.
+ assert.ok(wins/games>=.2&&wins/games<=6/14,'vitórias do robô: '+wins+'/'+games);
 });
 test('solo and two player teams finish, ownership and setup validate',()=>{
  for(const players of [1,2]){const s=play(['menelau','agamemnon','odisseu'],players);assert.ok(['victory','defeat'].includes(s.result));assert.ok(G.validSave(s));}
@@ -199,7 +200,7 @@ test('Troy hunts crate carriers, garrisons the lookout and the beggar does not w
 test('starting with a single chosen ability, the bot still wins most rosters',()=>{let wins=0,games=0;
  const abilities={aquiles:0,ajax:1,odisseu:1,menelau:0,agamemnon:2},ids=G.HEROES.map(h=>h.id);
  for(const route of ['A','B'])for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];const s=play(team,team.length,route,abilities);games++;if(s.result==='victory')wins++;}
- assert.ok(wins/games>=.45,'vitórias do robô: '+wins+'/'+games);
+ assert.ok(wins/games>=.15&&wins/games<=6/14,'vitórias do robô: '+wins+'/'+games);
 });
 
 test('the trail and the castaways each offer two hidden-outcome choices',()=>{

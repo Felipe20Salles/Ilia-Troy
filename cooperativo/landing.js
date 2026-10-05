@@ -167,7 +167,10 @@
     batedores:{check:s=>!s.enemies.some(e=>e.type==='explorador'&&isRevealed(s,e.zone)),success:s=>addAlarm(s,-1,'nenhum batedor troiano vigia a costa'),fail:s=>log(s,'Crônica: batedores troianos continuam à espreita.')},
     fogueiras:{check:s=>s.built,success:s=>addAlarm(s,-1,'o acampamento aceso tranquiliza a frota'),fail:s=>addAlarm(s,1,'a escuridão favorece os batedores')}
   };
-  function resolveChronicle(s){const c=s.chronicle;if(!c||c.status!=='open'||s.result)return;const rule=CHRONICLE_CHECKS[c.id];const ok=c.favored||rule.check(s);c.status=ok?'success':'fail';s.chronicleResult={id:c.id,status:c.status};(ok?rule.success:rule.fail)(s);}
+  function resolveChronicle(s){const c=s.chronicle;if(!c||c.status!=='open'||s.result)return;const rule=CHRONICLE_CHECKS[c.id];const ok=c.favored||rule.check(s);c.status=ok?'success':'fail';s.chronicleResult={id:c.id,status:c.status};(ok?rule.success:rule.fail)(s);if(!ok&&!s.result)escalate(s,c.id);}
+  // Pedido descumprido: Troia manda um contingente ligado à história. Uma tropa; duas com 5 heróis.
+  const ESCALATION={"sinal":["P2","explorador","Os vigias das colinas viram a fumaça e mandaram batedores"],"fogueiras":["P2","lanceiro","Na escuridão, uma companhia troiana se aproxima das tendas"]};
+  function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
   function startChronicle(s){
     const quiet=!s.moments.length;s.moments=[];if(s.result){s.chronicle=null;return;}
     const id=s.chronicleQueue.shift()||(quiet?BREATHERS.find(b=>!s.told.includes(b)):null);if(!id){s.chronicle=null;return;}
@@ -329,7 +332,7 @@
   // Quem atira (arqueiros) acerta o herói de pé mais próximo dentro do alcance, sem sair do lugar; de longe, o tiro tira 1 a menos.
   function rangedTarget(s,e){const r=TROOPS.types[e.type]?.range||0;if(!r)return null;return s.heroes.filter(h=>h.hp>0&&distance(e.zone,h.zone)<=r&&isRevealed(s,h.zone)).sort((a,b)=>distance(e.zone,a.zone)-distance(e.zone,b.zone)||a.hp-b.hp)[0]||null;}
   function trojanTurn(state){
-    const s=clone(state);if(s.result||s.phase!=='heroes')return s;s.chronicleResult=null;s.lastAttacks=[];s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;s.lastFind=null;
+    const s=clone(state);if(s.result||s.phase!=='heroes')return s;s.chronicleResult=null;s.lastAttacks=[];s.escalation=null;s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;s.lastFind=null;
     log(s,'Troia responde na rodada '+s.round+'.');
     for(const e of [...s.enemies]){
       if(!s.enemies.some(a=>a.id===e.id))continue;

@@ -610,3 +610,147 @@ body.mesa-mode .mission-stats dd{margin:0;font-size:16px}
 .arrival-backdrop .enemy-miniature{background-color:#3a2418!important;box-shadow:0 0 0 2px #120c09,0 0 0 4px var(--troy),0 0 0 5px #120c09!important;background-size:72% auto!important}
 .arrival-backdrop>.arrival-card .button{width:auto}
 .arrival-backdrop>.arrival-card>button,.arrival-backdrop>.arrival-card>.button{justify-self:start;width:auto}
+
+/* Mapa limpo: ameaça no lugar das miniaturas troianas. */
+.zone-shape.threat{}
+.threat-badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#1c1410e6;border:1px solid #9c6a2c;color:#efe3c8;font:600 11px/1 'DM Sans',sans-serif;box-shadow:0 1px 4px #0008}
+.threat-badge .icon{display:none}
+.troy-arrow{stroke:#e2593b;stroke-width:.7;stroke-linecap:round;stroke-dasharray:2 1.2;animation:troy-march 1s linear infinite}
+@keyframes troy-march{to{stroke-dashoffset:-3.2}}
+@media(prefers-reduced-motion:reduce){.troy-arrow{animation:none}}
+.camera-controls [data-command="check-table"][aria-pressed="true"]{border-color:#e2593b;color:#ffd2c2}
+/* Peça nova revelada por uma tropa: vem dentro do passo da tropa, antes da ordem de movimento. */
+.response-piece{margin:0 0 8px;padding:8px 10px;border-left:3px solid var(--bronze,#a8823c);background:rgba(168,130,60,.1);font-size:.92rem;line-height:1.35}
+.response-piece b{display:block}
+.place-troops figcaption small{display:block;opacity:.75;font-size:.78rem}
+/* Ordens da mesa: pop-up central, um gesto por vez, sem rolagem. Diálogos de história continuam nas folhas. */
+.order-backdrop{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:#0b0705b3}
+.order-card{width:min(400px,100%);max-height:calc(100dvh - 32px);overflow:hidden;display:grid;justify-items:center;gap:8px;text-align:center;padding:18px 20px 20px;border:1px solid #8a6a3a;border-radius:12px;background:linear-gradient(160deg,#2d2016,#1c130d);box-shadow:0 0 0 1px #0008,inset 0 0 0 1px #e4bd7722,0 24px 70px #000}
+.order-step{margin:0;font-size:12px;letter-spacing:.04em;color:var(--ochre)}
+.order-card h2{margin:0;font-family:Marcellus,serif;font-size:24px;line-height:1.2;color:#f3e6cf}
+.order-card p:not(.order-step){margin:0;font-size:15px;line-height:1.4;color:#d8c6a6}
+.order-card .button{margin-top:6px;min-width:60%}
+.order-visual{display:grid;place-items:center;width:100%}
+.order-visual .reveal-map{margin:0;width:100%;max-height:min(200px,30dvh);aspect-ratio:1.537}
+.order-icon{display:grid;place-items:center;width:72px;height:72px;border-radius:50%;background:#3a2a1c;color:#f0d9a8;box-shadow:0 0 0 2px #120c09,0 0 0 4px var(--bronze)}
+.order-icon svg{width:38px;height:38px}
+.order-card .enemy-miniature{width:72px;height:72px;border:0;border-radius:50%;background-color:#3a2418;background-size:70%;background-position:center;box-shadow:0 0 0 2px #120c09,0 0 0 4px var(--troy),0 0 0 5px #120c09}
+@media (max-height:520px){.order-card{gap:6px;padding:12px 16px 14px}.order-card h2{font-size:20px}.order-visual .reveal-map{max-height:34dvh;width:auto;height:34dvh}}
+.order-card .button{justify-content:center;text-align:center}
+
+/* ===== Barra enxuta (04/10): o fogo abre Troia, os deuses moram em Recursos, fundo grafite. ===== */
+:root{--umber:#18191b;--umber-2:#222428;--sheet-line:#3a3e44;--graphite:#141517;--graphite-1:#1d1f22;--graphite-2:#26292d;--graphite-line:#383c42}
+body.mesa-mode{background:var(--graphite)}
+body.mesa-mode .topbar{background:var(--graphite);border-bottom-color:var(--graphite-line)}
+body.mesa-mode.game-active #app{grid-template-columns:minmax(0,1fr)}
+.mesa-board,body.mesa-mode .mesa-board{background:radial-gradient(ellipse at 40% 60%,#25272b 0%,var(--graphite) 72%)}
+body.mesa-mode .mesa-heroes{background:var(--graphite);border-top-color:var(--graphite-line)}
+.mission-card,body.mesa-mode .mesa-board>.mission-card{background:#1d1f22e6;border-color:var(--graphite-line)}
+body.mesa-mode .mission-stats div{background:var(--graphite-2)}
+.mesa-hero{background:var(--graphite-1);border-color:var(--graphite-line)}
+.pop-option{background:var(--graphite-2);border-color:var(--graphite-line)}
+.troy-toggle,.gods-toggle{display:none!important}
+/* O fogo: só a chama e o valor; tocar abre Troia. */
+.alarm-flame{cursor:pointer;background:var(--graphite-1);border-color:var(--graphite-line)}
+.alarm-flame[aria-expanded="true"]{border-color:var(--ochre);box-shadow:0 0 0 1px var(--ochre)}
+/* Troia: balão sob o fogo, em qualquer largura de tela. */
+.mesa-troy,body.mesa-mode .mesa-troy{position:fixed;z-index:35;top:112px;right:16px;bottom:auto;left:auto;width:min(380px,calc(100vw - 32px));max-height:calc(100dvh - 200px);overflow:auto;padding:16px 18px;border:1px solid var(--graphite-line);border-radius:14px;background:var(--graphite-1);box-shadow:0 20px 60px #000c;display:none;transform:none;transition:none}
+body.troy-open .mesa-troy{display:block;transform:none}
+.mesa-troy .troy-close{display:grid}
+@media (max-height:560px),(max-width:960px){.mesa-troy,body.mesa-mode .mesa-troy{top:52px;max-height:calc(100dvh - 120px)}}
+/* Recursos: os deuses entram aqui, com o Favor. */
+.res-panel{min-width:300px;max-width:min(380px,calc(100vw - 32px));background:var(--graphite-1);border-color:var(--graphite-line);border-top-color:var(--ochre-deep);border-radius:12px;padding:12px 14px}
+.res-panel .gods-menu{position:static;width:auto;margin-top:10px;padding:10px 0 0;border:0;border-top:1px solid var(--graphite-line);border-radius:0;background:none;box-shadow:none}
+/* Ordens da mesa no mesmo grafite. */
+.order-card{background:linear-gradient(160deg,#25272b,#18191b);border-color:#6d5a36}
+.order-icon{background:var(--graphite-2)}
+.mesa-map-wrap{background:radial-gradient(ellipse at 40% 60%,#25272b 0%,var(--graphite) 72%);box-shadow:0 0 0 1px var(--graphite-line),0 18px 50px #000a}
+.icon-button,.topbar .audio-control,.troy-close,.end-confirm{background:var(--graphite-1)}
+.icon-button:hover,.topbar .audio-control:hover,.pop-option:hover:not(:disabled){background:var(--graphite-2)}
+.mesa-hero.active{background:var(--graphite-2)}
+.troy-unit,.pop-units,.mission-stats div{background:var(--graphite-2);border-color:var(--graphite-line)}
+.troy-next{background:var(--graphite-2)}
+.hourglass{background:radial-gradient(circle at 50% 40%,#2a2c30,var(--graphite) 75%)}
+.res-panel .gods-menu div,.res-panel .gods-menu .pop-group{display:grid;gap:6px;justify-content:stretch}
+.res-panel .gods-menu .pop-option{display:grid;grid-template-columns:22px minmax(0,1fr)}
+.res-panel .gods-menu .pop-option span{display:grid;gap:2px}
+.res-panel .pop-label,.res-panel .gods-note{margin:0 0 8px;color:var(--muted);font-size:12px;line-height:1.35}
+.res-panel .gods-note{margin:8px 0 0}
+.res-panel .gods-menu{display:block}
+/* Grafite também na preparação (história, manual, equipe, mesa). */
+:root{--bg:#141517;--panel:#1d1f22;--line:#383c42}
+body{background:var(--graphite)}
+.onboard-content.book{background:linear-gradient(180deg,#1f2124,#17181a);border-color:var(--graphite-line)}
+.onboarding .onboard-actions{background:linear-gradient(transparent,var(--graphite) 30%)}
+.team-setup select{background:var(--graphite-2);border-color:var(--graphite-line)}
+.player-names input{background:var(--graphite-2);border-color:var(--graphite-line)}
+.hero-choice{background:var(--graphite-1);border-color:var(--graphite-line)}
+.hero-choice.chosen{background:var(--graphite-2);border-color:var(--gold)}
+/* ===== Preparação (roteiro novo da missão 1) ===== */
+.prep-simple{display:grid;justify-items:center;gap:12px;text-align:center}
+.prep-big{font:400 22px/1.3 'Marcellus',Georgia,serif;color:var(--ink)}
+.prep-simple select{min-width:120px;text-align:center;font:400 20px 'Marcellus',Georgia,serif}
+.prep-simple .player-names{display:grid;gap:10px;width:min(420px,100%);margin:6px auto 0;border:0;padding:0}
+.prep-hint{text-align:center;margin:0 0 14px}
+.ability-setup{display:grid;gap:12px}
+.ability-pick legend{display:flex;align-items:center;gap:10px;font:400 18px 'Marcellus',Georgia,serif}
+.ability-pick legend .prep-avatar{width:40px;height:40px;box-shadow:0 0 0 2px #111,0 0 0 3px var(--gold)}
+.prep-avatar{display:block;width:84px;height:84px;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 0 0 2px #111,0 0 0 4px var(--gold);flex:none}
+.prep-card{width:min(440px,100%);gap:10px}
+.prep-card h2{font-size:24px}
+.prep-steps{width:100%;margin:0;padding:0;list-style:none;display:grid;gap:8px;text-align:left}
+.prep-steps li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;background:var(--graphite-2);font-size:15px;line-height:1.4}
+.prep-steps li i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#3a2a1c;color:var(--gold);font-style:normal;font-weight:700}
+.prep-tale{margin:0;font:italic 500 21px/1.45 'Cormorant Garamond',Georgia,serif!important;color:#efe6cf!important}
+.prep-feat{width:100%;padding:10px 12px;border-left:3px solid var(--gold);background:var(--graphite-2);border-radius:0 8px 8px 0;text-align:left}
+.prep-feat b{display:block;color:var(--gold);font-size:13px}
+.prep-row{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.prep-row .button{min-width:180px}
+.prep-minis{display:flex}.prep-minis .prep-avatar{width:58px;height:58px;margin:0 -4px}
+.order-card .piece-art{max-width:100%;max-height:min(220px,32dvh);display:block}
+.prep-title{display:grid;place-items:center;align-content:center;gap:28px;min-height:calc(100dvh - 120px)}
+.prep-title h1{margin:0;font:400 clamp(44px,8vw,84px)/1 'Marcellus',Georgia,serif}
+@media (max-height:520px){.prep-card{gap:6px}.prep-tale{font-size:18px!important}.prep-avatar{width:60px;height:60px}.prep-steps li{padding:5px 8px;font-size:13.5px}}
+.ability-pick label{background:var(--graphite-1)!important;border-color:var(--graphite-line)!important}.ability-pick label.chosen{background:var(--graphite-2)!important;border-color:var(--gold)!important}
+/* Peça nova e descoberta: a descrição do lugar e a ordem de mesa em destaque */
+.order-card{width:min(460px,100%)}
+.order-card p.order-tale{margin:0;font:italic 500 21px/1.45 'Cormorant Garamond',Georgia,serif;color:#efe6cf}
+.order-card p.order-line{width:100%;margin:2px 0 0;padding:10px 12px;border-radius:8px;background:var(--graphite-2);color:var(--ink);font-size:15px}
+.order-card .order-line b{color:var(--gold)}
+.order-card p.order-extra{width:100%;margin:0;padding:8px 12px;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;background:var(--graphite-2);text-align:left;font-size:14px;color:#ffe6b8}
+.order-card .order-extra b{display:block;font-size:12px;color:var(--gold)}
+@media (max-height:520px){.order-card p.order-tale{font-size:17px}.order-card p.order-line{padding:6px 10px}}
+.prep-card .prep-order{width:100%;margin:2px 0 0;padding:10px 12px;border-radius:8px;background:var(--graphite-2);color:var(--ink);font-size:15px}
+.prep-card .prep-order b{color:var(--gold)}
+.prep-card .reveal-map{width:100%;max-height:min(220px,30dvh);margin:0}
+.prep-resume{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.prep-card .reveal-map{width:min(100%,calc(min(220px,30dvh) * 1.537));max-height:none;aspect-ratio:1.537;margin:0 auto}
+/* Feitos: cada herói, o objetivo dele e o progresso */
+.feats-panel{min-width:320px;display:grid;gap:8px}
+.feats-panel article{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:6px 8px;border-radius:8px;background:var(--graphite-2)}
+.feats-panel article.done{box-shadow:inset 0 0 0 1px var(--gold)}
+.feats-panel .feat-avatar{width:40px;height:40px;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 0 0 2px #111,0 0 0 3px var(--gold)}
+.feats-panel b{display:block;font-size:13px}.feats-panel small{display:block;color:var(--muted);font-size:12.5px;line-height:1.35}
+.feats-panel em{font-style:normal;font:400 17px 'Marcellus',Georgia,serif;color:var(--gold);white-space:nowrap}
+.feat-toggle .icon{width:18px;height:18px}
+/* A vida perdida num golpe troiano, em maçãs (as fichas de comida) */
+.hit-apples{display:inline-flex;gap:2px;vertical-align:-3px;color:#d9523a}
+.hit-apples .icon,.hit-apples svg{width:17px;height:17px}
+
+.life-apples.gain{color:#7fbf5a}
+.order-life .prep-avatar{width:72px;height:72px}
+/* Criseida: cena em três tempos, com as vozes dos heróis e a escolha de Agamêmnon */
+.order-card.cris-card{width:min(580px,100%);gap:10px}
+.cris-card .scene-art{width:calc(100% + 40px);margin:-18px -20px 0;height:min(190px,26dvh);object-fit:cover;object-position:center 40%;border-radius:12px 12px 0 0}
+.cris-voice{width:100%;display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:center;text-align:left;padding:10px 12px;border-radius:10px;background:var(--graphite-2)}
+.cris-avatar{width:52px;height:52px;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 0 0 2px #111,0 0 0 3px var(--gold)}
+.cris-voice p{margin:0!important;font:italic 500 19px/1.35 'Cormorant Garamond',Georgia,serif!important;color:#efe6cf!important}
+.cris-voice b{display:block;font:600 12px 'DM Sans',sans-serif;color:var(--gold);font-style:normal}
+.cris-choices{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cris-choice{display:grid;gap:6px;align-content:start;text-align:left;padding:12px;border-radius:12px;border:1px solid var(--graphite-line);background:var(--graphite-1);color:var(--ink);font:inherit;cursor:pointer}
+.cris-choice:hover,.cris-choice:focus-visible{border-color:var(--gold)}
+.cris-choice.tempt{border-color:#8a6a3a;background:linear-gradient(160deg,#2c2519,var(--graphite-1))}
+.cris-choice b{font:400 19px 'Marcellus',Georgia,serif}
+.cris-choice ul{margin:0;padding-left:18px;display:grid;gap:3px;font-size:13.5px;color:#d8d0bf}
+.cris-choice small{color:var(--muted);font-style:italic}
+@media (max-width:640px),(max-height:560px){.cris-choices{grid-template-columns:1fr}.cris-card .scene-art{height:110px}}

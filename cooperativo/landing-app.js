@@ -111,17 +111,18 @@ const ENCOUNTERS={
   evolution:()=>({title:'O mirante conquistado',text:'Do alto, toda a costa. E os troianos também os viram.',detail:'Quem leva a experiência para a próxima carta de evolução?',choices:state.encounter.choices.map(id=>{const h=state.heroes.find(a=>a.id===id);return [id,G.HEROES.find(d=>d.id===id).name+' → N'+(h.level+1)];})}),
   beggar:()=>({title:'O velho do círculo de pedras',text:'"Estrangeiros, a hospitalidade é sagrada. Pão, e o fogo do vosso acampamento."',detail:'Dar o pão custa 1 comida do armazém do acampamento.',choices:[['accept','Dar o pão ao velho'],['refuse','Mandá-lo embora']]})
 };
-const busy=()=>revealAlert.length||troopArrival||responseQueue.length||deathAlert?.length||removals.length||moves.length||lifeQueue.length;
+// A fila de vida espera a cena da descoberta; a descoberta não espera a fila de vida (senão uma espera a outra).
+const busy=(skipLife)=>revealAlert.length||troopArrival||responseQueue.length||deathAlert?.length||removals.length||moves.length||(!skipLife&&lifeQueue.length);
 const ORDERS={A1:'Tomem o posto: derrotem a vigia de A1 antes que a rendição chegue pela trilha. Depois, a clareira será o acampamento.'};
 // Ilustração no topo dos diálogos de encontro, crônica e história.
 const SCENE_ART={castaways:'cena-naufragos',tracks:'cena-pegadas',beggar:'cena-velho-pedras',evolution:'cena-mirante'},CHRONICLE_ART={sinal:'cena-sinal-fumaca',fogueiras:'cena-fogueiras'};
 function sceneArt(name){return name?`<img class="scene-art" src="assets/identidade/${name}.webp" alt="" width="1100" height="619">`:'';}
 function storyHTML(){
-  if(!storyAlert||busy())return '';
+  if(!storyAlert||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="story-title"><section class="arrival-card chronicle-card">${sceneArt(storyAlert.art)}<p class="eyebrow">${esc(storyAlert.eyebrow)}</p><h2 id="story-title">${esc(storyAlert.title)}</h2><p class="encounter-text">${esc(storyAlert.text)}</p>${storyAlert.order?`<p class="chronicle-demand"><b>Nova ordem</b>${esc(storyAlert.order)}</p>`:''}${button('Continuar','dismiss-story','',false,'button')}</section></div>`;
 }
 function findHTML(){
-  if(!findAlert||busy())return '';
+  if(!findAlert||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="find-title"><section class="arrival-card chronicle-card"><p class="eyebrow">Descoberta em ${findAlert.zone}</p><h2 id="find-title">${esc(findAlert.title)}</h2><p class="encounter-text">${esc(findAlert.text)}</p>${button('Continuar','dismiss-find','',false,'button')}</section></div>`;
 }
 function detectStory(before){
@@ -157,11 +158,11 @@ function chronicleHTML(){
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="chronicle-title"><section class="arrival-card chronicle-card">${sceneArt(c?CHRONICLE_ART[c.id]:'')}<p class="eyebrow">${TROY_STEPS.chronicle} · rodada ${state.round}</p>${prev?`<p class="chronicle-prev">${esc(prev)}</p>`:''}<h2 id="chronicle-title">${esc(entry.title)}</h2>${entry.text?`<p class="encounter-text">${esc(entry.text)}</p>`:""}${entry.demand?`<p class="chronicle-demand"><b>Pedido</b>${esc(entry.demand)}</p>`:''}${button('Continuar','dismiss-chronicle','',false,'button')}</section></div>`;
 }
 function featHTML(){
-  if(!featAlert.length||busy())return '';
+  if(!featAlert.length||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="feat-title"><section class="arrival-card feat-card"><p class="eyebrow">Feito pessoal</p>${featAlert.map(id=>{const p=G.PERSONAL[id];return `<article><span class="mesa-avatar hero-${id}" aria-hidden="true"></span><div><h2 id="feat-title">${esc(G.HEROES.find(h=>h.id===id).name)}: ${esc(p.name)}</h2><p>${esc(p.text)}</p><b>${esc(p.reward)}</b></div></article>`;}).join('')}${button('Continuar','dismiss-feat','',false,'button')}</section></div>`;
 }
 function encounterHTML(){
-  if(!state?.encounter||busy()||featAlert.length||findAlert)return '';
+  if(!state?.encounter||busy(true)||featAlert.length||findAlert)return '';
   const e=ENCOUNTERS[state.encounter.id]();
   if(e.choices.some(c=>c[2]))return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="encounter-title"><section class="arrival-card encounter-card"><p class="eyebrow">Novo aprendizado</p><h2 id="encounter-title">${esc(e.title)}</h2><p class="encounter-text">${esc(e.text)}</p>${e.detail?`<p>${esc(e.detail)}</p>`:''}<div class="confirm-choices">${e.choices.map(([id,label,detail])=>`<button class="pop-option card" data-command="encounter" data-choice="${id}">${M.ICONS.ability}<span><b>${esc(label)}</b><small>${esc(detail)}</small></span></button>`).join('')}</div></section></div>`;
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="encounter-title"><section class="arrival-card encounter-card">${sceneArt(SCENE_ART[state.encounter.id])}<p class="eyebrow">Encontro em ${state.encounter.zone}</p><h2 id="encounter-title">${e.title}</h2><p class="encounter-text">${esc(e.text)}</p>${e.detail?`<p>${esc(e.detail)}</p>`:''}${['castaways','beggar'].includes(state.encounter.id)&&encounterTokens.has(state.encounter.zone)?`<p class="encounter-token">Retirem a ficha de exploração de ${state.encounter.zone}.</p>`:''}<div class="actions-row">${e.choices.map(([id,label],i)=>button(label,'encounter',`data-choice="${id}"`,false,i?'quiet':'button')).join('')}</div></section></div>`;

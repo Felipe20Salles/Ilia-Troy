@@ -112,17 +112,18 @@ const ENCOUNTERS={
   scales:()=>{const S=G.SCALES,pan=(name,side)=>name+': “'+side.motto+'” '+side.items.join(' ');return {title:S.title,text:S.text+' '+S.speech,detail:pan('Enfrentar Heitor',S.face)+' — '+pan('Afastar-se dele',S.flee)+' '+S.close+' (Pátroclo precisa cair na mesma peça de Heitor, depois de atacá-lo ao menos uma vez.)',choices:[['ok','A escolha é tua']]};},
   evolution:()=>({title:'A experiência da torre',text:'Lá do alto, os homens aprenderam como Troia se defende. Alguém vai levar essa experiência para a próxima batalha.',detail:'A equipe decide junta: qual herói recebe a experiência e passa para a próxima carta de evolução?',choices:state.encounter.choices.map(id=>{const h=state.heroes.find(a=>a.id===id);return [id,G.HEROES.find(d=>d.id===id).name+' → N'+(h.level+1)];})}),
 };
-const busy=()=>revealAlert.length||troopArrival||responseQueue.length||deathAlert?.length||removals.length||moves.length||lifeQueue.length;
+// A fila de vida espera a cena da descoberta; a descoberta não espera a fila de vida (senão uma espera a outra).
+const busy=(skipLife)=>revealAlert.length||troopArrival||responseQueue.length||deathAlert?.length||removals.length||moves.length||(!skipLife&&lifeQueue.length);
 const ORDERS={};
 // Ilustração no topo dos diálogos de encontro, crônica e história.
 const SCENE_ART={crises:'cena-fogueiras'},CHRONICLE_ART={};
 function sceneArt(name){return name?`<img class="scene-art" src="assets/identidade/${name}.webp" alt="" width="1100" height="619">`:'';}
 function storyHTML(){
-  if(!storyAlert||busy())return '';
+  if(!storyAlert||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="story-title"><section class="arrival-card chronicle-card">${sceneArt(storyAlert.art)}<p class="eyebrow">${esc(storyAlert.eyebrow)}</p><h2 id="story-title">${esc(storyAlert.title)}</h2><p class="encounter-text">${esc(storyAlert.text)}</p>${storyAlert.order?`<p class="chronicle-demand"><b>Nova ordem</b>${esc(storyAlert.order)}</p>`:''}${button('Continuar','dismiss-story','',false,'button')}</section></div>`;
 }
 function findHTML(){
-  if(!findAlert||busy())return '';
+  if(!findAlert||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="find-title"><section class="arrival-card chronicle-card"><p class="eyebrow">Descoberta em ${findAlert.zone}</p><h2 id="find-title">${esc(findAlert.title)}</h2><p class="encounter-text">${esc(findAlert.text)}</p>${button('Continuar','dismiss-find','',false,'button')}</section></div>`;
 }
 function detectStory(before){
@@ -159,7 +160,7 @@ function chronicleHTML(){
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="chronicle-title"><section class="arrival-card chronicle-card">${sceneArt(CHRONICLE_ART[c.round])}<p class="eyebrow">${TROY_STEPS.chronicle} · rodada ${c.round}</p>${prev?`<p class="chronicle-prev">${esc(prev)}</p>`:''}<h2 id="chronicle-title">${esc(entry.title)}</h2><p class="encounter-text">${esc(entry.text)}</p>${entry.demand?`<p class="chronicle-demand"><b>Pedido</b>${esc(entry.demand)}</p>`:''}${button('Continuar','dismiss-chronicle','',false,'button')}</section></div>`;
 }
 function featHTML(){
-  if(!featAlert.length||busy())return '';
+  if(!featAlert.length||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="feat-title"><section class="arrival-card feat-card"><p class="eyebrow">Feito pessoal</p>${featAlert.map(id=>{const p=G.PERSONAL[id];return `<article><span class="mesa-avatar hero-${id}" aria-hidden="true"></span><div><h2 id="feat-title">${esc(G.HEROES.find(h=>h.id===id).name)}: ${esc(p.name)}</h2><p>${esc(p.text)}</p><b>${esc(p.reward)}</b></div></article>`;}).join('')}${button('Continuar','dismiss-feat','',false,'button')}</section></div>`;
 }
 // Crises e Briseida: a cena em três tempos (o lugar, as vozes, a escolha). A escolha é de Agamêmnon.
@@ -179,7 +180,7 @@ function crisesHTML(){const council=state.encounter.council,av=id=>`<span class=
  beats.push(`<p class="order-step">A decisão é de Agamêmnon</p><h2 id="order-title">O que faz o rei?</h2><div class="cris-choices">${choices.map(c=>card[c]||'').join('')}</div>`);
  return `<div class="order-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="order-title"><section class="order-card cris-card">${beats[Math.min(crisesBeat,beats.length-1)]}</section></div>`;}
 function encounterHTML(){
-  if(!state?.encounter||busy()||featAlert.length||findAlert||(state.encounter.id==='scales'&&(storyAlert||commandLevel()>commandWarned)))return '';
+  if(!state?.encounter||busy(true)||featAlert.length||findAlert||(state.encounter.id==='scales'&&(storyAlert||commandLevel()>commandWarned)))return '';
   if(state.encounter.id==='crises')return crisesHTML();
   const e=ENCOUNTERS[state.encounter.id]();
   if(e.choices.some(c=>c[2]))return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="encounter-title"><section class="arrival-card encounter-card"><p class="eyebrow">Novo aprendizado</p><h2 id="encounter-title">${esc(e.title)}</h2><p class="encounter-text">${esc(e.text)}</p>${e.detail?`<p>${esc(e.detail)}</p>`:''}<div class="confirm-choices">${e.choices.map(([id,label,detail])=>`<button class="pop-option card" data-command="encounter" data-choice="${id}">${M.ICONS.ability}<span><b>${esc(label)}</b><small>${esc(detail)}</small></span></button>`).join('')}</div></section></div>`;

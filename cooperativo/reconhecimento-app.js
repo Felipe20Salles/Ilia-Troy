@@ -112,17 +112,18 @@ const ENCOUNTERS={
   ability:()=>{const h=state.heroes.find(a=>a.id===state.encounter.hero),d=G.HEROES.find(x=>x.id===h.id);return {title:d.name+' aprende algo novo',text:state.encounter.reason==='criseida'?'Os reis aclamam o prêmio de '+d.name+'.':'O feito de '+d.name+' correu entre os homens.',detail:'Virem a carta escolhida no tabuleiro do herói.',choices:state.encounter.choices.map(i=>[i,d.cards[i].name+(d.cards[i].passive?' · passiva':''),'Leiam a carta na mesa'])};},
   evolution:()=>({title:'A experiência da torre',text:'Os homens aprenderam como Troia se defende.',detail:'A equipe decide junta: qual herói recebe a experiência e passa para a próxima carta de evolução?',choices:state.encounter.choices.map(id=>{const h=state.heroes.find(a=>a.id===id);return [id,G.HEROES.find(d=>d.id===id).name+' → N'+(h.level+1)];})}),
 };
-const busy=()=>revealAlert.length||troopArrival||responseQueue.length||deathAlert?.length||removals.length||moves.length||lifeQueue.length;
+// A fila de vida espera a cena da descoberta; a descoberta não espera a fila de vida (senão uma espera a outra).
+const busy=(skipLife)=>revealAlert.length||troopArrival||responseQueue.length||deathAlert?.length||removals.length||moves.length||(!skipLife&&lifeQueue.length);
 const ORDERS={M1:'Reconheçam o portão: 2 ações em M1, sem inimigos na peça. Quem completar leva o relato e precisa voltar de pé a A1.'};
 // Ilustração no topo dos diálogos de encontro, crônica e história.
 const SCENE_ART={tower:'cena-mirante',evolution:'cena-mirante',criseida:'cena-velho-pedras'},CHRONICLE_ART={};
 function sceneArt(name){return name?`<img class="scene-art" src="assets/identidade/${name}.webp" alt="" width="1100" height="619">`:'';}
 function storyHTML(){
-  if(!storyAlert||busy())return '';
+  if(!storyAlert||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="story-title"><section class="arrival-card chronicle-card">${sceneArt(storyAlert.art)}<p class="eyebrow">${esc(storyAlert.eyebrow)}</p><h2 id="story-title">${esc(storyAlert.title)}</h2><p class="encounter-text">${esc(storyAlert.text)}</p>${storyAlert.order?`<p class="chronicle-demand"><b>Nova ordem</b>${esc(storyAlert.order)}</p>`:''}${button('Continuar','dismiss-story','',false,'button')}</section></div>`;
 }
 function findHTML(){
-  if(!findAlert||busy())return '';
+  if(!findAlert||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="find-title"><section class="arrival-card chronicle-card"><p class="eyebrow">Descoberta em ${findAlert.zone}</p><h2 id="find-title">${esc(findAlert.title)}</h2><p class="encounter-text">${esc(findAlert.text)}</p>${button('Continuar','dismiss-find','',false,'button')}</section></div>`;
 }
 function detectStory(before){
@@ -158,7 +159,7 @@ function chronicleHTML(){
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="chronicle-title"><section class="arrival-card chronicle-card">${sceneArt(CHRONICLE_ART[c.round])}<p class="eyebrow">${TROY_STEPS.chronicle} · rodada ${c.round}</p>${prev?`<p class="chronicle-prev">${esc(prev)}</p>`:''}<h2 id="chronicle-title">${esc(entry.title)}</h2><p class="encounter-text">${esc(entry.text)}</p>${entry.demand?`<p class="chronicle-demand"><b>Pedido</b>${esc(entry.demand)}</p>`:''}${button('Continuar','dismiss-chronicle','',false,'button')}</section></div>`;
 }
 function featHTML(){
-  if(!featAlert.length||busy())return '';
+  if(!featAlert.length||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="feat-title"><section class="arrival-card feat-card"><p class="eyebrow">Feito pessoal</p>${featAlert.map(id=>{const p=G.PERSONAL[id];return `<article><span class="mesa-avatar hero-${id}" aria-hidden="true"></span><div><h2 id="feat-title">${esc(G.HEROES.find(h=>h.id===id).name)}: ${esc(p.name)}</h2><p>${esc(p.text)}</p><b>${esc(p.reward)}</b></div></article>`;}).join('')}${button('Continuar','dismiss-feat','',false,'button')}</section></div>`;
 }
 // Criseida: a cena em três tempos (o lugar, as vozes, a escolha). A escolha é de Agamêmnon.
@@ -170,7 +171,7 @@ function criseidaHTML(){const av=id=>`<span class="cris-avatar" style="backgroun
   `<p class="order-step">A decisão é de Agamêmnon</p><h2 id="order-title">O que fazem?</h2><div class="cris-choices"><button class="cris-choice tempt" data-command="encounter" data-choice="take"><b>Levar Criseida e o ouro</b><ul><li><strong>+3 de comida</strong> agora</li><li><strong>Agamêmnon aprende uma habilidade</strong>: os reis aclamam o seu prêmio</li><li>O ouro do altar vale <strong>+2 de comida</strong> no armazém da próxima missão</li></ul><small>Apolo vê tudo.</small></button><button class="cris-choice" data-command="encounter" data-choice="respect"><b>Respeitar o santuário</b><ul><li><strong>+1 de Favor</strong></li></ul><small>Os homens voltam de mãos vazias, resmungando.</small></button></div>`];
  return `<div class="order-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="order-title"><section class="order-card cris-card">${beats[Math.min(criseidaBeat,2)]}</section></div>`;}
 function encounterHTML(){
-  if(!state?.encounter||busy()||featAlert.length||findAlert)return '';
+  if(!state?.encounter||busy(true)||featAlert.length||findAlert)return '';
   if(state.encounter.id==='criseida')return criseidaHTML();
   const e=ENCOUNTERS[state.encounter.id]();
   if(e.choices.some(c=>c[2]))return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="encounter-title"><section class="arrival-card encounter-card"><p class="eyebrow">Novo aprendizado</p><h2 id="encounter-title">${esc(e.title)}</h2><p class="encounter-text">${esc(e.text)}</p>${e.detail?`<p>${esc(e.detail)}</p>`:''}<div class="confirm-choices">${e.choices.map(([id,label,detail])=>`<button class="pop-option card" data-command="encounter" data-choice="${id}">${M.ICONS.ability}<span><b>${esc(label)}</b><small>${esc(detail)}</small></span></button>`).join('')}</div></section></div>`;

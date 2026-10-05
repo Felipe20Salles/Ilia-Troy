@@ -118,3 +118,8 @@ test('Sarpedon returns carrying his wound; his fall drops the flame and is Patro
  let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],legacy:{sarpedonWounds:6}});const sar=s.enemies.find(e=>e.type==='sarpedon');assert.equal(sar.hp,6);
  sar.zone='A1';sar.hp=1;sar.armor=0;const flame=s.alarm;s=act(s,'aquiles','attack',sar.id);assert.ok(!s.enemies.some(e=>e.type==='sarpedon'));assert.equal(s.alarm,flame-6);assert.match(s.lastFind.text,/Zeus/);
 });
+test('nexus: refusing Crises costs Agamemnon his sceptre (Intimidation) until Criseida is returned',()=>{
+ let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],campFood:3,known:{agamemnon:[0,2]},legacy:{criseida:'taken'}});
+ s=G.choose(s,'refuse').state;const k=s.heroes.find(h=>h.id==='agamemnon');assert.deepEqual(k.lost.cards,[2]);
+ s.enemies=[];s.heroes.forEach(h=>{h.hp=5;h.ap=2;h.zone='A1';});s=act(s,'agamemnon','interact','council');s=G.choose(s,'sacrifice').state;assert.equal(s.heroes.find(h=>h.id==='agamemnon').lost,null);
+});

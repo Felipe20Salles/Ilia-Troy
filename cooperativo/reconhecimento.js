@@ -80,6 +80,7 @@
     if(!validTeam)throw Error('Odisseu e Agamêmnon são obrigatórios. Complete a equipe e atribua ao menos um herói a cada jogador.');
     const legacy=options.legacy||{},revealed=[...BASE,'P3'];
     const heroes=ids.map((id,i)=>{const h={...HEROES.create(id,options.levels?.[id]??1),owner:owners[i],zone:'A1',cargo:false,food:0,moves:0,known:startingAbilities(id,options)};const life=options.life?.[id];if(Number.isInteger(life))h.hp=Math.max(0,Math.min(HEROES.stats(h).maxHp,life));if(!h.hp)h.ap=0;h.startHp=h.hp;return h;});
+    for(const h of heroes){const n=NEXUS[h.id];if(legacy.lost?.[h.id]&&n)h.lost={item:n.item,cards:[...n.cards],zone:'P3'};}
     const store=Math.max(0,Math.min(99,Number.isInteger(options.campFood)?options.campFood:0))+(legacy.castaways==='rescued'?1:0);
     const s={version:VERSION,mission:MISSION,campaign:camp,route:'A',players,playerNames,round:1,phase:'heroes',result:null,reason:'',campFood:store,foodSetup:store>0&&heroes.some(h=>h.hp<HEROES.stats(h).maxHp),foodSpent:0,
       scrolls:[...new Set(options.scrolls||[])],legacy,campDamage:0,burned:0,delivered:0,required:0,built:true,supplies:{},reconned:false,reconProgress:0,reporter:null,pursuit:0,shipsBurned:0,commanderDown:false,retreated:0,criseida:'unseen',shepherds:'unseen',
@@ -90,6 +91,8 @@
     // Os defensores fixos da muralha: só aparecem quando a peça é revelada.
     const post=(zone,type)=>{const e=TROOPS.create('e'+s.nextEnemy++,zone,type);e.hold=true;s.enemies.push(e);return e;};
     post('M1','guarda');post('M4','arqueiro');if(ids.length>=5)post('M4','arqueiro');
+    // Uma patrulha de batedores troianos já ronda o campo aberto: o caminho até o portão não está livre.
+    {const p=TROOPS.create('e'+s.nextEnemy++,'P3','explorador');s.enemies.push(p);}
     // Desde o começo, patrulhas troianas descem para queimar os navios: alguém precisa guardar a frota. Uma por herói além de dois.
     for(let i=0;i<Math.max(1,ids.length-2);i++){const r=TROOPS.create('e'+s.nextEnemy++,['P2','C2','P2'][i],'lanceiro');r.raid=true;s.enemies.push(r);}
     // A costa da missão 1 já é conhecida, e Agamêmnon aponta a planície (P3). Quem tomou o mirante já viu também a torre de vigia.
@@ -110,7 +113,8 @@
   function nextAlarm(s){const steps=Object.keys(ALARM_STEPS).map(Number).filter(n=>!s.alarmFired.includes(n)).sort((a,b)=>a-b);if(!steps.length||s.commanderDown)return {at:ALARM_MAX,entries:[]};const at=steps[0];return {at,entries:alarmEntries(s,at)};}
   function waves(s){return nextAlarm(s).entries.map(([zone])=>zone);}
   function intent(e,s){if(e.stunned)return 'Atordoado: perderá esta ativação';{const shot=rangedTarget(s,e);if(shot&&!e.intimidated)return 'Atirar em '+heroName(shot.id)+(shot.zone!==e.zone?' em '+shot.zone:'');}if(e.hold&&e.post&&e.zone!==e.post&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return 'Voltar ao posto em '+e.post;if(e.hold&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return e.type==='guarda'?'Guardar o portão':'Vigiar do alto da torre';if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;if(s.heroes.some(h=>h.zone===e.zone&&h.hp>0))return 'Atacar um herói aqui';if(e.raid)return e.zone==='N1'?'Queimar um navio em N1':'Rumo aos navios: avançar para '+ZONES[nextStep(e.zone,'N1')].name;const goal=huntGoal(s,e);if(goal!=='A1')return 'Perseguir os gregos em '+goal;return e.zone==='A1'?'Atacar o acampamento':'Avançar para '+ZONES[nextStep(e.zone)].name;}
-  function finish(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;
+  function finish(s,result,reason){finishCore(s,result,reason);if(s.outcome)s.outcome.legacy={...(s.outcome.legacy||{}),lost:Object.fromEntries(s.heroes.filter(h=>h.lost).map(h=>[h.id,true]))};}
+  function finishCore(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;
     if(result==='victory')s.outcome={completed:'reconhecimento',next:'Segurar a linha',campFood:Math.max(0,s.campFood-(s.shipsBurned||0)),revealedZones:[...s.revealed],scrolls:[...s.scrolls],commanders:{sarpedon:s.sarpedonWounds?'wounded':s.commanderDown?'dead':'alive'},legacy:{criseida:s.criseida,shepherds:s.shepherds,shipsBurned:s.shipsBurned||0,altarGold:!!s.altarGold,sarpedonWounds:s.sarpedonWounds||0},heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]}))};
     log(s,reason);}
   function defeat(s){if(s.result)return;if(s.campDamage>=3)finish(s,'defeat','Troia arrasou o acampamento enquanto os heróis estavam longe.');else if(s.heroes.every(h=>h.hp===0))finish(s,'defeat','Todos os heróis caíram diante das muralhas.');}
@@ -144,7 +148,7 @@
   function resolveChronicle(s){const c=s.chronicle;if(!c||c.status!=='open'||s.result)return;const rule=CHRONICLE_CHECKS[c.id];const ok=c.favored||rule.check(s);c.status=ok?'success':'fail';s.chronicleResult={id:c.id,status:c.status};(ok?rule.success:rule.fail)(s);if(!ok&&!s.result)escalate(s,c.id);}
   // Pedido descumprido: Troia manda um contingente ligado à história. Uma tropa; duas com 5 heróis.
   const ESCALATION={"saque":["P2","explorador","Os saqueadores voltam em maior número"],"batedores":["P7","explorador","Os cavaleiros trazem outra patrulha"],"torres":["M4","arqueiro","As torres mandaram arqueiros para a muralha"]};
-  function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
+  function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];if(!s.nexusDone)loseItem(s,'ajax',e[0],'Na escaramuça, uma carga troiana arranca o escudo do braço de Ájax e o leva.');log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
   function startChronicle(s){const entry=CHRONICLE[s.round];if(!entry||s.result){s.chronicle=null;return;}s.chronicle={round:s.round,id:entry.id,status:CHRONICLE_CHECKS[entry.id]?'open':'told'};log(s,'Crônica da rodada '+s.round+': '+entry.title+'.');}
   function enter(s,h,zone){
     h.zone=zone;
@@ -174,7 +178,8 @@
     h.moves++;enter(s,h,target);return true;
   }
   function interactions(s,h){
-    const list=[],foes=s.enemies.some(e=>e.zone===h.zone),add=(id,label,detail,available=true)=>list.push({id,label,detail,available:available&&!foes});
+    const lostHere=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);
+    const list=[],foes=s.enemies.some(e=>e.zone===h.zone),add=(id,label,detail,available=true)=>list.push({id,label,detail,available:available&&!foes});if(lostHere)add('recover','Recuperar '+lostHere.lost.item,'Devolver a '+heroName(lostHere.id)+' · sem inimigos na peça');
     if(!s.reconned&&h.zone==='M1')add('recon','Reconhecer o portão ('+s.reconProgress+'/2)','2 ações no total em M1, sem inimigos. Quem completar leva o relato e precisa voltar de pé a A1');
     const token=s.tokens[h.zone];
     if(token&&!token.resolved&&isRevealed(s,h.zone)&&tokenOf(s,h.zone).kind==='tower')add('tower','Tomar a torre de vigia ('+(token.progress||0)+'/2)','2 ações no total, sem inimigos; o barulho chama Troia (Alarme +2)');
@@ -190,6 +195,17 @@
     else if(t.kind==='clue')message='observou '+t.name.toLocaleLowerCase('pt-BR');
     for(const z of CLUES[zone]||[])reveal(s,z);
     s.lastFind={zone,title:t.hint,text:[text.split('{hero}').join(def.name),CLUE_TEXT[zone]||''].filter(Boolean).join(' ')};if(t.kind!=='clue')addAlarm(s,1,'o barulho da busca em '+zone+' chama atenção');return message;}
+  // Eventos nexo: um herói perde o equipamento, e as cartas que dependem dele ficam viradas até alguém recuperá-lo.
+  // Ájax perde duas (as duas precisam do escudo); os outros, uma. O objeto não recuperado segue perdido na missão seguinte.
+  const NEXUS={
+    odisseu:{item:'o arco de Ítaca',cards:[0],lost:'Disparo Duplo funciona com qualquer arco; a Precisão, não: só o arco dele tem a calibração que a mão conhece.',found:'Odisseu testa a corda do arco como fez diante dos pretendentes, e sorri. A Precisão volta.'},
+    ajax:{item:'o escudo de Ájax',cards:[0,1],lost:'Sem o escudo de sete couros, Ájax não tem o Escudo de Bronze nem o Golpe de Escudo.',found:'Ájax ergue de novo o escudo de sete couros. O Escudo de Bronze e o Golpe de Escudo voltam.'},
+    aquiles:{item:'as sandálias de Aquiles',cards:[1],lost:'Descalço sobre as pedras, Aquiles não consegue a Investida.',found:'Aquiles amarra as sandálias. A Investida volta.'},
+    agamemnon:{item:'o cetro de Agamêmnon',cards:[2],lost:'Sem o cetro, os troianos não temem o rei: Agamêmnon perde a Intimidação.',found:'O cetro volta às mãos do rei. A Intimidação volta.'}};
+  function loseItem(s,id,zone,why){const h=s.heroes.find(x=>x.id===id&&x.hp>0&&!x.away&&!x.patroclus),n=NEXUS[id];if(!h||!n||h.lost||!n.cards.some(c=>h.known.includes(c)))return false;
+    h.lost={item:n.item,cards:[...n.cards],zone};s.nexusDone=true;const names=n.cards.map(c=>HEROES.find(d=>d.id===id).cards[c].name).join(' e ');
+    s.lastFind={zone,title:'Perderam '+n.item,text:why+' '+n.lost+' Na mesa: virem para baixo '+names+' e coloquem 1 ficha de exploração em '+zone+': é onde '+n.item+' está.'};log(s,heroName(id)+' perdeu '+n.item+'. Recuperem-no em '+zone+'.');return true;}
+  function recoverItem(s,h,owner){const n=NEXUS[owner.id];owner.lost=null;s.lastFind={zone:h.zone,title:'Recuperaram '+n.item,text:(h.id===owner.id?'':heroName(h.id)+' devolve '+n.item+'. ')+n.found+' Na mesa: retirem a ficha de '+h.zone+' e virem a carta para cima.'};log(s,heroName(h.id)+' recuperou '+n.item+'.');}
   function act(state,heroId,action,target){
     const s=clone(state),h=s.heroes.find(h=>h.id===heroId),fail=error=>({ok:false,error,state});
     if(s.result||s.phase!=='heroes')return fail('Esta missão já terminou.');
@@ -202,6 +218,7 @@
     else if(action==='attack'){const e=s.enemies.find(e=>e.id===target&&visible(e)&&distance(h.zone,e.zone)<=HEROES.stats(h).range);if(!e)return fail('Escolha um inimigo no alcance básico.');strike(s,h,e,HEROES.stats(h).attack,{ranged:h.id==='odisseu'||e.zone!==h.zone});message='atacou: '+HEROES.stats(h).attack+' de dano';}
     else if(action==='interact'){
       const options=interactions(s,h),choice=target?options.find(x=>x.id===target):options.find(x=>x.available);
+      if(choice?.id==='recover'&&choice.available){const owner=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);recoverItem(s,h,owner);h.ap--;h.lastAction='interact';return {ok:true,state:s,message:heroName(h.id)+' recuperou '+NEXUS[owner.id].item};}
       if(foes().length)return fail('Elimine os inimigos nesta peça antes de interagir.');
       if(!choice||!choice.available)return fail('Não há nada para resolver aqui.');
       if(choice.id==='recon'){s.reconProgress++;if(s.reconProgress<2)message='começou a reconhecer o portão (1/2)';else{s.reconned=true;s.reporter=h.id;s.pursuit=Math.ceil(s.heroes.length/2);addAlarm(s,2,'os guardas viram gregos diante do portão');const raid=spawn(s,'P2','lanceiro');raid.raid=true;log(s,'Incursão: uma companhia sai de P2 rumo aos navios, para queimar a frota.');message='reconheceu o portão de Troia e leva o relato. Agora, de volta a A1';}}
@@ -214,7 +231,7 @@
     }else if(action==='rescue'){
       const a=s.heroes.find(a=>a.id===target&&a.zone===h.zone&&a.hp===0);if(!a)return fail('Escolha um aliado caído nesta peça.');if(h.hp<2)return fail('Socorrer transfere 1 de vida: quem socorre precisa ter ao menos 2.');h.hp--;a.hp=1;a.ap=1;if(h.id==='menelau')feat(s,'menelau');message='socorreu '+heroName(a.id)+', dando-lhe 1 da sua própria força';
     }else if(action.startsWith('card:')){
-      const n=Number(action.slice(5)),c=def.cards[n];if(c&&h.known&&!h.known.includes(n))return fail('Este herói ainda não conhece esta habilidade.');if(!c||c.passive||h.used.includes(n)||h.onceUsed.includes(n))return fail('Habilidade indisponível.');
+      const n=Number(action.slice(5)),c=def.cards[n];if(c&&h.known&&!h.known.includes(n))return fail('Este herói ainda não conhece esta habilidade.');if(h.lost?.cards?.includes(n))return fail('Sem '+h.lost.item+', '+def.name+' não pode usar '+c.name+'. Recuperem-no em '+h.lost.zone+'.');if(!c||c.passive||h.used.includes(n)||h.onceUsed.includes(n))return fail('Habilidade indisponível.');
       const e=s.enemies.find(e=>e.id===target&&visible(e)),a=s.heroes.find(a=>a.id===target);
       if(c.type==='attack'||c.type==='ranged'){if(!e||distance(h.zone,e.zone)>(c.type==='ranged'?1:0))return fail('Inimigo fora de alcance.');strike(s,h,e,c.value,{piercing:c.piercing,stun:c.stun,breakArmor:c.breakArmor,ranged:c.type==='ranged'});}
       else if(c.type==='multiRanged'){

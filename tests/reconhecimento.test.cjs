@@ -75,7 +75,8 @@ test('the bot completes most rosters',()=>{
  const ids=['aquiles','ajax','odisseu','menelau','agamemnon'];let wins=0,games=0;
  for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];
   for(const abilities of [undefined,Object.fromEntries(team.map(i=>[i,0]))]){const s=play(team,{abilities});games++;if(s.result==='victory')wins++;}}
- assert.ok(wins/games>=.6,'vitórias do robô: '+wins+'/'+games);
+ // Meta do Felipe (05/10/2026): no máximo 6 vitórias em 14 (43%).
+ assert.ok(wins/games>=.2&&wins/games<=6/14,'vitórias do robô: '+wins+'/'+games);
 });
 test('heroes only move between revealed pieces; the clues of P3, P7 and P4 open the way to the gate',()=>{
  let s=setup();s.enemies=[];hero(s,'odisseu').zone='P3';assert.equal(G.act(s,'odisseu','move','P7').ok,false,'P7 ainda não foi descoberta');
@@ -114,4 +115,8 @@ test('taking Criseida is the tempting choice: food, an ability for Agamemnon and
  let t=G.choose(atC1(),'take').state;assert.equal(t.criseida,'taken');assert.equal(t.encounter?.id,'ability');assert.equal(t.encounter.hero,'agamemnon');assert.ok(t.altarGold);
  let r=G.choose(atC1(),'respect').state;assert.equal(r.favor,2,'+1 de Favor');
  const M3=require('../cooperativo/segurar.js');const s3=M3.newGame({heroes:['odisseu','agamemnon','aquiles'],campFood:1,legacy:{criseida:'taken',altarGold:true}});assert.equal(s3.campFood,3,'o ouro do altar vale +2 de comida');
+});
+test('nexus: an unrecovered item stays lost in the next mission',()=>{
+ const M3=require('../cooperativo/segurar.js');const s=M3.newGame({heroes:['odisseu','agamemnon','ajax'],campaign:true,legacy:{lost:{ajax:true}}});
+ assert.deepEqual(s.heroes.find(h=>h.id==='ajax').lost.cards,[0,1],'Ájax segue sem o escudo');assert.ok(M3.validSave(s));
 });

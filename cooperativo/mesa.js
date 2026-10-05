@@ -36,7 +36,7 @@
   else{const interaction=G.interaction(s,h);if(interaction.available)add(h.zone,{action:'interact',kind:'interact',title:interaction.label,detail:interaction.detail+' · 1 ação',disabled:foes,reason:'Há inimigos nesta peça'});}
   if(h.used.length)add(h.zone,{action:'rest',kind:'rest',title:'Preparar habilidades',detail:'Desvirar as cartas usadas · 1 ação',disabled:foes,reason:'Há inimigos nesta peça'});
   d.cards.forEach((card,i)=>{
-   if(card.passive||h.onceUsed.includes(i)||(h.known&&!h.known.includes(i)))return;
+   if(card.passive||h.onceUsed.includes(i)||(h.known&&!h.known.includes(i))||h.lost?.cards?.includes(i))return;
    const action='card:'+i,used=h.used.includes(i),list=targets(action,h);
    const base={action,kind:'card',card:card.name,disabled:used,reason:'Usada: desvire com Preparar habilidades'};
    if(list===null){if(card.type==='heal'&&h.hp>=stats.maxHp)return;add(h.zone,{...base,title:card.name,detail:'1 ação'});return;}

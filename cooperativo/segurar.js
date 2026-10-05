@@ -95,6 +95,7 @@
     const legacy=options.legacy||{},scrolls=[...new Set(options.scrolls||[])];
     const revealed=ALL.filter(z=>!options.revealedZones||options.revealedZones.includes(z)||['A1','N1','M1'].includes(z));
     const heroes=ids.map((id,i)=>{const h={...HEROES.create(id,options.levels?.[id]??1),owner:owners[i],zone:'A1',cargo:false,food:0,moves:0,away:false,known:startingAbilities(id,options)};const life=options.life?.[id];if(Number.isInteger(life))h.hp=Math.max(0,Math.min(HEROES.stats(h).maxHp,life));if(!h.hp)h.ap=0;h.startHp=h.hp;return h;});
+    for(const h of heroes){const n=NEXUS[h.id];if(legacy.lost?.[h.id]&&n)h.lost={item:n.item,cards:[...n.cards],zone:'P2'};}
     const store=Math.max(0,Math.min(99,Number.isInteger(options.campFood)?options.campFood:0))+(scrolls.includes('pastores-1')?1:0)+(legacy.altarGold?2:0);
     const criseida=legacy.criseida==='taken'?'camp':'free';
     const s={version:VERSION,mission:MISSION,campaign:camp,route:'A',players,playerNames,round:1,phase:'heroes',result:null,reason:'',campFood:store,foodSetup:store>0&&heroes.some(h=>h.hp<HEROES.stats(h).maxHp),foodSpent:0,
@@ -124,7 +125,8 @@
   // Com Criseida no acampamento, Troia hesita: o primeiro reforço não vem (DILEMAS.md).
   function criseidaDelays(s,step){return step===4&&s.criseida==='camp';}
   function intent(e,s){use(s);if(e.stunned)return 'Atordoado: perderá esta ativação';if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;const shot=rangedTarget(s,e);if(shot)return 'Atirar em '+heroName(shot.id)+(shot.zone!==e.zone?' em '+shot.zone:'');if(s.heroes.some(h=>h.zone===e.zone&&up(h)))return 'Atacar um herói aqui';const goal=huntGoal(s,e);if(goal!=='A1')return 'Atacar os gregos em '+goal;return e.zone==='A1'?'Atacar as tendas':'Avançar para '+ACTIVE[nextStep(e.zone)].name;}
-  function finish(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;
+  function finish(s,result,reason){finishCore(s,result,reason);if(s.outcome)s.outcome.legacy={...(s.outcome.legacy||{}),lost:Object.fromEntries(s.heroes.filter(h=>h.lost).map(h=>[h.id,true]))};}
+  function finishCore(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;
     if(result==='victory')s.outcome={completed:MISSION,next:'Outro caminho',campFood:s.campFood,revealedZones:[...s.revealed],scrolls:[...s.scrolls],commanders:{heitor:'alive',paris:'alive'},legacy:{criseida:s.criseida,aquilesAway:s.heroes.some(h=>h.away||h.patroclus),plague:s.plague,patroclus:s.patroclus.status==='active'?'alive':s.patroclus.status==='none'?'none':'dead',patroclusFacing:!!s.patroclus.facing,heitorWounds:s.patroclus.facing?s.patroclus.dealt:0,achillesSaved:s.patroclus.status==='active'?s.patroclus.saved:null,duel:s.patroclus.status==='none'?'egos':'ira'},glory:[...s.glory],heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]}))};
     log(s,reason);}
   function defeat(s){if(s.result)return;patroclusFalls(s);if(s.campDamage>=TENTS)finish(s,'defeat','Troia rompeu a linha e incendiou as tendas.');else if(!s.heroes.some(up))finish(s,'defeat','Todos os heróis caíram, e a linha cedeu.');}
@@ -165,7 +167,7 @@
   function resolveChronicle(s){const c=s.chronicle;if(!c||c.status!=='open'||s.result)return;const rule=CHRONICLE_CHECKS[c.id];const ok=c.favored||rule.check(s);c.status=ok?'success':'fail';s.chronicleResult={id:c.id,status:c.status};(ok?rule.success:rule.fail)(s);if(!ok&&!s.result)escalate(s,c.id);}
   // Pedido descumprido: Troia manda um contingente ligado à história. Uma tropa; duas com 5 heróis.
   const ESCALATION={"estacas":["P2","lanceiro","Sem as estacas, outra companhia avança pela planície"],"batedores":["P3","explorador","Os batedores trazem mais homens"],"navios":["N2","lanceiro","Uma companhia desce à praia atrás da tocha"]};
-  function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
+  function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];if(!s.nexusDone)loseItem(s,'aquiles',e[0],'Apolo, envolto em névoa, bate nas costas de Aquiles e lhe arranca as sandálias, como fará com a armadura de Pátroclo.');log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
   function startChronicle(s){const entry=CHRONICLE[s.round];if(!entry||s.result){s.chronicle=null;return;}s.chronicle={round:s.round,id:entry.id,status:CHRONICLE_CHECKS[entry.id]?'open':'told'};log(s,'Crônica da rodada '+s.round+': '+entry.title+'.');}
   function enter(s,h,zone){h.zone=zone;reveal(s,zone);if(!s.visited.includes(zone))s.visited.push(zone);}
   function dropCargo(){}
@@ -194,7 +196,8 @@
     h.moves++;enter(s,h,target);return true;
   }
   function interactions(s,h){
-    use(s);const list=[],foes=s.enemies.some(e=>e.zone===h.zone),add=(id,label,detail,available=true)=>list.push({id,label,detail,available:available&&!foes});
+    const lostHere=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);
+    use(s);const list=[],foes=s.enemies.some(e=>e.zone===h.zone),add=(id,label,detail,available=true)=>list.push({id,label,detail,available:available&&!foes});if(lostHere)add('recover','Recuperar '+lostHere.lost.item,'Devolver a '+heroName(lostHere.id)+' · sem inimigos na peça');
     if(h.zone==='A1'&&s.plagueActive)add('council','Conselho de guerra','Reunir os reis e decidir de novo sobre Criseida');
     const achilles=s.heroes.find(a=>a.id==='aquiles');
     if(h.zone==='N4'&&achilles&&s.patroclus.status==='active'&&s.embassy<2&&['odisseu','ajax'].includes(h.id))add('embassy','Embaixada a Aquiles ('+s.embassy+'/2)','2 ações em N4, sem inimigos, de Odisseu ou Ájax');
@@ -205,6 +208,17 @@
   function tokenDetail(zone){const t=TOKENS[zone];return t?'+'+t.amount+' comida':'';}
   function interaction(s,h){const list=interactions(s,h);return list.find(x=>x.available)||list[0]||{id:null,label:'Explorar',detail:'Nada para resolver aqui',available:false};}
   function resolveToken(s,h,def){const t=tokenOf(s,h.zone);s.tokens[h.zone].resolved=true;const zone=h.zone;const message='explorou '+t.name+': '+eat(s,h,t.amount);s.lastFind={zone,title:t.hint,text:t.found.split('{hero}').join(def.name)};addAlarm(s,1,'o barulho da busca em '+zone+' chama atenção');return message;}
+  // Eventos nexo: um herói perde o equipamento, e as cartas que dependem dele ficam viradas até alguém recuperá-lo.
+  // Ájax perde duas (as duas precisam do escudo); os outros, uma. O objeto não recuperado segue perdido na missão seguinte.
+  const NEXUS={
+    odisseu:{item:'o arco de Ítaca',cards:[0],lost:'Disparo Duplo funciona com qualquer arco; a Precisão, não: só o arco dele tem a calibração que a mão conhece.',found:'Odisseu testa a corda do arco como fez diante dos pretendentes, e sorri. A Precisão volta.'},
+    ajax:{item:'o escudo de Ájax',cards:[0,1],lost:'Sem o escudo de sete couros, Ájax não tem o Escudo de Bronze nem o Golpe de Escudo.',found:'Ájax ergue de novo o escudo de sete couros. O Escudo de Bronze e o Golpe de Escudo voltam.'},
+    aquiles:{item:'as sandálias de Aquiles',cards:[1],lost:'Descalço sobre as pedras, Aquiles não consegue a Investida.',found:'Aquiles amarra as sandálias. A Investida volta.'},
+    agamemnon:{item:'o cetro de Agamêmnon',cards:[2],lost:'Sem o cetro, os troianos não temem o rei: Agamêmnon perde a Intimidação.',found:'O cetro volta às mãos do rei. A Intimidação volta.'}};
+  function loseItem(s,id,zone,why){const h=s.heroes.find(x=>x.id===id&&x.hp>0&&!x.away&&!x.patroclus),n=NEXUS[id];if(!h||!n||h.lost||!n.cards.some(c=>h.known.includes(c)))return false;
+    h.lost={item:n.item,cards:[...n.cards],zone};s.nexusDone=true;const names=n.cards.map(c=>HEROES.find(d=>d.id===id).cards[c].name).join(' e ');
+    s.lastFind={zone,title:'Perderam '+n.item,text:why+' '+n.lost+' Na mesa: virem para baixo '+names+' e coloquem 1 ficha de exploração em '+zone+': é onde '+n.item+' está.'};log(s,heroName(id)+' perdeu '+n.item+'. Recuperem-no em '+zone+'.');return true;}
+  function recoverItem(s,h,owner){const n=NEXUS[owner.id];owner.lost=null;s.lastFind={zone:h.zone,title:'Recuperaram '+n.item,text:(h.id===owner.id?'':heroName(h.id)+' devolve '+n.item+'. ')+n.found+' Na mesa: retirem a ficha de '+h.zone+' e virem a carta para cima.'};log(s,heroName(h.id)+' recuperou '+n.item+'.');}
   function act(state,heroId,action,target){
     const s=clone(state),h=s.heroes.find(h=>h.id===heroId),fail=error=>({ok:false,error,state});use(s);
     if(s.result||s.phase!=='heroes')return fail('Esta missão já terminou.');
@@ -218,6 +232,7 @@
     else if(action==='attack'){const e=s.enemies.find(e=>e.id===target&&visible(e)&&distance(h.zone,e.zone)<=HEROES.stats(h).range);if(!e)return fail('Escolha um inimigo no alcance básico.');strike(s,h,e,HEROES.stats(h).attack,{ranged:h.id==='odisseu'||e.zone!==h.zone});message='atacou: '+HEROES.stats(h).attack+' de dano';}
     else if(action==='interact'){
       const options=interactions(s,h),choice=target?options.find(x=>x.id===target):options.find(x=>x.available);
+      if(choice?.id==='recover'&&choice.available){const owner=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);recoverItem(s,h,owner);h.ap--;h.lastAction='interact';return {ok:true,state:s,message:heroName(h.id)+' recuperou '+NEXUS[owner.id].item};}
       if(foes().length)return fail('Elimine os inimigos nesta peça antes de interagir.');
       if(!choice||!choice.available)return fail('Não há nada para resolver aqui.');
       if(choice.id==='explore')message=resolveToken(s,h,def);
@@ -228,7 +243,7 @@
     }else if(action==='rescue'){
       const a=s.heroes.find(a=>a.id===target&&a.zone===h.zone&&a.hp===0&&!a.away);if(!a)return fail('Escolha um aliado caído nesta peça.');if(h.hp<2)return fail('Socorrer transfere 1 de vida: quem socorre precisa ter ao menos 2.');h.hp--;a.hp=1;a.ap=1;message='socorreu '+heroName(a.id)+', dando-lhe 1 da sua própria força';
     }else if(action.startsWith('card:')){
-      const n=Number(action.slice(5)),c=def.cards[n];if(c&&h.known&&!h.known.includes(n))return fail('Este herói ainda não conhece esta habilidade.');if(!c||c.passive||h.used.includes(n)||h.onceUsed.includes(n))return fail('Habilidade indisponível.');
+      const n=Number(action.slice(5)),c=def.cards[n];if(c&&h.known&&!h.known.includes(n))return fail('Este herói ainda não conhece esta habilidade.');if(h.lost?.cards?.includes(n))return fail('Sem '+h.lost.item+', '+def.name+' não pode usar '+c.name+'. Recuperem-no em '+h.lost.zone+'.');if(!c||c.passive||h.used.includes(n)||h.onceUsed.includes(n))return fail('Habilidade indisponível.');
       const e=s.enemies.find(e=>e.id===target&&visible(e)),a=s.heroes.find(a=>a.id===target&&!a.away);
       if(c.type==='attack'||c.type==='ranged'){if(!e||distance(h.zone,e.zone)>(c.type==='ranged'?1:0))return fail('Inimigo fora de alcance.');strike(s,h,e,c.value,{piercing:c.piercing,stun:c.stun,breakArmor:c.breakArmor,ranged:c.type==='ranged'});}
       else if(c.type==='multiRanged'){
@@ -273,14 +288,14 @@
     s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;s.lastFind=null;const enc=s.encounter,h=s.heroes.find(a=>a.id===enc.hero);
     if(enc.id==='crises'){
       if(!crisesChoices(s).includes(choice))return fail('Escolha indisponível.');
-      const end=(title,text)=>{s.encounter=null;s.crisesDone=true;s.plagueActive=false;s.lastFind={zone:'A1',title,text};};
+      const end=(title,text)=>{s.encounter=null;s.crisesDone=true;s.plagueActive=false;const king=s.heroes.find(x=>x.id==='agamemnon'&&x.lost?.item===NEXUS.agamemnon.item);if(king){king.lost=null;text+=' Crises devolve o cetro do rei: a Intimidação volta.';}s.lastFind={zone:'A1',title,text};};
       if(choice==='sacrifice'){// A hecatombe leva todo o armazém (no mínimo 2; o que faltar sai da vida de Agamêmnon).
         const paid=payFood(s,Math.max(2,s.campFood),'A hecatombe a Apolo');addFavor(s,1,'Apolo aceitou a hecatombe');s.criseida='returned';end('A hecatombe','Criseida volta ao pai num navio carregado de oferendas. Na praia, os bois são sacrificados a Apolo, e a fumaça sobe reta. As flechas param. '+(paid.lost?'O armazém não bastou, e o rei pagou com a própria força.':'Todo o armazém foi para o altar.')+' +1 de Favor.');log(s,'Criseida foi devolvida com sacrifício a Apolo.');return {ok:true,state:s};}
       if(choice==='briseida'){const a=s.heroes.find(x=>x.id==='aquiles');s.patroclus={status:'active',struck:false,dealt:0,saved:{level:a.level,known:[...a.known],onceUsed:[...a.onceUsed]}};
         if(!s.glory.includes('agamemnon'))s.glory.push('agamemnon');Object.assign(a,{patroclus:true,level:1,known:[Math.min(...a.known)],used:[],onceUsed:[]});a.hp=HEROES.stats(a).maxHp;a.ap=HEROES.stats(a).actions;s.criseida='returned';
         end('A ira de Aquiles','Criseida volta ao pai, e a peste passa sem custar um grão. Para não ficar sem a sua parte, Agamêmnon manda buscar Briseida nas tendas de Aquiles, e os reis veem que a honra dele está intacta: Agamêmnon conquista Glória. Aquiles não ergue a espada contra o rei: recolhe-se aos navios negros e não lutará. Pátroclo, o amigo, veste a armadura dele e sai com os Mirmidões. O jogador de Aquiles passa a jogar Pátroclo: a força inicial de Aquiles e uma só habilidade.');log(s,'Briseida foi tomada de Aquiles. Pátroclo veste a armadura de Aquiles e entra no lugar dele.');return {ok:true,state:s};}
       if(choice==='intercede'){if(s.favor<5)return fail('A intercessão exige 5 de Favor.');s.favor-=5;end('A intercessão','Atena fala com Zeus, e Zeus fala com Apolo. A peste passa ao largo das tendas, e Criseida continua no acampamento. Os deuses não farão isso de novo tão cedo.');log(s,'Um deus intercedeu junto a Zeus: a peste não virá (Favor −5).');return {ok:true,state:s};}
-      if(choice==='refuse'){s.encounter=null;s.crisesDone=true;s.plagueActive=true;s.lastFind={zone:'A1',title:'A recusa',text:'Agamêmnon expulsa o velho sacerdote. Crises caminha pela praia até o mar e ergue as mãos para Apolo. À noite, os cães começam a morrer.'};log(s,'Agamêmnon recusou o resgate. A peste de Apolo começa.');return {ok:true,state:s};}
+      if(choice==='refuse'){s.encounter=null;s.crisesDone=true;s.plagueActive=true;const king=s.heroes.find(x=>x.id==='agamemnon'&&x.hp>0&&!x.lost&&x.known.includes(2));if(king){king.lost={item:NEXUS.agamemnon.item,cards:[2],zone:'A1'};log(s,'Crises leva o cetro do rei como penhor da filha.');}s.lastFind={zone:'A1',title:'A recusa',text:'Agamêmnon expulsa o velho sacerdote. Crises arranca o cetro das mãos do rei como penhor da filha, caminha pela praia até o mar e ergue as mãos para Apolo. À noite, os cães começam a morrer. Sem o cetro, Agamêmnon perde a Intimidação até devolver Criseida (virem a carta para baixo).'};log(s,'Agamêmnon recusou o resgate. A peste de Apolo começa.');return {ok:true,state:s};}
     }
     if(enc.id==='scales'){if(choice!=='ok')return fail('Escolha inválida.');s.encounter=null;log(s,'Zeus pesou o destino de Pátroclo e de Heitor.');return {ok:true,state:s};}
     if(enc.id==='ability'){const n=Number(choice);if(!h||!enc.choices.includes(n))return fail('Escolham uma das habilidades ainda não aprendidas.');h.known.push(n);h.known.sort();s.encounter=null;s.lastLearn={hero:h.id,kind:'ability',card:n};log(s,heroName(h.id)+' aprendeu '+HEROES.find(d=>d.id===h.id).cards[n].name+'. Virem a carta no tabuleiro do herói.');const next=s.pendingAbility&&s.heroes.find(a=>a.id===s.pendingAbility);s.pendingAbility=null;if(next){const left=[0,1,2].filter(x=>!next.known.includes(x));if(left.length)s.encounter={id:'ability',hero:next.id,zone:next.zone,choices:left};}return {ok:true,state:s};}

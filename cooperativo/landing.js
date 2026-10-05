@@ -132,7 +132,8 @@
   function nextAlarm(s){const steps=Object.keys(ALARM_STEPS).map(Number).filter(n=>!s.alarmFired.includes(n)).sort((a,b)=>a-b);if(!steps.length)return {at:alarmMax(s),entries:[]};const at=steps[0];return {at,entries:alarmEntries(s,at)};}
   function waves(s){return nextAlarm(s).entries.map(([zone])=>zone);}
   function intent(e,s){if(e.stunned)return 'Atordoado: perderá esta ativação';{const shot=rangedTarget(s,e);if(shot&&!e.intimidated)return 'Atirar em '+heroName(shot.id)+(shot.zone!==e.zone?' em '+shot.zone:'');}if(e.hold&&e.post&&e.zone!==e.post&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return 'Voltar ao posto em '+e.post;if(e.hold&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return e.watch?'Vigiar a praia':'Guarnecer o posto de vigia';if(e.relief&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return 'Render a vigia em A1: avançar para '+ZONES[reliefStep(e)].name;if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;if(s.heroes.some(h=>h.zone===e.zone&&h.hp>0))return 'Atacar um herói aqui';const goal=huntGoal(s,e);if(goal!=='A1')return 'Caçar quem carrega a caixa em '+goal;return e.zone==='A1'?(s.post.status==='taken'?'Atacar o acampamento':'Defender o posto de A1'):'Avançar para '+ZONES[nextStep(e.zone)].name;}
-  function finish(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;if(result==='victory')s.outcome={completed:'desembarque',next:'Diante das muralhas',supplies:s.delivered-s.burned,burned:s.burned,eneias:s.eneiasDown,horseMaterials:0,campFood:s.campFood,revealedZones:[...s.revealed],castaways:s.castaways.status==='rescued',castawaysFate:s.castaways.status,beggarFate:s.beggar.status,lookoutTaken:!!s.tokens.P1.resolved,scrolls:[...s.scrolls],heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]})),blessing:s.beggar.status==='zeus'};log(s,reason);}
+  function finish(s,result,reason){finishCore(s,result,reason);if(s.outcome)s.outcome.legacy={...(s.outcome.legacy||{}),lost:Object.fromEntries(s.heroes.filter(h=>h.lost).map(h=>[h.id,true]))};}
+  function finishCore(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;if(result==='victory')s.outcome={completed:'desembarque',next:'Diante das muralhas',supplies:s.delivered-s.burned,burned:s.burned,eneias:s.eneiasDown,horseMaterials:0,campFood:s.campFood,revealedZones:[...s.revealed],castaways:s.castaways.status==='rescued',castawaysFate:s.castaways.status,beggarFate:s.beggar.status,lookoutTaken:!!s.tokens.P1.resolved,scrolls:[...s.scrolls],heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]})),blessing:s.beggar.status==='zeus'};log(s,reason);}
   function defeat(s){if(s.result)return;if(s.campDamage>=3)finish(s,'defeat','Troia arrasou o acampamento. Os gregos precisam refazer o desembarque.');else if(s.heroes.every(h=>h.hp===0))finish(s,'defeat','Todos os heróis caíram. A expedição precisa recuar.');}
   // Vitória: acampamento instalado e, antes de Enéias, nenhuma tropa em A1 e vizinhas; depois dele, Enéias derrotado.
   function victory(s){if(s.result||!s.built)return;
@@ -170,7 +171,7 @@
   function resolveChronicle(s){const c=s.chronicle;if(!c||c.status!=='open'||s.result)return;const rule=CHRONICLE_CHECKS[c.id];const ok=c.favored||rule.check(s);c.status=ok?'success':'fail';s.chronicleResult={id:c.id,status:c.status};(ok?rule.success:rule.fail)(s);if(!ok&&!s.result)escalate(s,c.id);}
   // Pedido descumprido: Troia manda um contingente ligado à história. Uma tropa; duas com 5 heróis.
   const ESCALATION={"sinal":["P2","explorador","Os vigias das colinas viram a fumaça e mandaram batedores"],"fogueiras":["P2","lanceiro","Na escuridão, uma companhia troiana se aproxima das tendas"]};
-  function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
+  function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];if(!s.nexusDone)loseItem(s,'odisseu',e[0],'Na noite, batedores troianos entram no acampamento e levam o arco de Odisseu.');log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
   function startChronicle(s){
     const quiet=!s.moments.length;s.moments=[];if(s.result){s.chronicle=null;return;}
     const id=s.chronicleQueue.shift()||(quiet?BREATHERS.find(b=>!s.told.includes(b)):null);if(!id){s.chronicle=null;return;}
@@ -207,7 +208,8 @@
   }
   // Todas as interações possíveis na peça do herói (a ação Explorar).
   function interactions(s,h){
-    const list=[],foes=s.enemies.some(e=>e.zone===h.zone),add=(id,label,detail,available=true)=>list.push({id,label,detail,available:available&&!foes});
+    const lostHere=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);
+    const list=[],foes=s.enemies.some(e=>e.zone===h.zone),add=(id,label,detail,available=true)=>list.push({id,label,detail,available:available&&!foes});if(lostHere)add('recover','Recuperar '+lostHere.lost.item,'Devolver a '+heroName(lostHere.id)+' · sem inimigos na peça');
     if(h.cargo&&h.zone==='A1')add('deliver','Entregar caixa','Abastecer o acampamento');
     if(!h.cargo&&(s.supplies[h.zone]||0)>0)add('pickup','Carregar caixa','Quem carrega só se move uma vez por rodada');
     if(h.zone==='A1'&&s.delivered===s.required&&!s.built)add('install','Instalar acampamento','Inicia o contra-ataque troiano');
@@ -234,6 +236,17 @@
         else if(t.kind==='scroll'){if(!s.scrolls.includes(t.scroll))s.scrolls.push(t.scroll);message='encontrou a '+t.name.toLocaleLowerCase('pt-BR')+' (pergaminho Rotas da costa I)';}
         else if(t.kind==='clue'){message='seguiu as '+t.name.toLocaleLowerCase('pt-BR');}
         revealClues(s,zone);const text=[t.found.split('{hero}').join(def.name),CLUE_TEXT[zone]||''].filter(Boolean).join(' ');s.lastFind={zone,title:t.hint,text};if(t.kind!=='clue')addAlarm(s,1,'o barulho da busca em '+zone+' chama atenção');return message;}
+  // Eventos nexo: um herói perde o equipamento, e as cartas que dependem dele ficam viradas até alguém recuperá-lo.
+  // Ájax perde duas (as duas precisam do escudo); os outros, uma. O objeto não recuperado segue perdido na missão seguinte.
+  const NEXUS={
+    odisseu:{item:'o arco de Ítaca',cards:[0],lost:'Disparo Duplo funciona com qualquer arco; a Precisão, não: só o arco dele tem a calibração que a mão conhece.',found:'Odisseu testa a corda do arco como fez diante dos pretendentes, e sorri. A Precisão volta.'},
+    ajax:{item:'o escudo de Ájax',cards:[0,1],lost:'Sem o escudo de sete couros, Ájax não tem o Escudo de Bronze nem o Golpe de Escudo.',found:'Ájax ergue de novo o escudo de sete couros. O Escudo de Bronze e o Golpe de Escudo voltam.'},
+    aquiles:{item:'as sandálias de Aquiles',cards:[1],lost:'Descalço sobre as pedras, Aquiles não consegue a Investida.',found:'Aquiles amarra as sandálias. A Investida volta.'},
+    agamemnon:{item:'o cetro de Agamêmnon',cards:[2],lost:'Sem o cetro, os troianos não temem o rei: Agamêmnon perde a Intimidação.',found:'O cetro volta às mãos do rei. A Intimidação volta.'}};
+  function loseItem(s,id,zone,why){const h=s.heroes.find(x=>x.id===id&&x.hp>0&&!x.away&&!x.patroclus),n=NEXUS[id];if(!h||!n||h.lost||!n.cards.some(c=>h.known.includes(c)))return false;
+    h.lost={item:n.item,cards:[...n.cards],zone};s.nexusDone=true;const names=n.cards.map(c=>HEROES.find(d=>d.id===id).cards[c].name).join(' e ');
+    s.lastFind={zone,title:'Perderam '+n.item,text:why+' '+n.lost+' Na mesa: virem para baixo '+names+' e coloquem 1 ficha de exploração em '+zone+': é onde '+n.item+' está.'};log(s,heroName(id)+' perdeu '+n.item+'. Recuperem-no em '+zone+'.');return true;}
+  function recoverItem(s,h,owner){const n=NEXUS[owner.id];owner.lost=null;s.lastFind={zone:h.zone,title:'Recuperaram '+n.item,text:(h.id===owner.id?'':heroName(h.id)+' devolve '+n.item+'. ')+n.found+' Na mesa: retirem a ficha de '+h.zone+' e virem a carta para cima.'};log(s,heroName(h.id)+' recuperou '+n.item+'.');}
   function act(state,heroId,action,target){
     const s=clone(state),h=s.heroes.find(h=>h.id===heroId),fail=error=>({ok:false,error,state});
     if(s.result||s.phase!=='heroes')return fail('Esta missão já terminou.');
@@ -246,6 +259,7 @@
     else if(action==='attack'){const e=s.enemies.find(e=>e.id===target&&visible(e)&&distance(h.zone,e.zone)<=HEROES.stats(h).range);if(!e)return fail('Escolha um inimigo no alcance básico.');strike(s,h,e,HEROES.stats(h).attack,{ranged:h.id==='odisseu'||e.zone!==h.zone});message='atacou: '+HEROES.stats(h).attack+' de dano';}
     else if(action==='interact'){
       const options=interactions(s,h),choice=target?options.find(x=>x.id===target):options.find(x=>x.available);
+      if(choice?.id==='recover'&&choice.available){const owner=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);recoverItem(s,h,owner);h.ap--;h.lastAction='interact';return {ok:true,state:s,message:heroName(h.id)+' recuperou '+NEXUS[owner.id].item};}
       if(foes().length)return fail('Elimine os inimigos nesta peça antes de interagir.');
       if(!choice||!choice.available)return fail(choice?.id==='feed'?'O armazém do acampamento está vazio: não há pão para dar.':'Não há nada para resolver aqui.');
       if(choice.id==='deliver'){h.cargo=false;s.delivered++;moment(s,s.delivered===s.required?'carga':s.delivered===1?'entrega':'caixa');message='entregou uma caixa em A1 ('+s.delivered+'/'+s.required+')';}
@@ -265,7 +279,7 @@
     }else if(action==='rescue'){
       const a=s.heroes.find(a=>a.id===target&&a.zone===h.zone&&a.hp===0);if(!a)return fail('Escolha um aliado caído nesta peça.');if(h.hp<2)return fail('Socorrer transfere 1 de vida: quem socorre precisa ter ao menos 2.');h.hp--;a.hp=1;a.ap=1;if(h.id==='menelau')feat(s,'menelau');message='socorreu '+heroName(a.id)+', dando-lhe 1 da sua própria força';
     }else if(action.startsWith('card:')){
-      const n=Number(action.slice(5)),c=def.cards[n];if(c&&h.known&&!h.known.includes(n))return fail('Este herói ainda não conhece esta habilidade.');if(!c||c.passive||h.used.includes(n)||h.onceUsed.includes(n))return fail('Habilidade indisponível.');
+      const n=Number(action.slice(5)),c=def.cards[n];if(c&&h.known&&!h.known.includes(n))return fail('Este herói ainda não conhece esta habilidade.');if(h.lost?.cards?.includes(n))return fail('Sem '+h.lost.item+', '+def.name+' não pode usar '+c.name+'. Recuperem-no em '+h.lost.zone+'.');if(!c||c.passive||h.used.includes(n)||h.onceUsed.includes(n))return fail('Habilidade indisponível.');
       const e=s.enemies.find(e=>e.id===target&&visible(e)),a=s.heroes.find(a=>a.id===target);
       if(c.type==='attack'||c.type==='ranged'){if(!e||distance(h.zone,e.zone)>(c.type==='ranged'?1:0))return fail('Inimigo fora de alcance.');strike(s,h,e,c.value,{piercing:c.piercing,stun:c.stun,breakArmor:c.breakArmor,ranged:c.type==='ranged'});}
       else if(c.type==='multiRanged'){

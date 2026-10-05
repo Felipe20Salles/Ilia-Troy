@@ -64,11 +64,12 @@ test('Agamemnon leads the coalition: his feat is Hector falling with no hero dow
  let t=setup();t.revealed.push('P4');hector(t).zone='P4';t.chase.status='stopped';hero(t,'aquiles').zone='P4';hero(t,'odisseu').hp=0;hero(t,'odisseu').ap=0;t=act(t,'aquiles','interact','duel');assert.equal(t.personal.agamemnon.done,false);
 });
 test('Athena as Deiphobus makes Hector stop once',()=>{
- let s=setup({favor:4});s.chase.status='running';assert.equal(G.invoke(s,'deifobo').ok,false,'antes da primeira passagem pelo portão, não');s.chase.laps=1;s=G.invoke(s,'deifobo').state;assert.equal(s.chase.status,'stopped');s.round++;s.invokedRound=0;assert.equal(G.invoke(s,'deifobo').ok,false);
+ let s=setup({favor:4});s.chase.status='running';assert.equal(G.invoke(s,'deifobo').ok,false,'antes da segunda passagem pelo portão, não');s.chase.laps=2;s=G.invoke(s,'deifobo').state;assert.equal(s.chase.status,'stopped');s.round++;s.invokedRound=0;assert.equal(G.invoke(s,'deifobo').ok,false);
 });
 test('the bot brings Hector down in most rosters',()=>{
  const ids=['aquiles','ajax','odisseu','menelau','agamemnon'];let wins=0,games=0;
  for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];
   for(const deifobo of [false,true]){const s=play(team,{favor:3,deifobo});games++;if(s.result==='victory')wins++;}}
- assert.ok(wins/games>=.5&&wins/games<=.9,'vitórias do robô: '+wins+'/'+games);
+ // Meta do Felipe (05/10/2026): no máximo 6 vitórias em 14 (43%).
+ assert.ok(wins/games>=.2&&wins/games<=6/14,'vitórias do robô: '+wins+'/'+games);
 });

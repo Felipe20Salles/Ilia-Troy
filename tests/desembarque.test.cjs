@@ -284,3 +284,10 @@ test('a garrison pushed off its post by Intimidation walks back to it instead of
  const r=G.act(s,'agamemnon','card:2','e9');assert.ok(r.ok,r.error);s=r.state;const e=s.enemies[0];assert.notEqual(e.zone,'P1');assert.equal(e.post,'P1');assert.match(G.intent(e,s),/posto/);
  s.heroes.forEach(h=>h.zone='N1');for(let i=0;i<3&&s.enemies[0].zone!=='P1';i++)s=G.trojanTurn(s);assert.equal(s.enemies[0].zone,'P1','voltou ao posto');assert.ok(s.enemies[0].hold);assert.ok(G.validSave(s));
 });
+test('nexus: the first failed chronicle request costs Odysseus his bow; only Precision is lost, and any hero can recover it',()=>{
+ let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],players:1,abilities:{odisseu:0,agamemnon:0,aquiles:0}});
+ s.revealed.push('A2','A1','P2','N2');s.enemies=[];s.chronicle={round:s.round,id:'sinal',status:'open'};s.heroes.forEach(h=>h.zone='N1');
+ s=G.trojanTurn(s);const o=hero(s,'odisseu');assert.ok(o.lost,'o arco foi levado');assert.deepEqual(o.lost.cards,[0]);assert.equal(o.lost.zone,'P2');assert.ok(G.validSave(s));
+ s.enemies=[];s.heroes.forEach(h=>h.ap=2);assert.equal(G.act(s,'odisseu','card:0',null).ok,false,'sem o arco, não há Precisão');
+ hero(s,'aquiles').zone='P2';s=act(s,'aquiles','interact','recover');assert.equal(hero(s,'odisseu').lost,null,'Aquiles devolve o arco');
+});

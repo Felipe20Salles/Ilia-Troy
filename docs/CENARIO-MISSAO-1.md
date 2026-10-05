@@ -240,3 +240,11 @@ Os náufragos continuam revelando as praias com caixas, e as tropas revelam as p
 
 - O Caminho Seguro volta a alcançar só peças reveladas (desfaz a mudança de 02/10).
 - O feito Batedor da frota passa a ser investigar 3 indícios.
+
+## Revisão de 04/10/2026
+
+- **Crônica por momentos:** a crônica não sai mais uma por rodada. O pedido nasce do momento que o explica: o posto achado acende a fumaça, a primeira caixa traz os barris, o Alarme 4 traz os olhos na mata, a carga completa traz as fogueiras. Rodadas com algum momento ficam sem crônica; as calmas recebem uma cena curta. "Marcas na areia" saiu (erro histórico).
+- **Enéias é surpresa:** a trilha mostra "?" no 15 até ele descer, e o aviso antecipado do comandante saiu.
+- **Caixas só no app:** não há caixa física; o app guarda onde estão e quem carrega.
+- **A queda de Enéias não limpa o mapa:** saem com ele só as tropas da guarda (a até 1 peça). O Alarme cai 7 e a contagem continua; no 15 seguinte descem lanceiros no lugar dele (um por herói, no mínimo três). Para vencer, o acampamento precisa estar erguido e sem troianos perto das tendas.
+- **Feito ao fim da missão:** a habilidade escolhida depois da vitória (ex.: Agamêmnon ao erguer o acampamento) também segue para a campanha.

@@ -3,47 +3,75 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Manual do jogo · Ilia</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="landing.css">
+  <style>
+  /* Grafite, como o resto do app */
+  :root{--bg:#141517;--panel:#1d1f22;--line:#383c42}
+  body.manual-document{background:#141517}
+  .manual-page section{background:#1d1f22;border-color:#383c42}
+  .manual-index a,.manual-hub a,.manual-hub span{background:#26292d;border-color:#383c42}
+  .manual-hub [aria-current]{background:linear-gradient(135deg,#5a4520,#2d2a24);border-color:#c49a54}
+  .manual-page section{scroll-margin-top:160px}
+  .manual-page h1,.manual-page h2{text-transform:none;letter-spacing:.01em}
+  .rule-card-grid article,.manual-visual-pair article,.round-flow li,.resource-track article,.manual-callouts p,.combat-strip div{background:#26292d;border-color:#383c42}
+  </style>
 <script defer src="../assets/audio.js"></script></head>
 <body class="manual-document rules-document">
 <header class="topbar"><a class="brand" href="./" aria-label="Voltar à campanha"><span class="brand-mark" aria-hidden="true">Ι</span><span>ILIA <small>COOPERATIVO</small></span></a><span class="prototype">MANUAL DO JOGO</span></header>
 <main class="manual-page">
   <p class="eyebrow">REGRAS PERMANENTES</p><h1>Manual do jogo</h1>
-  <p class="lead">Estas regras acompanham toda a campanha. Objetivos, montagem, tropas iniciais, limite de rodadas e acontecimentos próprios ficam no manual de cada missão.</p>
+  <p class="lead">Estas regras valem para toda a campanha. O objetivo, a montagem e o ritmo de cada batalha ficam no manual da missão, aberto pelo botão ? durante a partida.</p>
   <nav class="manual-hub" aria-label="Biblioteca de manuais"><span aria-current="page">Manual do jogo</span><a href="historia.html">História de Troia</a></nav>
-  <nav class="manual-index" aria-label="Índice do manual"><a href="#apoio"><span>▦</span>Mesa e site</a><a href="#rodada"><span>↻</span>Rodada</a><a href="#acoes"><span>◆</span>Ações</a><a href="#combate"><span>⚔</span>Combate</a><a href="#recursos"><span>◇</span>Recursos</a></nav>
+  <nav class="manual-index" aria-label="Índice do manual"><a href="#apoio"><span>▦</span>Mesa e app</a><a href="#rodada"><span>↻</span>Rodada</a><a href="#acoes"><span>◆</span>Ações</a><a href="#combate"><span>⚔</span>Combate</a><a href="#vida"><span>●</span>Vida</a><a href="#alarme"><span>▲</span>Alarme</a><a href="#deuses"><span>✦</span>Deuses</a><a href="#campanha"><span>◇</span>Campanha</a></nav>
 
   <section id="apoio"><div class="manual-section-heading"><span class="manual-section-icon">▦</span><div><p class="eyebrow">DOIS PLANOS, UMA PARTIDA</p><h2>Mesa física e apoio digital</h2></div></div>
-    <div class="manual-visual-pair"><article><b>Na mesa</b><span>Tabuleiro, miniaturas, fichas de exploração e cartas.</span></article><span class="manual-flow">⇄</span><article><b>No site</b><span>Narrativa, vida, ações, recursos, inimigos e resultados.</span></article></div>
-    <p>O site anuncia tropas e informa quando novas peças devem ser colocadas. Todo movimento e dano confirmado no site deve ser reproduzido imediatamente no tabuleiro físico.</p>
+    <div class="manual-visual-pair"><article><b>Na mesa</b><span>Peças do mapa, miniaturas, fichas de exploração, tabuleiros dos heróis, cartas de habilidade e fichas de comida.</span></article><span class="manual-flow">⇄</span><article><b>No app</b><span>A história, as ordens de Troia, o Alarme, o Favor, as caixas de carga e tudo o que não se marca na mesa.</span></article></div>
+    <p>O app dá as ordens de mesa <b>uma de cada vez</b>, num aviso no centro da tela: encaixar uma peça, pôr uma ficha, mover ou retirar uma tropa, tirar fichas de comida de um herói. Façam o gesto e toquem em Ok. O mapa do app só mostra o que já está na mesa.</p>
   </section>
 
-  <section id="rodada"><div class="manual-section-heading"><span class="manual-section-icon">↻</span><div><p class="eyebrow">CICLO DA BATALHA</p><h2>Rodada e resposta de Troia</h2></div></div>
-    <ol class="round-flow"><li><span>1</span><b>Heróis agem</b><small>Intercalem ações na ordem escolhida.</small></li><li><span>2</span><b>Grupo encerra</b><small>O turno pode terminar com ações restantes.</small></li><li><span>3</span><b>Troia responde</b><small>Tropas atacam, perseguem ou avançam.</small></li><li><span>4</span><b>Nova rodada</b><small>Heróis de pé restauram suas ações.</small></li></ol>
+  <section id="rodada"><div class="manual-section-heading"><span class="manual-section-icon">↻</span><div><p class="eyebrow">CICLO DA BATALHA</p><h2>Fase dos heróis e fase de Troia</h2></div></div>
+    <ol class="round-flow"><li><span>1</span><b>Os heróis agem</b><small>Cada um tem 2 ações. Toquem no herói e depois na peça. A ordem é livre e pode ser intercalada.</small></li><li><span>2</span><b>A ampulheta</b><small>O grupo encerra a fase quando quiser, mesmo com ações sobrando.</small></li><li><span>3</span><b>Troia responde</b><small>Cada tropa à vista move ou ataca, um passo por vez. Depois chegam os reforços e, às vezes, uma crônica.</small></li><li><span>4</span><b>Nova rodada</b><small>Os heróis de pé recuperam as ações.</small></li></ol>
+    <p>No balão de Troia, aberto pela chama no alto da tela, cada tropa mostra o que vai fazer na próxima fase de Troia. No botão <b>Feitos</b>, cada herói mostra o seu objetivo pessoal e o progresso.</p>
   </section>
 
   <section id="acoes"><div class="manual-section-heading"><span class="manual-section-icon">◆</span><div><p class="eyebrow">CADA ESCOLHA CUSTA 1 AÇÃO</p><h2>Ações dos heróis</h2></div></div>
     <div class="rule-card-grid">
-      <article><span>➜</span><h3>Mover</h3><p>Avance para uma área conectada. Sair de uma área com inimigos causa golpe de fuga igual à metade do Ataque da tropa mais fraca, arredondada para baixo e ignorando Armadura. Caminho Seguro e Abrir Caminho evitam esse golpe.</p></article>
-      <article><span>⚔</span><h3>Atacar</h3><p>Escolha um alvo dentro do alcance e aplique o dano fixo. Ataques corpo a corpo contra um inimigo sobrevivente e não atordoado recebem rebote igual à metade do Ataque dele, arredondada para baixo.</p></article>
-      <article><span>⌕</span><h3>Explorar</h3><p>Resolva e retire uma ficha da área livre de inimigos. A descoberta pode conceder comida, evolução, informação ou novas peças.</p></article>
-      <article><span>♥</span><h3>Recuperar</h3><p>Representa comer, descansar e preparar novamente habilidades reutilizáveis. Exige uma área sem inimigos.</p></article>
-      <article><span>✦</span><h3>Habilidade</h3><p>Cada habilidade ativa custa uma ação. Efeitos de uso único por missão não retornam ao Recuperar.</p></article>
+      <article><span>➜</span><h3>Mover</h3><p>Ir para uma peça vizinha que já esteja na mesa. Sair de uma peça com inimigos custa um golpe de fuga: metade do Ataque da tropa mais fraca, ignorando Armadura. Caminho Seguro e Abrir Caminho evitam o golpe.</p></article>
+      <article><span>⚔</span><h3>Atacar</h3><p>Um alvo dentro do alcance recebe o Ataque do herói, menos a Armadura dele. O ataque básico é na própria peça; algumas habilidades, como as de Odisseu, e as tropas de arqueiros alcançam a peça vizinha.</p></article>
+      <article><span>⌕</span><h3>Investigar</h3><p>Resolve a ficha de exploração da peça, sem inimigos nela. A ficha pode trazer comida, um pergaminho, um perigo ou um encontro, e a pista revela as peças para onde aponta. É assim que o mapa cresce.</p></article>
+      <article><span>✦</span><h3>Habilidade</h3><p>Cada carta para cima custa 1 ação e vira depois de usada. As de uso único por missão não voltam.</p></article>
+      <article><span>↺</span><h3>Recuperar</h3><p>Desvira as habilidades usadas, numa peça sem inimigos. Não cura: vida só volta com comida.</p></article>
+      <article><span>✚</span><h3>Socorrer</h3><p>Levanta um aliado caído na mesma peça <b>sem gastar ação</b>: quem socorre passa 1 da própria vida a ele.</p></article>
     </div>
+    <p>Algumas missões têm ações próprias, como carregar e entregar caixas ou reconhecer o portão. O app mostra no menu da peça o que dá para fazer ali.</p>
   </section>
 
-  <section id="combate"><div class="manual-section-heading"><span class="manual-section-icon">⚔</span><div><p class="eyebrow">DANO FIXO E RESPOSTA IMEDIATA</p><h2>Combate, Armadura e queda</h2></div></div>
-    <div class="combat-strip"><div><b>ATAQUE</b><span>causa dano fixo</span></div><i>→</i><div><b>ARMADURA</b><span>reduz o dano</span></div><i>→</i><div><b>VIDA</b><span>recebe o restante</span></div></div>
-    <p>A Armadura reduz o próximo dano recebido e volta a atuar em ataques posteriores enquanto existir. Dano que ignora Armadura aplica seu valor integral. O Golpe de Escudo de Ájax destrói toda a Armadura do alvo e o deixa Atordoado; uma tropa atordoada não ataca na próxima resposta.</p>
-    <div class="manual-callouts"><p><b>Odisseu</b> ignora Armadura em todos os seus ataques.</p><p><b>Ataques à distância</b> não geram rebote. <b>Arqueiros</b> (Odisseu, Páris e as tropas de arqueiros) não devolvem golpe e não sofrem rebote.</p><p><b>Heróis com 0 de vida</b> ficam caídos. Se não forem socorridos até o fim da missão, morrem e deixam a campanha.</p></div>
+  <section id="combate"><div class="manual-section-heading"><span class="manual-section-icon">⚔</span><div><p class="eyebrow">DANO FIXO, SEM DADOS</p><h2>Combate e Armadura</h2></div></div>
+    <div class="combat-strip"><div><b>ATAQUE</b><span>dano fixo</span></div><i>→</i><div><b>ARMADURA</b><span>tira o mesmo tanto</span></div><i>→</i><div><b>VIDA</b><span>recebe o resto</span></div></div>
+    <p>Não há sorte: o dano é sempre o mesmo número. A Armadura reduz cada golpe, e o dano que ignora Armadura vale inteiro. Quando uma tropa ataca um herói corpo a corpo e ele continua de pé, o herói revida na hora: é o <b>rebote</b>, metade do Ataque dele, arredondada para baixo.</p>
+    <div class="manual-callouts"><p><b>De longe</b>, um tiro tira metade do Ataque, arredondada para cima. <b>Arqueiros</b> (Odisseu, Páris e as tropas de arqueiros) não devolvem golpe nem sofrem rebote.</p><p><b>Odisseu</b> ignora Armadura em todos os ataques. O <b>Golpe de Escudo</b> de Ájax tira toda a Armadura do alvo e o deixa atordoado. A <b>Intimidação</b> de Agamêmnon fere, empurra a tropa uma peça para trás e a impede de atacar na fase seguinte.</p><p><b>Tropas de posto</b> (vigias, guarnições, guardas) ficam paradas. Se forem empurradas para fora, voltam ao posto.</p></div>
   </section>
 
-  <section id="recursos"><div class="manual-section-heading"><span class="manual-section-icon">◇</span><div><p class="eyebrow">O QUE A EQUIPE CARREGA</p><h2>Comida, evolução e exploração</h2></div></div>
-    <div class="resource-track"><article><span>●</span><b>Comida</b><small>1 por herói; excedente fica no acampamento.</small></article><article><span>Ⅰ</span><b>Nível base</b><small>Todo herói começa aqui.</small></article><article><span>Ⅱ</span><b>Evolução N2</b><small>Precisa vir antes de N3.</small></article><article><span>Ⅲ</span><b>Evolução N3</b><small>Nem todos chegarão a ela.</small></article></div>
-    <p>Comida descoberta é armazenada no acampamento e pode reabastecer heróis em missões posteriores. Toda recompensa de evolução considera apenas os heróis presentes e pode apresentar duas opções para escolha do grupo.</p>
+  <section id="vida"><div class="manual-section-heading"><span class="manual-section-icon">●</span><div><p class="eyebrow">AS FICHAS DE COMIDA SÃO OS SEUS HOMENS</p><h2>Vida é comida</h2></div></div>
+    <div class="resource-track"><article><span>●</span><b>Vida</b><small>Fichas de comida no tabuleiro do herói: os homens dele, alimentados e de pé.</small></article><article><span>−</span><b>Dano</b><small>O app diz quantas fichas tirar, e de quem.</small></article><article><span>+</span><b>Comida achada</b><small>Volta para quem achou; a sobra vai para o armazém.</small></article><article><span>⌂</span><b>Armazém</b><small>Só repõe vida no começo da missão seguinte.</small></article></div>
+    <p>Sem fichas, o contingente se desfaz e o herói <b>cai</b>. Um aliado na mesma peça pode socorrê-lo. <b>Quem estiver caído quando a missão terminar morre</b> e sai da campanha; o jogador que ficar sem herói deixa a mesa.</p>
   </section>
 
+  <section id="alarme"><div class="manual-section-heading"><span class="manual-section-icon">▲</span><div><p class="eyebrow">A CHAMA NO ALTO DA TELA</p><h2>O Alarme de Troia</h2></div></div>
+    <p>A chama mede quanto Troia sabe dos gregos. Ela sobe com o tempo e com o barulho: buscas, batedores que veem os heróis, um casco rangendo. Cada patamar traz tropas, e alguns guardam surpresas. O Alarme nunca encerra a partida sozinho: só a deixa mais difícil.</p>
+    <p>Cada missão tem o seu ritmo, explicado no manual dela. Em Segurar a linha, por exemplo, a chama começa no máximo e desce conforme as tropas caem.</p>
+    <div class="manual-callouts"><p><b>Crônica.</b> No fim da fase de Troia, a crônica conta o que o momento da missão provocou. Às vezes traz um <b>pedido</b>, resolvido na fase de Troia seguinte.</p></div>
+  </section>
+
+  <section id="deuses"><div class="manual-section-heading"><span class="manual-section-icon">✦</span><div><p class="eyebrow">HONRA E PIEDADE</p><h2>Favor dos deuses e feitos</h2></div></div>
+    <p>Atos de honra rendem <b>Favor</b>: salvar náufragos, respeitar um santuário, cumprir feitos. Atos ímpios o tiram. Uma vez por rodada, sem gastar ação, o grupo pode invocar um deus em <b>Recursos</b>: <b>Atena</b> revela o que há numa ficha (no menu da peça), <b>Poseidon</b> baixa o Alarme, <b>Zeus</b> cumpre o pedido da crônica. Algumas missões trazem invocações próprias.</p>
+    <div class="manual-callouts"><p><b>Feitos pessoais.</b> Cada herói tem um objetivo próprio em cada missão. No Desembarque e em Diante das muralhas, cumpri-lo ensina uma nova habilidade, escolhida pelo jogador. De Segurar a linha em diante, rende Favor e Glória.</p></div>
+  </section>
+
+  <section id="campanha"><div class="manual-section-heading"><span class="manual-section-icon">◇</span><div><p class="eyebrow">DE UMA MISSÃO PARA A OUTRA</p><h2>Campanha</h2></div></div>
+    <div class="resource-track"><article><span>Ⅰ</span><b>A equipe segue</b><small>Vida, níveis e habilidades passam de missão para missão.</small></article><article><span>Ⅱ</span><b>Evolução</b><small>Desafios como o mirante levam um herói a N2, depois N3.</small></article><article><span>Ⅲ</span><b>Consequências</b><small>Escolhas, pergaminhos e perdas mudam as missões seguintes.</small></article></div>
+    <p>As <b>caixas de carga</b> existem só no app: ele mostra onde estão e quem carrega. O que chega ao acampamento vira recursos para a campanha.</p>
+  </section>
 
   <footer><a href="./">← Voltar à campanha</a></footer>
 </main>
 </body></html>
-

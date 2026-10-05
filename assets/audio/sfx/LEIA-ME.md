@@ -53,3 +53,11 @@ O `corneta.mp3` deixou de ser usado: no lugar dele entram `troianos.mp3` (tropas
 | `flecha.mp3` | Odisseu, arqueiros e Páris | [Bow Release (Bow and Arrow) 4](https://pixabay.com/sound-effects/film-special-effects-bow-release-bow-and-arrow-4-101936/), 0:01 | [Arrow Swish_03](https://pixabay.com/sound-effects/film-special-effects-arrow-swish-03-306040/), 0:01 |
 
 Os sons longos (marcha, júbilo, grito de guerra) são cortados automaticamente com fade depois de alguns segundos.
+
+## Trombeta dos alertas (04/10/2026)
+
+O `corneta.mp3` volta a tocar quando chegam tropas troianas (os patamares do Alarme e os reforços). Enquanto o arquivo não existir, tocam os tambores de `troianos.mp3`.
+
+| Arquivo | Quando toca | Som |
+|---|---|---|
+| `corneta.mp3` | Chegam tropas troianas | [War Horn sfx](https://pixabay.com/sound-effects/film-special-effects-war-horn-sfx-319881/), o mesmo de antes |

@@ -82,7 +82,7 @@
   if(['guard','protect'].includes(type))return play('escudo');
   return effect('ability');
  }
- function trojan(step){if(!step)return;const intent=(step.intent||'').toLocaleLowerCase('pt-BR');if(intent.includes('atacar'))cue(['arqueiro','paris'].includes(step.type)?'flecha':'espada');else if(intent.includes('sabotar'))cue('escudo');else cue('marcha');}
+ function trojan(step){if(!step)return;const intent=(step.intent||'').toLocaleLowerCase('pt-BR');if(intent.includes('atirar')||(intent.includes('atacar')&&['arqueiro','paris'].includes(step.type)))cue('flecha');else if(intent.includes('atacar'))cue('espada');else if(intent.includes('sabotar'))cue('escudo');else cue('marcha');}
  function mount(){
   const header=document.querySelector('header'),host=header||document.body;if(!host.querySelector('[data-audio-toggle]')){const button=document.createElement('button');button.type='button';button.className='audio-control'+(header?'':' audio-control-floating');button.dataset.audioToggle='';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggle();});const rules=header?.querySelector('#rules-button');header?header.insertBefore(button,rules||null):host.appendChild(button);}
   syncButton();
@@ -100,7 +100,7 @@
  // (acima de 1 amplifica) e "max" corta com fade os sons longos demais para um momento.
  const LEVELS={mar:{gain:1.3},'tambores-longe':{gain:.3},'tambores-guerra':{gain:.32},batimento:{gain:.2},
   caixa:{gain:1,max:1.5},marcha:{gain:1,max:1.5},espada:{gain:.9,max:1.5},lanca:{gain:1,max:1.5},escudo:{gain:1.2,max:1.5},flecha:{gain:1.3,max:2},troianos:{gain:.58,max:4},acampamento:{gain:.8,max:3},revelar:{gain:.52,max:5},descoberta:{gain:2.5},encontro:{gain:.7},cronica:{gain:1.8},feito:{gain:1.45},queda:{gain:.8,max:8},
-  'deus-atena':{gain:3.4},'deus-poseidon':{gain:2.1},'deus-zeus':{gain:1.7,max:6}};
+  corneta:{gain:.3,max:5.5},'deus-atena':{gain:3.4},'deus-poseidon':{gain:2.1},'deus-zeus':{gain:1.7,max:6}};
  const CUE_FALLBACK={caixa:'explore',marcha:'move',espada:'attack',lanca:'attack',escudo:'shield',flecha:'arrow',troianos:'march',acampamento:'ui',revelar:'reveal',descoberta:'explore',encontro:'ability',cronica:'reveal',feito:'ability',queda:'death','deus-atena':'reveal','deus-poseidon':'move','deus-zeus':'attack'};
  const sfxURL=name=>new URL('audio/sfx/'+name+'.mp3',script.src).href,clips={};
  function clip(name,loop=false){
@@ -117,7 +117,9 @@
   else entry.el.volume=Math.max(0,Math.min(1,value));
  }
  function cue(name){
-  if(!enabled)return;unlocked=true;const fallback=()=>effect(CUE_FALLBACK[name]||'ui');
+  if(!enabled)return;unlocked=true;
+  // A trombeta dos alertas: sem o arquivo, tocam os tambores de guerra dos troianos.
+  const fallback=()=>name==='corneta'?cue('troianos'):effect(CUE_FALLBACK[name]||'ui');
   const entry=clip(name);if(!entry.ok){fallback();return;}
   const level=LEVELS[name]||{gain:1};entry.onError=fallback;clearTimeout(entry.timer);
   setLevel(entry,level.gain);try{entry.el.currentTime=0;}catch(_){}entry.el.play().catch(()=>{});

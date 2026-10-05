@@ -28,8 +28,8 @@ Fechadas em 02/10/2026. A missão 1 já segue estas regras; as missões 2 e 3 se
 
 ## O que fica no app e o que fica na mesa
 
-- **App:** posições dos heróis (mover é um toque), a IA de Troia, a revelação do mapa, encontros, decisões e contas, o Alarme.
-- **Mesa:** miniaturas, peças do mapa, caixas, fichas de exploração e as fichas de comida (vida). O app dá as ordens: "Retirem 2 fichas de Aquiles", "Coloquem uma companhia de lanceiros em P2".
+- **App:** posições dos heróis (mover é um toque), a IA de Troia, a revelação do mapa, encontros, decisões e contas, o Alarme, e as caixas de carga (onde estão e quem carrega: não há caixa física).
+- **Mesa:** miniaturas, peças do mapa, fichas de exploração e as fichas de comida (vida). O app dá as ordens: "Retirem 2 fichas de Aquiles", "Coloquem uma companhia de lanceiros em P2".
 - O comandante (o jogador de Agamêmnon) é um papel de mesa: não aparece no app.
 
 ## Missão 1: como se vence e como se perde

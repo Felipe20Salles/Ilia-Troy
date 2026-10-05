@@ -4,7 +4,7 @@ Status: **jogável** (02/10/2026) em `cooperativo/reconhecimento.html` (motor `r
 
 **Ajustes feitos ao programar (depois das simulações):**
 - Reconhecer o portão custa **2 ações em M1**, sem inimigos na peça (o guarda precisa cair ou ser intimidado). Quem completa **leva o relato** e precisa voltar de pé a A1.
-- Vitória: o relato em A1 e **todos os heróis de pé em A1**. Os caídos são arrastados pelos seus homens e seguem na campanha sem vida (o armazém os repõe na missão seguinte).
+- Vitória: o relato em A1 e **todos os heróis de pé em A1**. Quem ficar caído no campo morre e sai da campanha (CAMPANHA.md).
 - Os perseguidores (uma companhia de lanceiros a cada dois heróis) saem do portão **na fase de Troia seguinte** ao reconhecimento; o Alarme passa a subir 2 por fase de Troia.
 - Patamares: 4 exploradores (P4), 7 lanceiros (P7), 11 lanceiros (M1), **15 Sarpédon** (derrubá-lo faz Troia recuar), 18 Troia em peso. Com 4 ou 5 heróis, 7 e 15 trazem uma tropa a mais.
 - A preparação repõe a vida com o armazém (comida da missão 1 + 2 por caixa que sobreviveu).
@@ -98,7 +98,12 @@ Dois pergaminhos possíveis por missão, como decidido; o II de Rotas da costa �
 
   O feito de Ájax foi alinhado ao código; a versão anterior deste doc ("estar em M1 ou M4 e não cair na missão") foi descartada.
 
+## Incursão aos navios (04/10/2026)
+
+Quando o portão é reconhecido, uma companhia de lanceiros sai de P2 rumo aos navios (N1) para queimá-los. Cada fase de Troia que ela termina em N1 sem herói de pé queima um navio (até 3). Navio queimado não faz perder a missão: cada um é 1 comida a menos no armazém da missão 3. Sarpédon passou a ser surpresa: a trilha mostra "?" no 15 até ele sair.
+
 ## O que passa para a missão 3
+- Navios queimados na incursão (comida a menos no armazém).
 
 - Criseida tomada ou não (peste).
 - Segredos de Troia I / Rotas da costa II / Favor dos pastores I.

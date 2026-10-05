@@ -84,7 +84,7 @@ function detectRemovals(before,after){const left=new Set(after.map(e=>e.id)),gon
 function removalHTML(){if(!removals.length||!state||revealAlert.length||responseIndex<responseQueue.length||troopArrival||deathAlert?.length)return '';
  const name=g=>(g.n>1?g.n+'× ':'')+G.TROOPS.types[g.type].name;
  const eneias=removals.some(g=>g.type==='eneias');if(removalRetreat||eneias)return orderCard({kind:'removal',eyebrow:eneias?'Enéias caiu · a guarda dele recua':'Troia recua',title:'Retirem estas miniaturas do mapa',order:removals.map(g=>`<b>${g.zone}</b> · ${esc(name(g))}`).join('<br>'),own:true,ok:'Ok'},0,1,'removal-next',true);
- const g=removals[0];return orderCard({kind:'removal',eyebrow:'Na mesa',visual:`<span class="enemy-miniature ${g.type}" aria-hidden="true"></span>`,title:`Retirem ${name(g)} de ${g.zone}`,detail:g.n>1?'Derrotadas.':'Derrotada.',own:true,ok:'Ok'},0,1,'removal-next',true);}
+ const g=removals[0];return orderCard({kind:'removal',eyebrow:'Na mesa',visual:`<span class="enemy-miniature ${g.type}" aria-hidden="true"></span>`,title:`Retirem ${name(g)} de ${g.zone}`,detail:g.type==='heitor'?'Caiu diante das muralhas.':state.commanderDown?'Recua para dentro da cidade.':g.n>1?'Derrotadas.':'Derrotada.',own:true,ok:'Ok'},0,1,'removal-next',true);}
 // Os feitos pessoais, sempre à mão durante a partida.
 let featsOpen=false;
 function featList(){return state.heroes.map(h=>{const p=G.PERSONAL[h.id],pr=state.personal?.[h.id];return {id:h.id,hero:G.HEROES.find(d=>d.id===h.id).name,title:p.name,goal:FEAT_TALES[h.id]?.goal||p.text,progress:pr?.progress||0,max:p.goal,done:!!pr?.done};});}

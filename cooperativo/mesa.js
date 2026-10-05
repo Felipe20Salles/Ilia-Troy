@@ -77,7 +77,7 @@
  function enemyPanel(G,s,focus){
   if(!s.enemies.length)return '<p class="troy-empty">Nenhuma tropa troiana em campo.</p>';
   return `<ul class="troy-list">${s.enemies.map(e=>{const t={...G.TROOPS.types[e.type],...(e.maxHp?{hp:e.maxHp}:{})},pct=Math.max(0,Math.min(100,e.hp/t.hp*100));
-   return `<li><button class="troy-unit ${focus===e.id?'active':''} ${t.hero?'commander':''}" data-command="focus-enemy" data-id="${e.id}" data-zone="${e.zone}"><span class="troy-thumb enemy-miniature ${e.type}" aria-hidden="true"></span><span class="troy-info"><b>${esc(G.TROOPS.label(e))}</b><span class="troy-meta"><span class="zone-chip">${e.zone}</span>ATQ ${e.attack} · ARM ${e.armor}</span><span class="hpbar" role="img" aria-label="${e.hp} de ${t.hp} de vida"><span style="width:${pct}%"></span></span><small>${esc(G.intent(e,s))}</small></span><span class="troy-hp">${e.hp}<small>/${t.hp}</small></span></button></li>`;}).join('')}</ul>`;
+   return `<li><button class="troy-unit ${focus===e.id?'active':''} ${t.hero?'commander':''}" data-command="focus-enemy" data-id="${e.id}" data-zone="${e.zone}"><span class="troy-thumb enemy-miniature ${e.type}" aria-hidden="true"></span><span class="troy-info"><b>${esc(G.TROOPS.label(e))}</b><span class="troy-meta"><span class="zone-chip">${e.zone}</span>${e.noStats?'Não ataca':`ATQ ${e.attack} · ARM ${e.armor}`}</span>${e.noStats?'':`<span class="hpbar" role="img" aria-label="${e.hp} de ${t.hp} de vida"><span style="width:${pct}%"></span></span>`}<small>${esc(G.intent(e,s))}</small></span>${e.noStats?'':`<span class="troy-hp">${e.hp}<small>/${t.hp}</small></span>`}</button></li>`;}).join('')}</ul>`;
  }
 
  // Barra da missão em uma linha: título, ordem atual e números. O objetivo completo abre num toque.

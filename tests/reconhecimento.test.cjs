@@ -59,7 +59,7 @@ test('the Greeks win when every standing hero is back in A1; whoever lies fallen
 test('Criseida, the shepherds and the tower are choices with hidden effects',()=>{
  let s=setup();s.revealed.push(...G.WALLS,'B5');s.enemies=[];hero(s,'aquiles').zone='P2';hero(s,'aquiles').hp=4;s=act(s,'aquiles','move','C1');assert.equal(s.encounter.id,'criseida');
  const t=G.choose(s,'take').state;assert.equal(t.criseida,'taken');assert.equal(hero(t,'aquiles').hp,6,'as oferendas viram vida');assert.equal(G.choose(s,'respect').state.criseida,'respected');
- let p=setup();p.revealed.push(...G.WALLS,'B5');p.enemies=[];hero(p,'odisseu').zone='P4';p=act(p,'odisseu','move','B5');assert.equal(p.encounter.id,'shepherds');p=G.choose(p,'pay').state;assert.equal(hero(p,'odisseu').hp,5);assert.ok(p.scrolls.includes('pastores-1'));
+ let p=setup();p.revealed.push(...G.WALLS,'B5');p.enemies=[];hero(p,'odisseu').zone='P4';p.campFood=2;p=act(p,'odisseu','move','B5');assert.equal(p.encounter.id,'shepherds');p=G.choose(p,'pay').state;assert.equal(hero(p,'odisseu').hp,6,'a vida do herói não muda');assert.equal(p.campFood,1,'sai 1 comida do armazém');assert.ok(p.scrolls.includes('pastores-1'));
  let w=setup();w.revealed.push(...G.WALLS);w.enemies=[];hero(w,'agamemnon').zone='M4';w=act(w,'agamemnon','interact','tower');w=act(w,'agamemnon','interact','tower');assert.equal(w.encounter.id,'tower');assert.equal(w.alarm,2);
  const plan=G.choose(w,'plan').state;assert.ok(plan.scrolls.includes('segredos-1'));const train=G.choose(w,'train').state;assert.equal(train.encounter.id,'evolution');
 });

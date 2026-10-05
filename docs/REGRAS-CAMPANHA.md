@@ -24,7 +24,7 @@ Fechadas em 02/10/2026. A missão 1 já segue estas regras; as missões 2 e 3 se
 - **Não existe dividir comida** entre heróis.
 - **Socorro:** não gasta ação; quem socorre transfere 1 da própria vida, e o caído volta com 1.
 - **Preparar habilidades** (antes "Recuperar") custa 1 ação e só desvira as cartas usadas; não cura.
-- Hospitalidade e sacrifícios custam vida: dar pão ao velho tira 1 de vida de quem dá.
+- Hospitalidade e sacrifícios custam comida do armazém do acampamento, não vida: dar pão ao velho ou dividir com os pastores custa 1 comida do armazém.
 
 ## O que fica no app e o que fica na mesa
 

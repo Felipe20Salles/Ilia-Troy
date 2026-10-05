@@ -154,7 +154,7 @@
   }
   function spy(s,reason){const zone=s.heroes.find(h=>h.id===s.beggar.escort)?.zone||s.beggar.zone;s.beggar.status='spy';s.beggar.escort=null;s.beggar.zone=zone;log(s,reason+' O velho era um espião troiano: "Troia saberá quantos vocês são."');spawn(s,zone,'lanceiro');addAlarm(s,2,'o espião do círculo de pedras');}
   // O velho recebe o pão e desaparece; o trovão revela que era Zeus.
-  function blessing(s,h){s.beggar.status='zeus';s.beggar.escort=null;s.lastFind={zone:s.beggar.zone,title:'O trovão em céu limpo',text:(h?heroName(h.id)+' divide o pão com o velho. ':'')+'Ele come devagar, agradece e se levanta. Quando os homens se viram, não há ninguém entre as pedras. Um trovão rola no céu sem nuvens, e os veteranos se entreolham: era Zeus, e ele foi bem recebido. +2 de Favor; o Alarme cai 1.'};log(s,'O velho era Zeus. Os gregos honraram a hospitalidade.');addFavor(s,2,'Zeus foi bem recebido');addAlarm(s,-1,'a bênção de Zeus acalma a costa');}
+  function blessing(s,h){s.beggar.status='zeus';s.beggar.escort=null;s.lastFind={zone:s.beggar.zone,title:'O trovão em céu limpo',text:(h?heroName(h.id)+' traz pão do acampamento para o velho. ':'')+'Ele come devagar, agradece e se levanta. Quando os homens se viram, não há ninguém entre as pedras. Um trovão rola no céu sem nuvens, e os veteranos se entreolham: era Zeus, e ele foi bem recebido. +2 de Favor; o Alarme cai 1.'};log(s,'O velho era Zeus. Os gregos honraram a hospitalidade.');addFavor(s,2,'Zeus foi bem recebido');addAlarm(s,-1,'a bênção de Zeus acalma a costa');}
   function addFavor(s,amount,reason){if(s.result||!amount)return;const before=s.favor;s.favor=Math.max(0,Math.min(FAVOR_MAX,s.favor+amount));if(s.favor!==before)log(s,'Favor dos deuses '+(amount>0?'+':'')+amount+' ('+s.favor+'/'+FAVOR_MAX+'): '+reason+'.');}
   function feat(s,id,amount=1){
     const p=s.personal?.[id],def=PERSONAL[id],h=s.heroes.find(x=>x.id===id);if(!p||p.done||!def||!h||s.result)return;
@@ -211,7 +211,7 @@
     const token=s.tokens[h.zone];if(token&&!token.resolved&&isRevealed(s,h.zone)&&tokenOf(s,h.zone).kind==='evolution')add('lookout','Escalar o posto de vigia ('+(token.progress||0)+'/2)',token.peeked?'Atena revelou: '+foundPreview(s,h.zone):'2 ações no total, sem inimigos; o barulho chama Troia');
     else if(token&&!token.resolved&&isRevealed(s,h.zone)){const quiet=tokenOf(s,h.zone).kind==='clue',noise=quiet?'Seguir a pista não faz barulho.':'A busca faz barulho (Alarme +1).';add('explore','Investigar: '+tokenOf(s,h.zone).hint.toLocaleLowerCase('pt-BR'),token.peeked?'Atena revelou: '+foundPreview(s,h.zone)+' '+noise:'Ninguém sabe o que há ali. '+noise);}
     if(h.zone===s.castaways.zone&&s.castaways.status==='met')add('castaways','Resgatar náufragos',`${s.castaways.progress}/2 ações · antes do Alarme ${CASTAWAY_LIMIT}`);
-    if(h.zone===s.beggar.zone&&s.beggar.status==='met')add('feed','Dar pão ao velho','Custa 1 de vida de quem dá o pão',h.hp>1);
+    if(h.zone===s.beggar.zone&&s.beggar.status==='met')add('feed','Dar pão ao velho','Custa 1 comida do armazém',s.campFood>0);
     if(h.zone===s.beggar.zone&&s.beggar.status==='waiting')add('escort','Escoltar o velho','Leve-o até o fogo de A1');
     return list;
   }
@@ -244,7 +244,7 @@
     else if(action==='interact'){
       const options=interactions(s,h),choice=target?options.find(x=>x.id===target):options.find(x=>x.available);
       if(foes().length)return fail('Elimine os inimigos nesta peça antes de interagir.');
-      if(!choice||!choice.available)return fail(choice?.id==='feed'?'Dar pão ao velho custa 1 de vida: o herói precisa ter ao menos 2.':'Não há nada para resolver aqui.');
+      if(!choice||!choice.available)return fail(choice?.id==='feed'?'O armazém do acampamento está vazio: não há pão para dar.':'Não há nada para resolver aqui.');
       if(choice.id==='deliver'){h.cargo=false;s.delivered++;moment(s,s.delivered===s.required?'carga':s.delivered===1?'entrega':'caixa');message='entregou uma caixa em A1 ('+s.delivered+'/'+s.required+')';}
       else if(choice.id==='pickup'){s.supplies[h.zone]--;h.cargo=true;message='carregou uma caixa de '+h.zone;}
       else if(choice.id==='install'){s.built=true;moment(s,'acampamento');message='instalou o acampamento';const king=s.heroes.find(a=>a.id==='agamemnon'&&a.hp>0&&a.zone==='A1');if(king)feat(s,'agamemnon');if(['met','waiting','escort'].includes(s.beggar.status))spy(s,'O acampamento foi erguido sem honrar o pedido do velho.');}
@@ -255,7 +255,7 @@
           if(eligible.length){moment(s,'mirante');s.encounter={id:'evolution',zone:h.zone,choices:eligible};message='conquistou o mirante troiano';}
           else{message='conquistou o mirante; todos já estão no nível máximo ('+eat(s,h,1)+')';}}}
       else if(choice.id==='castaways'){if(h.id==='menelau')feat(s,'menelau');s.castaways.progress++;if(s.castaways.progress>=2){s.castaways.status='rescued';const meal=eat(s,h,1);addFavor(s,2,'os deuses viram o resgate dos náufragos');const found=BEACHES.filter(z=>(s.supplies[z]||0)>0&&!isRevealed(s,z));for(const z of found)reveal(s,z);message='resgatou os náufragos: '+meal+'; os deuses viram (+2 de Favor)'+(found.length?'. Eles indicaram onde a carga caiu: '+found.join(', '):'');}else message='começou o resgate dos náufragos (1/2)';}
-      else if(choice.id==='feed'){h.hp--;s.foodSpent++;blessing(s,h);message='deu pão ao velho';}
+      else if(choice.id==='feed'){s.campFood--;s.foodSpent++;blessing(s,h);message='deu pão do armazém ao velho';}
       else if(choice.id==='escort'){s.beggar.status='escort';s.beggar.escort=h.id;message='passou a escoltar o velho';if(h.zone==='A1'&&!s.built)blessing(s);}
     }else if(action==='rest'){
       if(foes().length)return fail('Não é possível recuperar com inimigos nesta peça.');if(!h.used.length)return fail('As habilidades já estão prontas. Vida só se recupera com comida encontrada.');h.used=[];message='preparou suas habilidades';
@@ -315,7 +315,7 @@
       return fail('Escolha inválida.');}
     if(s.encounter.id==='ability'){const h=s.heroes.find(a=>a.id===s.encounter.hero),n=Number(choice);if(!h||!s.encounter.choices.includes(n))return fail('Escolham uma das habilidades ainda não aprendidas.');h.known.push(n);h.known.sort();s.encounter=null;s.lastLearn={hero:h.id,kind:'ability',card:n};log(s,heroName(h.id)+' aprendeu '+HEROES.find(d=>d.id===h.id).cards[n].name+'. Virem a carta no tabuleiro do herói.');const next=s.pendingAbility&&s.heroes.find(a=>a.id===s.pendingAbility);s.pendingAbility=null;if(next){const left=[0,1,2].filter(x=>!next.known.includes(x));if(left.length)s.encounter={id:'ability',hero:next.id,zone:next.zone,choices:left};}return {ok:true,state:s};}
     if(s.encounter.id==='evolution'){const h=s.heroes.find(a=>a.id===choice&&s.encounter.choices.includes(a.id)&&a.hp>0&&a.level<3);if(!h)return fail('Escolham um herói de pé abaixo de N3.');const before=HEROES.stats(h);h.level++;const after=HEROES.stats(h);h.ap+=Math.max(0,after.actions-before.actions);s.encounter=null;s.lastLearn={hero:h.id,kind:'evolution',level:h.level};log(s,'A equipe escolheu '+heroName(h.id)+' para receber a experiência do mirante: evolução para N'+h.level+'.');return {ok:true,state:s};}
-    if(s.encounter.id==='beggar'){if(choice==='accept'){const h=s.heroes.filter(a=>a.zone===s.beggar.zone&&a.hp>1).sort((a,b)=>b.hp-a.hp)[0];if(!h)return fail('Ninguém aqui tem forças para dividir o pão: quem dá perde 1 de vida.');s.encounter=null;h.hp--;s.foodSpent++;blessing(s,h);return {ok:true,state:s};}if(choice==='refuse'){s.encounter=null;addFavor(s,-1,'os heróis negaram hospitalidade');spy(s,'Os heróis mandaram o velho embora.');return {ok:true,state:s};}return fail('Escolha inválida.');}
+    if(s.encounter.id==='beggar'){if(choice==='accept'){if(s.campFood<1)return fail('O armazém do acampamento está vazio: não há pão para dar.');const h=s.heroes.find(a=>a.zone===s.beggar.zone&&a.hp>0);s.encounter=null;s.campFood--;s.foodSpent++;blessing(s,h);return {ok:true,state:s};}if(choice==='refuse'){s.encounter=null;addFavor(s,-1,'os heróis negaram hospitalidade');spy(s,'Os heróis mandaram o velho embora.');return {ok:true,state:s};}return fail('Escolha inválida.');}
     return fail('Encontro desconhecido.');
   }
   function allocateFood(state,heroId,delta){

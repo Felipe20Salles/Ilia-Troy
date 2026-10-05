@@ -91,8 +91,8 @@ test('castaways need two actions before the alarm limit, reward food and reveal 
 test('the beggar is Zeus: giving him bread earns 2 Favor and calms the alarm at once; refusing makes him a spy',()=>{
  const atC1=()=>{let s=setup();s.revealed.push('A1','A2','P2','C1');s.visited.push('A1','A2','P2');s.enemies=[];hero(s,'odisseu').zone='P2';s=act(s,'odisseu','move','C1');assert.equal(s.encounter.id,'beggar');return s;};
  let refused=G.choose(atC1(),'refuse').state;assert.equal(refused.beggar.status,'spy');assert.equal(refused.alarm,2);assert.ok(refused.enemies.some(e=>e.zone==='C1'&&e.type==='lanceiro'));
- let s=atC1();s.alarm=4;s.favor=1;const hp=hero(s,'odisseu').hp;s=G.choose(s,'accept').state;
- assert.equal(s.beggar.status,'zeus','sem escolta: ele recebe o pão e some');assert.equal(s.favor,3,'+2 de Favor');assert.equal(s.alarm,3,'Alarme −1');assert.equal(hero(s,'odisseu').hp,hp-1,'quem dá o pão perde 1 de vida');assert.match(s.lastFind.text,/Zeus/);
+ let s=atC1();s.alarm=4;s.favor=1;s.campFood=2;const hp=hero(s,'odisseu').hp;s=G.choose(s,'accept').state;
+ assert.equal(s.beggar.status,'zeus','sem escolta: ele recebe o pão e some');assert.equal(s.favor,3,'+2 de Favor');assert.equal(s.alarm,3,'Alarme −1');assert.equal(hero(s,'odisseu').hp,hp,'a vida não muda');assert.equal(s.campFood,1,'o pão sai do armazém');assert.match(s.lastFind.text,/Zeus/);
 });
 test('exploration food heals whoever found it and the surplus goes to the store; the patrol tablet is a scroll; the lookout is a two-action challenge whose evolution the team assigns',()=>{
  let s=setup();s.revealed=[...ALL];s.visited=[...ALL];s.enemies=[];
@@ -220,8 +220,8 @@ test('charge and the two-area dash still work after a hero carrying a crate has 
   }
 });
 
-test('feeding the old man costs 1 life of whoever gives the bread, and someone must be able to spare it',()=>{
- let w=setup();w.revealed.push('A1','A2','P2','C1');w.visited.push('A1','A2','P2');w.enemies=[];hero(w,'odisseu').zone='P2';w=act(w,'odisseu','move','C1');hero(w,'odisseu').hp=1;assert.equal(G.choose(w,'accept').ok,false,'com 1 de vida, ninguém pode dividir o pão');
+test('feeding the old man takes bread from the camp store, never the life of the heroes',()=>{
+ let w=setup();w.revealed.push('A1','A2','P2','C1');w.visited.push('A1','A2','P2');w.enemies=[];hero(w,'odisseu').zone='P2';w=act(w,'odisseu','move','C1');w.campFood=0;assert.equal(G.choose(w,'accept').ok,false,'sem comida no armazém, não há pão');
 });
 
 test('archers neither strike back nor suffer the Greek rebound; Odysseus, an archer, gives none either',()=>{

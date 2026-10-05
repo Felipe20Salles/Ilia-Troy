@@ -109,7 +109,7 @@ const ENCOUNTERS={
   tracks:()=>({title:'Pegadas na trilha',text:'Pegadas frescas na trilha. Alguém passou há pouco.',detail:'',choices:[['follow','Seguir as pegadas'],['erase','Apagar os rastros']]}),
   ability:()=>{const h=state.heroes.find(a=>a.id===state.encounter.hero),d=G.HEROES.find(x=>x.id===h.id);return {title:d.name+' aprende algo novo',text:'O feito de '+d.name+' correu entre os homens.',detail:'Virem a carta escolhida no tabuleiro do herói.',choices:state.encounter.choices.map(i=>[i,d.cards[i].name+(d.cards[i].passive?' · passiva':''),'Leiam a carta na mesa'])};},
   evolution:()=>({title:'O mirante conquistado',text:'Do alto, toda a costa. E os troianos também os viram.',detail:'Quem leva a experiência para a próxima carta de evolução?',choices:state.encounter.choices.map(id=>{const h=state.heroes.find(a=>a.id===id);return [id,G.HEROES.find(d=>d.id===id).name+' → N'+(h.level+1)];})}),
-  beggar:()=>({title:'O velho do círculo de pedras',text:'"Estrangeiros, a hospitalidade é sagrada. Pão, e o fogo do vosso acampamento."',detail:'Dar o pão: quem tiver mais vida aqui perde 1.',choices:[['accept','Dar o pão ao velho'],['refuse','Mandá-lo embora']]})
+  beggar:()=>({title:'O velho do círculo de pedras',text:'"Estrangeiros, a hospitalidade é sagrada. Pão, e o fogo do vosso acampamento."',detail:'Dar o pão custa 1 comida do armazém do acampamento.',choices:[['accept','Dar o pão ao velho'],['refuse','Mandá-lo embora']]})
 };
 const busy=()=>revealAlert.length||troopArrival||responseQueue.length||deathAlert?.length||removals.length||moves.length||lifeQueue.length;
 const ORDERS={A1:'Tomem o posto: derrotem a vigia de A1 antes que a rendição chegue pela trilha. Depois, a clareira será o acampamento.'};

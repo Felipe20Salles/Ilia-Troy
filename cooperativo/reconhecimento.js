@@ -111,7 +111,7 @@
   function waves(s){return nextAlarm(s).entries.map(([zone])=>zone);}
   function intent(e,s){if(e.stunned)return 'Atordoado: perderá esta ativação';{const shot=rangedTarget(s,e);if(shot&&!e.intimidated)return 'Atirar em '+heroName(shot.id)+(shot.zone!==e.zone?' em '+shot.zone:'');}if(e.hold&&e.post&&e.zone!==e.post&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return 'Voltar ao posto em '+e.post;if(e.hold&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return e.type==='guarda'?'Guardar o portão':'Vigiar do alto da torre';if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;if(s.heroes.some(h=>h.zone===e.zone&&h.hp>0))return 'Atacar um herói aqui';if(e.raid)return e.zone==='N1'?'Queimar um navio em N1':'Rumo aos navios: avançar para '+ZONES[nextStep(e.zone,'N1')].name;const goal=huntGoal(s,e);if(goal!=='A1')return 'Perseguir os gregos em '+goal;return e.zone==='A1'?'Atacar o acampamento':'Avançar para '+ZONES[nextStep(e.zone)].name;}
   function finish(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;
-    if(result==='victory')s.outcome={completed:'reconhecimento',next:'Segurar a linha',campFood:Math.max(0,s.campFood-(s.shipsBurned||0)),revealedZones:[...s.revealed],scrolls:[...s.scrolls],commanders:{sarpedon:s.commanderDown?'dead':'alive'},legacy:{criseida:s.criseida,shepherds:s.shepherds,shipsBurned:s.shipsBurned||0,altarGold:!!s.altarGold},heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]}))};
+    if(result==='victory')s.outcome={completed:'reconhecimento',next:'Segurar a linha',campFood:Math.max(0,s.campFood-(s.shipsBurned||0)),revealedZones:[...s.revealed],scrolls:[...s.scrolls],commanders:{sarpedon:s.sarpedonWounds?'wounded':s.commanderDown?'dead':'alive'},legacy:{criseida:s.criseida,shepherds:s.shepherds,shipsBurned:s.shipsBurned||0,altarGold:!!s.altarGold,sarpedonWounds:s.sarpedonWounds||0},heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]}))};
     log(s,reason);}
   function defeat(s){if(s.result)return;if(s.campDamage>=3)finish(s,'defeat','Troia arrasou o acampamento enquanto os heróis estavam longe.');else if(s.heroes.every(h=>h.hp===0))finish(s,'defeat','Todos os heróis caíram diante das muralhas.');}
   // Vitória: o relato e todos os heróis de pé de volta em A1. Quem ficou caído no campo morre (CAMPANHA.md).
@@ -151,7 +151,10 @@
     if(zone==='B5'&&s.shepherds==='unseen'){s.shepherds='met';s.encounter={id:'shepherds',zone,hero:h.id};}
   }
   function dropCargo(){}
-  function kill(s,e,damage,ignoreArmor=0){const armor=ignoreArmor===true?0:Math.max(0,(e.armor||0)-ignoreArmor);e.hp-=Math.max(0,damage-armor);if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');
+  function kill(s,e,damage,ignoreArmor=0){const armor=ignoreArmor===true?0:Math.max(0,(e.armor||0)-ignoreArmor);e.hp-=Math.max(0,damage-armor);
+    // Sarpédon, filho de Zeus, não morre aqui: ferido até a metade, recua com os lícios, e Troia recua junto.
+    if(e.type==='sarpedon'&&e.hp<=Math.ceil(TROOPS.types.sarpedon.hp/2)){e.hp=Math.max(1,e.hp);s.commanderDown=true;s.sarpedonWounds=TROOPS.types.sarpedon.hp-e.hp;s.retreated=s.enemies.length;s.enemies=[];s.lastFind={zone:e.zone,title:'Sarpédon recua',text:'O bronze grego abre o ombro de Sarpédon. Os lícios cercam o rei ferido e o carregam de volta ao portão, e Troia recua com eles. Ele voltará.'};log(s,'Sarpédon, ferido, recua com os lícios. As tropas troianas recuam para trás do portão.');return;}
+    if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');
     if(e.type==='sarpedon'){s.commanderDown=true;s.retreated=s.enemies.length;s.enemies=[];log(s,'Com Sarpédon caído, as tropas troianas recuam para trás do portão.');}}}
   function strike(s,h,e,amount,options={}){
     const type=e.type;

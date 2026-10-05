@@ -98,10 +98,11 @@ test('the bot holds the line in most rosters and choices',()=>{
  for(let mask=1;mask<8;mask++){const team=['odisseu','agamemnon',...extras.filter((_,i)=>mask&(1<<i))];
   for(const crises of ['none','sacrifice','briseida']){const s=play(team,crises==='none'?{}:{legacy:{criseida:'taken'},crises});games++;if(s.result==='victory')wins++;}}
  // A chama começa no máximo (04/10/2026): a missão ficou difícil de propósito.
- assert.ok(wins/games>=.5&&wins/games<=.8,'vitórias do robô: '+wins+'/'+games);
+ // Meta do Felipe (05/10/2026): no máximo 6 vitórias em 14 (43%).
+ assert.ok(wins/games>=.2&&wins/games<=6/14,'vitórias do robô: '+wins+'/'+games);
 });
 test('the flame starts at its peak with Paris and spearmen on the plain, falls with each defeated contingent and rises with burning tents',()=>{
- let s=setup();assert.equal(s.alarm,18);assert.deepEqual(s.enemies.map(e=>e.type+'@'+e.zone).sort(),['lanceiro@P2','lanceiro@P3','paris@M1']);
+ let s=setup();assert.equal(s.alarm,18);assert.deepEqual(s.enemies.map(e=>e.type+'@'+e.zone).sort(),['lanceiro@P2','lanceiro@P3','paris@M1','sarpedon@M4']);
  const before=s.enemies.length;let t=G.trojanTurn(s);assert.equal(t.enemies.length-before,2,'duas frentes com a chama alta');
  t.enemies=[G.TROOPS.create('e90','A1','lanceiro')];t.enemies[0].hp=1;t.enemies[0].armor=0;t.nextEnemy=91;t.alarm=18;t=act(t,'odisseu','attack','e90');assert.equal(t.alarm,16,'cada tropa derrubada apaga 2');assert.equal(t.heitorOut,false);
  t.enemies=[G.TROOPS.create('e92','A1','paris')];t.enemies[0].hp=1;t.nextEnemy=93;t=act(t,'odisseu','attack','e92');assert.equal(t.alarm,10,'Páris apaga 6');assert.ok(t.heitorOut,'abaixo de 15, Heitor sai');
@@ -112,4 +113,8 @@ test('the sacrifice takes the whole store and pleases Apollo; taking Briseida co
  const s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],campFood:5,legacy:{criseida:'taken'}});assert.equal(s.encounter.id,'crises');
  const a=G.choose(s,'sacrifice').state;assert.equal(a.campFood,0,'todo o armazém');assert.equal(a.favor,s.favor+1);assert.equal(a.plagueActive,false);
  const b=G.choose(s,'briseida').state;assert.equal(b.campFood,5,'sem custo de comida');assert.ok(b.glory.includes('agamemnon'));assert.ok(b.heroes.find(h=>h.id==='aquiles').patroclus);assert.ok(G.validSave(b));
+});
+test('Sarpedon returns carrying his wound; his fall drops the flame and is Patroclus glory',()=>{
+ let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],legacy:{sarpedonWounds:6}});const sar=s.enemies.find(e=>e.type==='sarpedon');assert.equal(sar.hp,6);
+ sar.zone='A1';sar.hp=1;sar.armor=0;const flame=s.alarm;s=act(s,'aquiles','attack',sar.id);assert.ok(!s.enemies.some(e=>e.type==='sarpedon'));assert.equal(s.alarm,flame-6);assert.match(s.lastFind.text,/Zeus/);
 });

@@ -104,7 +104,9 @@
       encounter:null,personal:Object.fromEntries(ids.map(id=>[id,{progress:0,done:false}])),lastFeats:[],chronicle:null,
       guards:{},nextEnemy:1,heroes,enemies:[],log:[],outcome:null};
     if(!s.foodSetup&&!s.crisesDone)s.encounter={id:'crises',zone:'A1'};
-    for(const [zone,type] of [['M1','paris'],['P3','lanceiro'],['P2','lanceiro']])spawn(s,zone,type);s.lastReveals=[];
+    for(const [zone,type] of [['M1','paris'],['P3','lanceiro'],['P2','lanceiro']])spawn(s,zone,type);
+    // Sarpédon volta com os lícios, carregando a ferida de Diante das muralhas.
+    {const sar=spawn(s,'M4','sarpedon');sar.hp=Math.max(6,TROOPS.types.sarpedon.hp-(Number(legacy.sarpedonWounds)||0));}s.lastReveals=[];
     log(s,'Heitor viu os gregos diante do portão. Agora Troia vem até o acampamento.');use(s);
     return s;
   }
@@ -167,11 +169,13 @@
   function retreat(s){s.commanderDown=true;s.retreated=s.enemies.length;s.enemies=[];log(s,'Heitor, ferido, recua para trás do portão. A ofensiva troiana recua com ele.');}
   function kill(s,e,damage,ignoreArmor=0){const armor=ignoreArmor===true?0:Math.max(0,(e.armor||0)-ignoreArmor);const dealt=Math.max(0,damage-armor);e.hp-=dealt;
     if(e.type==='heitor'&&e.hp>0&&e.hp<=HEITOR_RETREAT){retreat(s);return dealt;}
-    if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');if(e.type==='heitor')retreat(s);else addAlarm(s,e.type==='paris'?-3*FLAME_DROP:-FLAME_DROP,TROOPS.label(e)+' caiu');}return dealt;}
+    if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');if(e.type==='heitor')retreat(s);else addAlarm(s,['paris','sarpedon'].includes(e.type)?-3*FLAME_DROP:-FLAME_DROP,TROOPS.label(e)+' caiu');}return dealt;}
   function strike(s,h,e,amount,options={}){
     const type=e.type,before=e.hp;if(h.patroclus&&type==='heitor')s.patroclus.struck=true;
     if(options.precision)e.hp=1;else kill(s,e,amount,options.piercing||h.id==='odisseu');
     if(h.patroclus&&type==='heitor')s.patroclus.dealt+=Math.max(0,before-Math.max(0,e.hp));
+    // A morte de Sarpédon (Ilíada, canto 16): Zeus chora o filho. Se foi Pátroclo, é a glória dele.
+    if(type==='sarpedon'&&!s.enemies.includes(e)){const pat=!!h.patroclus;if(pat&&!s.glory.includes('patroclo-sarpedon'))s.glory.push('patroclo-sarpedon');if(pat)addFavor(s,1,'Pátroclo derrubou um filho de Zeus');s.lastFind={zone:e.zone,title:'Zeus chora o filho',text:(pat?'Pátroclo':heroName(h.id))+' derruba Sarpédon, rei dos lícios. Do Ida cai uma chuva de sangue: Zeus pensou em salvá-lo e não o fez. Apolo leva o corpo para longe da batalha, e os lícios deixam o campo.'+(pat?' Os gregos gritam o nome de Pátroclo.':'')};log(s,'Sarpédon caiu. Os lícios deixam o campo.');}
     const hurt=e.hp<before||!s.enemies.includes(e);
     if(hurt&&type==='heitor')feat(s,'aquiles');
     if(hurt&&type==='paris'&&h.id==='menelau')feat(s,'menelau');

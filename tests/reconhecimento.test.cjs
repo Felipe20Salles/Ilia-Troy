@@ -67,9 +67,9 @@ test('the trail of P7 gives Coast Routes II only to those who brought the tablet
  let s=setup({scrolls:['rotas-1']});s.revealed.push(...G.WALLS);s.enemies=[];hero(s,'odisseu').zone='P7';s=act(s,'odisseu','interact','explore');assert.ok(s.scrolls.includes('rotas-2'));
  let n=setup();n.revealed.push(...G.WALLS);n.enemies=[];hero(n,'odisseu').zone='P7';n=act(n,'odisseu','interact','explore');assert.ok(!n.scrolls.includes('rotas-2'));
 });
-test('Sarpedon comes at alarm 15 and his fall makes Troy retreat',()=>{
+test('Sarpedon comes at alarm 15; wounded to half he retreats alive, and Troy retreats with him',()=>{
  let s=setup();s.enemies=[];s.alarm=14;s.alarmFired=[4,7,11];s=G.trojanTurn(s);const sar=s.enemies.find(e=>e.type==='sarpedon');assert.ok(sar);
- sar.zone='A1';sar.hp=1;sar.armor=0;s.revealed.push('M1');s=act(s,'aquiles','attack',sar.id);assert.ok(s.commanderDown);assert.equal(s.enemies.length,0);
+ assert.equal(sar.hp,12);assert.equal(sar.armor,2);sar.zone='A1';sar.hp=7;sar.armor=0;s.revealed.push('M1');s=act(s,'aquiles','attack',sar.id);assert.ok(s.commanderDown);assert.equal(s.enemies.length,0);assert.ok(s.sarpedonWounds>=6,'ferido, não morto');
 });
 test('the bot completes most rosters',()=>{
  const ids=['aquiles','ajax','odisseu','menelau','agamemnon'];let wins=0,games=0;

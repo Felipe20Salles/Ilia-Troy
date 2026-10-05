@@ -754,3 +754,4 @@ body{background:var(--graphite)}
 .cris-choice ul{margin:0;padding-left:18px;display:grid;gap:3px;font-size:13.5px;color:#d8d0bf}
 .cris-choice small{color:var(--muted);font-style:italic}
 @media (max-width:640px),(max-height:560px){.cris-choices{grid-template-columns:1fr}.cris-card .scene-art{height:110px}}
+.cris-choice:disabled{opacity:.45;cursor:not-allowed}

@@ -108,3 +108,8 @@ test('the flame starts at its peak with Paris and spearmen on the plain, falls w
  let u=setup();u.enemies=[G.TROOPS.create('e90','A1','lanceiro')];u.nextEnemy=91;u.alarm=10;u.heroes.forEach(h=>h.zone='N1');u=G.trojanTurn(u);assert.equal(u.campDamage,1);assert.ok(u.alarm>=11,'o fogo nas tendas anima Troia');
  let v=setup();v.alarm=7;v.enemies=[];v=G.trojanTurn(v);assert.equal(v.enemies.length,0,'chama baixa: sem reforços');
 });
+test('the sacrifice takes the whole store and pleases Apollo; taking Briseida costs no food and gives Agamemnon glory',()=>{
+ const s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],campFood:5,legacy:{criseida:'taken'}});assert.equal(s.encounter.id,'crises');
+ const a=G.choose(s,'sacrifice').state;assert.equal(a.campFood,0,'todo o armazém');assert.equal(a.favor,s.favor+1);assert.equal(a.plagueActive,false);
+ const b=G.choose(s,'briseida').state;assert.equal(b.campFood,5,'sem custo de comida');assert.ok(b.glory.includes('agamemnon'));assert.ok(b.heroes.find(h=>h.id==='aquiles').patroclus);assert.ok(G.validSave(b));
+});

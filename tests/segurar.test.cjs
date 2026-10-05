@@ -47,9 +47,10 @@ test('the embassy of Odysseus or Ajax always fails',()=>{
  assert.ok(hero(s,'aquiles').patroclus,'Pátroclo continua no lugar de Aquiles');assert.match(s.lastFind.text,/falhou/);assert.equal(G.interactions(s,hero(s,'odisseu')).some(x=>x.id==='embassy'),false);
 });
 test('Zeus weighs Patroclus and Hector when Hector comes out of the gate',()=>{
- let s=briseida();s.enemies=[];s.alarm=9;s.alarmFired=[4,7];s=G.trojanTurn(s);assert.ok(s.enemies.some(e=>e.type==='heitor'));assert.equal(s.encounter.id,'scales');assert.equal(G.act(s,'odisseu','rest').ok,false,'a cena pausa a partida');
+ const fall=x=>{x.enemies=[G.TROOPS.create('e90','A1','lanceiro')];x.enemies[0].hp=1;x.enemies[0].armor=0;x.nextEnemy=91;x.alarm=15;return act(x,'odisseu','attack','e90');};
+ let s=fall(briseida());assert.ok(s.enemies.some(e=>e.type==='heitor'));assert.equal(s.encounter.id,'scales');assert.equal(G.act(s,'odisseu','rest').ok,false,'a cena pausa a partida');
  s=G.choose(s,'ok').state;assert.equal(s.encounter,null);assert.ok(G.SCALES.face.items.length===4&&G.SCALES.flee.items.length===2);
- let e=setup();e.enemies=[];e.alarm=9;e.alarmFired=[4,7];e=G.trojanTurn(e);assert.equal(e.encounter,null,'sem Pátroclo, não há balança');assert.match(e.lastFind.text,/maior guerreiro/,'o duelo de egos');
+ let e=fall(setup());assert.equal(e.encounter,null,'sem Pátroclo, não há balança');assert.match(e.lastFind.text,/maior guerreiro/,'o duelo de egos');
 });
 test('Patroclus falling face to Hector earns the four rewards; Achilles returns next round with everything',()=>{
  let s=briseida();s.encounter=null;const hec=G.TROOPS.create('e90','A1','heitor');s.enemies=[hec,G.TROOPS.create('e91','N4','lanceiro')];s.nextEnemy=92;const p=hero(s,'aquiles');
@@ -73,16 +74,17 @@ test('from mission 3 on, feats give Favor and Glory, not abilities',()=>{
  s=act(s,'aquiles','attack','e90');assert.ok(s.personal.aquiles.done);assert.equal(s.encounter,null,'sem nova habilidade');assert.ok(s.glory.includes('aquiles'));assert.equal(s.favor,favor+1);
 });
 test('refusing brings the plague in a growing cycle of life, Favor and food, until the council changes course',()=>{
+ const T=x=>{x.enemies=[];return G.trojanTurn(x);};
  let s=setup({legacy:{criseida:'taken'},campFood:0});s=G.choose(s,'refuse').state;assert.ok(s.plagueActive);
- const hp=s.heroes.map(h=>h.hp);s=G.trojanTurn(s);assert.deepEqual(s.heroes.map(h=>h.hp),hp.map(x=>x-1),'1º: vida');
- s.favor=3;s=G.trojanTurn(s);assert.equal(s.favor,2,'2º: Favor');
- s.campFood=5;s=G.trojanTurn(s);assert.equal(s.campFood,4,'3º: comida');
- const h2=s.heroes.map(h=>h.hp);s=G.trojanTurn(s);assert.deepEqual(s.heroes.map(h=>h.hp),h2.map(x=>Math.max(0,x-2)),'o castigo cresce no 2º ciclo');
+ const hp=s.heroes.map(h=>h.hp);s=T(s);assert.deepEqual(s.heroes.map(h=>h.hp),hp.map(x=>x-1),'1º: vida');
+ s.favor=3;s=T(s);assert.equal(s.favor,2,'2º: Favor');
+ s.campFood=5;s=T(s);assert.equal(s.campFood,4,'3º: comida');
+ const h2=s.heroes.map(h=>h.hp);s=T(s);assert.deepEqual(s.heroes.map(h=>h.hp),h2.map(x=>Math.max(0,x-2)),'o castigo cresce no 2º ciclo');
  s.enemies=[];s.heroes.forEach(h=>{h.hp=5;h.ap=2;});s=act(s,'agamemnon','interact','council');assert.equal(s.encounter.id,'crises');assert.ok(!G.crisesChoices(s).includes('refuse'));s=G.choose(s,'sacrifice').state;assert.equal(s.plagueActive,false);
 });
 test('Criseida in the camp delays the first reinforcement; Paris shoots from afar',()=>{
- let s=setup({legacy:{criseida:'taken'}});s=G.choose(s,'intercede').ok?s:G.choose(s,'refuse').state;s.plagueActive=false;s.alarm=3;s=G.trojanTurn(s);assert.ok(s.alarmFired.includes(4));assert.equal(s.enemies.length,0,'Troia hesita');
- let p=setup();p.enemies=[G.TROOPS.create('e90','P1','paris')];p.nextEnemy=91;const hp=hero(p,'odisseu').hp;p=G.trojanTurn(p);assert.ok(p.heroes.some(h=>h.hp<6),'Páris atira em quem está a até 2 peças');assert.equal(p.enemies[0].zone,'P1','quem atira não avança');
+ let s=setup({legacy:{criseida:'taken'}});s=G.choose(s,'intercede').ok?s:G.choose(s,'refuse').state;s.plagueActive=false;s.enemies=[];s=G.trojanTurn(s);assert.ok(s.waveHeld);assert.equal(s.enemies.length,0,'Troia hesita');s=G.trojanTurn(s);assert.ok(s.enemies.length>0,'depois os reforços vêm');
+ let p=setup();p.enemies=[G.TROOPS.create('e90','P1','paris')];p.alarm=4;p.nextEnemy=91;const hp=hero(p,'odisseu').hp;p=G.trojanTurn(p);assert.ok(p.heroes.some(h=>h.hp<6),'Páris atira em quem está a até 2 peças');assert.equal(p.enemies[0].zone,'P1','quem atira não avança');
 });
 test('wounding Hector by 4 makes him and every Trojan retreat: victory',()=>{
  let s=setup();const hec=G.TROOPS.create('e90','A1','heitor');hec.hp=7;hec.armor=0;s.enemies=[hec,G.TROOPS.create('e91','P1','lanceiro')];s.nextEnemy=92;s.revealed.push('P1');
@@ -95,5 +97,14 @@ test('the bot holds the line in most rosters and choices',()=>{
  const extras=['aquiles','ajax','menelau'];let wins=0,games=0;
  for(let mask=1;mask<8;mask++){const team=['odisseu','agamemnon',...extras.filter((_,i)=>mask&(1<<i))];
   for(const crises of ['none','sacrifice','briseida']){const s=play(team,crises==='none'?{}:{legacy:{criseida:'taken'},crises});games++;if(s.result==='victory')wins++;}}
- assert.ok(wins/games>=.6,'vitórias do robô: '+wins+'/'+games);
+ // A chama começa no máximo (04/10/2026): a missão ficou difícil de propósito.
+ assert.ok(wins/games>=.5&&wins/games<=.8,'vitórias do robô: '+wins+'/'+games);
+});
+test('the flame starts at its peak with Paris and spearmen on the plain, falls with each defeated contingent and rises with burning tents',()=>{
+ let s=setup();assert.equal(s.alarm,18);assert.deepEqual(s.enemies.map(e=>e.type+'@'+e.zone).sort(),['lanceiro@P2','lanceiro@P3','paris@M1']);
+ const before=s.enemies.length;let t=G.trojanTurn(s);assert.equal(t.enemies.length-before,2,'duas frentes com a chama alta');
+ t.enemies=[G.TROOPS.create('e90','A1','lanceiro')];t.enemies[0].hp=1;t.enemies[0].armor=0;t.nextEnemy=91;t.alarm=18;t=act(t,'odisseu','attack','e90');assert.equal(t.alarm,16,'cada tropa derrubada apaga 2');assert.equal(t.heitorOut,false);
+ t.enemies=[G.TROOPS.create('e92','A1','paris')];t.enemies[0].hp=1;t.nextEnemy=93;t=act(t,'odisseu','attack','e92');assert.equal(t.alarm,10,'Páris apaga 6');assert.ok(t.heitorOut,'abaixo de 15, Heitor sai');
+ let u=setup();u.enemies=[G.TROOPS.create('e90','A1','lanceiro')];u.nextEnemy=91;u.alarm=10;u.heroes.forEach(h=>h.zone='N1');u=G.trojanTurn(u);assert.equal(u.campDamage,1);assert.ok(u.alarm>=11,'o fogo nas tendas anima Troia');
+ let v=setup();v.alarm=7;v.enemies=[];v=G.trojanTurn(v);assert.equal(v.enemies.length,0,'chama baixa: sem reforços');
 });

@@ -4,7 +4,7 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(HEROES,TROOPS){
   'use strict';
   // Missão 1 com revelação do mapa: só N1 começa na mesa; o Alarme de Troia substitui o limite de rodadas.
-  const VERSION=11,MAX_ROUNDS=60,FOOD_LIMIT=2,ALARM_MAX=18,CASTAWAY_LIMIT=8;
+  const VERSION=12,MAX_ROUNDS=60,FOOD_LIMIT=2,ALARM_MAX=18,CASTAWAY_LIMIT=8;
   const LAYOUT=[['P1','P6','C2','C1'],['A1','A2','P2'],['N1','N2','N3','N4']];
   const TERRAINS={C:{art:'colina',name:'Colina'},P:{art:'planicie',name:'Planície'},B:{art:'bosque',name:'Bosque'},A:{art:'acampamento',name:'Acampamento'},N:{art:'navios',name:'Praia'}};
   const ZONES={};
@@ -54,7 +54,7 @@
   const ALARM_STEPS={4:[['C2','explorador']],7:[['P2','explorador']],11:[['P6','lanceiro']],15:[['P6','eneias']],18:[]};
   const ALARM_BONUS={7:[['P2','lanceiro']],15:[['P6','lanceiro']]};
   const ENEIAS={},CAMP_ZONES=['A1','P1','A2','N1'];
-  function alarmEntries(s,step){if(step===18){const gates=['P1','C2','P2'],list=[];for(let i=0;i<s.heroes.length-1;i++)list.push([gates[i%3],'lanceiro']);list.push(['C2','arqueiro']);return list;}return [...ALARM_STEPS[step],...(s.heroes.length>=4?ALARM_BONUS[step]||[]:[])];}
+  function alarmEntries(s,step){if(step===15&&s.eneiasDown){const gates=['P6','C2','P2'],list=[];for(let i=0;i<Math.max(3,s.heroes.length);i++)list.push([gates[i%3],'lanceiro']);return list;}if(step===18){const gates=['P1','C2','P2'],list=[];for(let i=0;i<s.heroes.length-1;i++)list.push([gates[i%3],'lanceiro']);list.push(['C2','arqueiro']);return list;}return [...ALARM_STEPS[step],...(s.heroes.length>=4?ALARM_BONUS[step]||[]:[])];}
   const REVEAL_TEXT={
     A1:'Uma clareira protegida do vento, acima da praia. Uma fogueira, uma tenda de couro e um vigia troiano de olho na frota: é o posto que vigia a praia.',
     A2:'A praia alta, firme o bastante para as tendas. Barris trazidos pela maré se acumulam junto às dunas.',
@@ -75,20 +75,22 @@
     menelau:{name:'Irmão de armas',goal:1,text:'Socorra ou cure um aliado, ou ajude a resgatar os náufragos.',reward:'Aprende uma nova habilidade, à escolha do jogador.'},
     ajax:{name:'Muralha dos aqueus',goal:3,text:'Resista de pé a 3 ataques troianos.',reward:'Aprende uma nova habilidade, à escolha do jogador.'}
   };
-  // Crônica: um acontecimento por rodada. Alguns trazem um pedido, resolvido na resposta de Troia seguinte.
+  // Crônica: segue os momentos da missão, não as rodadas. Um pedido nasce do momento que o explica;
+  // as cenas de respiro só aparecem em rodadas sem nenhum momento.
   const CHRONICLE={
-    2:{id:'marcas',title:'Marcas na areia',text:'Ao amanhecer, os sentinelas acham sulcos na areia molhada: algo pesado foi arrastado pela maré ao longo da costa, para o leste. E, subindo as dunas, pegadas de sandálias troianas.'},
-    3:{id:'sinal',title:'Fumaça nas colinas',text:'Uma coluna de fumaça sobe do interior. Os veteranos reconhecem o sinal: os vigias da costa estão chamando os homens de Troia.',demand:'Até a próxima resposta de Troia, mantenham um herói de pé em P1, P6 ou C2 para abafar o sinal.'},
-    4:{id:'agua',title:'Barris da frota',text:'A sede começa a pesar entre os soldados. Os remadores descem barris de água doce dos navios, mas alguém precisa recebê-los na praia.',demand:'Se um herói estiver de pé em N1 na próxima resposta de Troia, o armazém recebe +1 comida.'},
-    5:{id:'corvo',title:'Um corvo no mastro',text:'Um corvo pousa no mastro do navio de Agamêmnon. Entre os soldados corre o murmúrio de maus presságios; alguns já falam em voltar para casa.'},
-    6:{id:'batedores',title:'Olhos na mata',text:'Os vigias dos navios avistam movimento entre as árvores. Se os exploradores voltarem à cidade, Troia saberá quantos somos.',demand:'Se nenhum explorador troiano estiver à vista ao fim da próxima resposta, o Alarme cai 1.'},
-    7:{id:'chuva',title:'Chuva fria',text:'Uma chuva fria encharca a costa. A madeira das caixas incha, e os homens que as carregam praguejam baixo.'},
-    8:{id:'remadores',title:'O canto dos remadores',text:'Dos navios, os remadores entoam o canto da travessia. Na praia, os soldados param por um instante e erguem a cabeça.'},
-    9:{id:'fogueiras',title:'Fogueiras ao longe',text:'O dia termina. Nas muralhas distantes, fogueiras se acendem uma a uma: Troia sabe que estamos aqui.',demand:'Se o acampamento estiver instalado ao fim da próxima resposta, a frota se tranquiliza: Alarme −1. Se não, a escuridão favorece os exploradores: Alarme +1.'},
-    10:{id:'mensageiro',title:'Um mensageiro do rei',text:'"O rei quer o acampamento seguro antes do amanhecer", diz o mensageiro, ofegante. "Os homens não aguentam outra noite na praia."'},
-    11:{id:'nevoa',title:'Névoa marinha',text:'Uma névoa espessa sobe do mar. Os sentinelas mal enxergam a própria lança; cada ruído pode ser o inimigo.'},
-    12:{id:'madrugada',title:'Madrugada',text:'O céu clareia sobre o mar. Os mortos da noite são enrolados em mantos. Quem ainda resiste, resiste por todos.'}
+    sinal:{title:'Fumaça nas colinas',text:'Do posto de A1 sobe uma coluna de fumaça, e nas colinas outros vigias respondem, de fogo em fogo, chamando os homens de Troia.',demand:'Até a próxima resposta de Troia, mantenham um herói de pé em P1, P6 ou C2 para abafar o sinal.'},
+    agua:{title:'Barris da frota',text:'Com a primeira caixa no alto, os remadores descem barris de água doce dos navios. Alguém precisa recebê-los na praia.',demand:'Se um herói estiver de pé em N1 na próxima resposta de Troia, o armazém recebe +1 comida.'},
+    batedores:{title:'Olhos na mata',text:'Os batedores que desceram da colina contam os navios. Se voltarem à cidade, Troia saberá quantos somos.',demand:'Se nenhum batedor troiano estiver à vista ao fim da próxima resposta, o Alarme cai 1.'},
+    fogueiras:{title:'Fogueiras ao longe',text:'A carga está toda no alto e o dia termina. Nas muralhas distantes, fogueiras se acendem uma a uma: Troia sabe que estamos aqui.',demand:'Se o acampamento estiver instalado ao fim da próxima resposta, a frota se tranquiliza: Alarme −1. Se não, a escuridão favorece os batedores: Alarme +1.'},
+    corvo:{title:'Um corvo no mastro',text:'Um corvo pousa no mastro do navio de Agamêmnon. Entre os soldados corre o murmúrio de maus presságios; alguns já falam em voltar para casa.'},
+    chuva:{title:'Chuva fria',text:'Uma chuva fria encharca a costa. A madeira das caixas incha, e os homens que as carregam praguejam baixo.'},
+    remadores:{title:'O canto dos remadores',text:'Dos navios, os remadores entoam o canto da travessia. Na praia, os soldados param por um instante e erguem a cabeça.'},
+    mensageiro:{title:'Um mensageiro do rei',text:'"O rei quer o acampamento seguro antes do amanhecer", diz o mensageiro, ofegante. "Os homens não aguentam outra noite na praia."'},
+    nevoa:{title:'Névoa marinha',text:'Uma névoa espessa sobe do mar. Os sentinelas mal enxergam a própria lança; cada ruído pode ser o inimigo.'},
+    madrugada:{title:'Madrugada',text:'O céu clareia sobre o mar. Os mortos da noite são enrolados em mantos. Quem ainda resiste, resiste por todos.'}
   };
+  const MOMENT_CHRONICLE={posto:'sinal',entrega:'agua',alarme4:'batedores',carga:'fogueiras'},BREATHERS=['corvo','chuva','remadores','mensageiro','nevoa','madrugada'];
+  function moment(s,id){s.moments.push(id);const c=MOMENT_CHRONICLE[id];if(c&&!s.told.includes(c)&&!s.chronicleQueue.includes(c))s.chronicleQueue.push(c);}
   const clone=s=>JSON.parse(JSON.stringify(s));
   const heroName=id=>HEROES.find(d=>d.id===id)?.name||id;
   function log(s,msg){s.log.unshift(msg);s.log=s.log.slice(0,80);}
@@ -96,8 +98,8 @@
   function isRevealed(s,zone){return s.revealed.includes(zone);}
   function reveal(s,zone,by='heroi'){if(!ZONES[zone]||isRevealed(s,zone))return false;s.revealed.push(zone);s.lastReveals.push(zone);log(s,(by==='troia'?'Tropas troianas surgiram em '+zone+'. ':'Nova peça: ')+'posicionem '+ZONES[zone].name+' na mesa.');if(zone==='A1'&&s.post?.status==='hidden')postFound(s);return true;}
   // O posto aparece junto com A1: a vigia já viu os gregos, e a rendição começa a descer a colina.
-  function postFound(s){s.post.status='found';const e=spawn(s,RELIEF_PATH[0],'explorador');e.relief=true;log(s,'Há um posto de vigia troiano em A1. Um batedor desce a colina para render a vigia: tomem o posto antes que ele chegue.');}
-  function postTaken(s){if(s.post.status!=='found'||s.enemies.some(e=>e.watch))return;s.post.status='taken';for(const e of s.enemies)if(e.relief)e.relief=false;s.lastFind={zone:'A1',title:'O posto é nosso',text:'A vigia cai junto à fogueira. Agamêmnon sobe à clareira, olha a praia e a frota lá embaixo e crava a lança no chão: "Aqui será o acampamento. Tragam as caixas."'};log(s,'O posto de A1 foi tomado. Ali será o acampamento: levem as caixas para A1.');}
+  function postFound(s){s.post.status='found';moment(s,'posto');const e=spawn(s,RELIEF_PATH[0],'explorador');e.relief=true;log(s,'Há um posto de vigia troiano em A1. Um batedor desce a colina para render a vigia: tomem o posto antes que ele chegue.');}
+  function postTaken(s){if(s.post.status!=='found'||s.enemies.some(e=>e.watch))return;s.post.status='taken';moment(s,'tomado');for(const e of s.enemies)if(e.relief)e.relief=false;s.lastFind={zone:'A1',title:'O posto é nosso',text:'A vigia cai junto à fogueira. Agamêmnon sobe à clareira, olha a praia e a frota lá embaixo e crava a lança no chão: "Aqui será o acampamento. Tragam as caixas."'};log(s,'O posto de A1 foi tomado. Ali será o acampamento: levem as caixas para A1.');}
   function revealClues(s,zone){for(const z of CLUES[zone]||[])reveal(s,z);}
   function startingAbilities(id,choices){if(!choices)return [0,1,2];const n=choices[id];if(!Number.isInteger(n)||n<0||n>2)throw Error('Escolham a habilidade inicial de cada herói.');return [n];}
   function newGame(options={}){
@@ -108,7 +110,7 @@
     const s={version:VERSION,mission:'desembarque',route,players,playerNames,round:1,phase:'heroes',result:null,reason:'',foodSetup:false,campFood:0,scrolls:[],foodSpent:0,burned:0,eneiasDown:false,retreated:0,campDamage:0,delivered:0,required:ids.length,built:false,
       supplies:{...CRATES[route][ids.length]},revealed:['N1'],lastReveals:[],visited:['N1'],alarm:0,alarmFired:[],combatZones:[],shipNoise:false,
       tokens:Object.fromEntries(Object.keys(TOKENS).map(zone=>[zone,{resolved:false,peeked:false}])),favor:1,invokedRound:0,
-      castaways:{zone:CASTAWAYS[route],status:'unseen',progress:0},beggar:{status:'unseen',zone:BEGGAR,escort:null},post:{status:'hidden'},encounter:null,
+      castaways:{zone:CASTAWAYS[route],status:'unseen',progress:0},beggar:{status:'unseen',zone:BEGGAR,escort:null},post:{status:'hidden'},encounter:null,moments:[],chronicleQueue:[],told:[],
       personal:Object.fromEntries(ids.map(id=>[id,{progress:0,done:false}])),lastFeats:[],chronicle:null,
       guards:{},nextEnemy:1,heroes:ids.map((id,i)=>({...HEROES.create(id,options.levels?.[id]??1),owner:owners[i],zone:'N1',cargo:false,food:0,moves:0,known:startingAbilities(id,options.abilities)})),enemies:[],log:[],outcome:null};
     // O mirante de P1 começa vazio (troca de turno); a vigia da praia fica parada em A1, escondida até a peça aparecer.
@@ -129,21 +131,21 @@
   function alarmMax(s){return ALARM_MAX;}
   function nextAlarm(s){const steps=Object.keys(ALARM_STEPS).map(Number).filter(n=>!s.alarmFired.includes(n)).sort((a,b)=>a-b);if(!steps.length)return {at:alarmMax(s),entries:[]};const at=steps[0];return {at,entries:alarmEntries(s,at)};}
   function waves(s){return nextAlarm(s).entries.map(([zone])=>zone);}
-  function intent(e,s){if(e.stunned)return 'Atordoado: perderá esta ativação';if(e.hold&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return e.watch?'Vigiar a praia':'Guarnecer o posto de vigia';if(e.relief&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return 'Render a vigia em A1: avançar para '+ZONES[reliefStep(e)].name;if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;if(s.heroes.some(h=>h.zone===e.zone&&h.hp>0))return 'Atacar um herói aqui';const goal=huntGoal(s,e);if(goal!=='A1')return 'Caçar quem carrega a caixa em '+goal;return e.zone==='A1'?(s.post.status==='taken'?'Atacar o acampamento':'Defender o posto de A1'):'Avançar para '+ZONES[nextStep(e.zone)].name;}
+  function intent(e,s){if(e.stunned)return 'Atordoado: perderá esta ativação';{const shot=rangedTarget(s,e);if(shot&&!e.intimidated)return 'Atirar em '+heroName(shot.id)+(shot.zone!==e.zone?' em '+shot.zone:'');}if(e.hold&&e.post&&e.zone!==e.post&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return 'Voltar ao posto em '+e.post;if(e.hold&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return e.watch?'Vigiar a praia':'Guarnecer o posto de vigia';if(e.relief&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return 'Render a vigia em A1: avançar para '+ZONES[reliefStep(e)].name;if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;if(s.heroes.some(h=>h.zone===e.zone&&h.hp>0))return 'Atacar um herói aqui';const goal=huntGoal(s,e);if(goal!=='A1')return 'Caçar quem carrega a caixa em '+goal;return e.zone==='A1'?(s.post.status==='taken'?'Atacar o acampamento':'Defender o posto de A1'):'Avançar para '+ZONES[nextStep(e.zone)].name;}
   function finish(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;if(result==='victory')s.outcome={completed:'desembarque',next:'Diante das muralhas',supplies:s.delivered-s.burned,burned:s.burned,eneias:s.eneiasDown,horseMaterials:0,campFood:s.campFood,revealedZones:[...s.revealed],castaways:s.castaways.status==='rescued',castawaysFate:s.castaways.status,beggarFate:s.beggar.status,lookoutTaken:!!s.tokens.P1.resolved,scrolls:[...s.scrolls],heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]})),blessing:s.beggar.status==='zeus'};log(s,reason);}
   function defeat(s){if(s.result)return;if(s.campDamage>=3)finish(s,'defeat','Troia arrasou o acampamento. Os gregos precisam refazer o desembarque.');else if(s.heroes.every(h=>h.hp===0))finish(s,'defeat','Todos os heróis caíram. A expedição precisa recuar.');}
   // Vitória: acampamento instalado e, antes de Enéias, nenhuma tropa em A1 e vizinhas; depois dele, Enéias derrotado.
   function victory(s){if(s.result||!s.built)return;
-    if(s.alarmFired.includes(15)){if(!s.eneiasDown)return;finish(s,'victory','Enéias caiu e Troia recuou para trás das muralhas. O acampamento está firme na costa.');}
-    else if(!s.enemies.some(e=>CAMP_ZONES.includes(e.zone)&&!e.hold))finish(s,'victory','Nenhum troiano resta perto das tendas. O acampamento está firme na costa.');}
+    if(s.enemies.some(e=>e.type==='eneias'))return;
+    if(!s.enemies.some(e=>CAMP_ZONES.includes(e.zone)&&!e.hold))finish(s,'victory',s.eneiasDown?'Enéias caiu e os troianos que voltaram foram rechaçados. O acampamento está firme na costa.':'Nenhum troiano resta perto das tendas. O acampamento está firme na costa.');}
   function addAlarm(s,amount,reason){
     if(s.result||!amount)return;const before=s.alarm;s.alarm=Math.max(0,Math.min(alarmMax(s),s.alarm+amount));if(s.alarm===before)return;
     log(s,'Alarme de Troia '+(amount>0?'+':'')+amount+' ('+s.alarm+'/'+alarmMax(s)+'): '+reason+'.');
     for(const step of Object.keys(ALARM_STEPS).map(Number).sort((a,b)=>a-b)){
       if(s.alarm<step||s.alarmFired.includes(step))continue;s.alarmFired.push(step);
-      if(s.eneiasDown)continue;const entries=alarmEntries(s,step);
+      moment(s,'alarme'+step);const entries=alarmEntries(s,step);
       for(const [zone,type] of entries){const e=spawn(s,zone,type);if(type==='eneias')Object.assign(e,ENEIAS);}
-      log(s,(step===18?'Troia em peso! ':step===15?'Enéias desce com a sua guarda. ':'')+'Troia reage ao alarme '+step+': '+entries.map(([zone,type])=>TROOPS.types[type].short+' em '+zone).join(', ')+'.');
+      log(s,(step===18?'Troia em peso! ':step===15?(s.eneiasDown?'Os lanceiros troianos voltam à carga. ':'Enéias desce com a sua guarda. '):'')+'Troia reage ao alarme '+step+': '+entries.map(([zone,type])=>TROOPS.types[type].short+' em '+zone).join(', ')+'.');
     }
     if(s.alarmFired.includes(7)&&!s.tokens.P1.resolved&&!s.garrison&&!s.eneiasDown){s.garrison=true;spawn(s,'P1','lanceiro').hold=true;log(s,'Troia guarnece o posto de vigia de P1 com uma companhia de lanceiros.');}
     if(s.alarm>=10&&s.beggar.status==='met'){spy(s,'O velho cansou de esperar pelo pão prometido.');}
@@ -151,7 +153,8 @@
     defeat(s);
   }
   function spy(s,reason){const zone=s.heroes.find(h=>h.id===s.beggar.escort)?.zone||s.beggar.zone;s.beggar.status='spy';s.beggar.escort=null;s.beggar.zone=zone;log(s,reason+' O velho era um espião troiano: "Troia saberá quantos vocês são."');spawn(s,zone,'lanceiro');addAlarm(s,2,'o espião do círculo de pedras');}
-  function blessing(s){s.beggar.status='zeus';s.beggar.escort=null;s.beggar.zone='A1';log(s,'O velho chega ao fogo do acampamento e se revela Zeus: "Honraram a hospitalidade." Um trovão rola sobre o mar, e os troianos não ousam sair das muralhas.');addAlarm(s,-2,'a bênção de Zeus acalma a costa');}
+  // O velho recebe o pão e desaparece; o trovão revela que era Zeus.
+  function blessing(s,h){s.beggar.status='zeus';s.beggar.escort=null;s.lastFind={zone:s.beggar.zone,title:'O trovão em céu limpo',text:(h?heroName(h.id)+' divide o pão com o velho. ':'')+'Ele come devagar, agradece e se levanta. Quando os homens se viram, não há ninguém entre as pedras. Um trovão rola no céu sem nuvens, e os veteranos se entreolham: era Zeus, e ele foi bem recebido. +2 de Favor; o Alarme cai 1.'};log(s,'O velho era Zeus. Os gregos honraram a hospitalidade.');addFavor(s,2,'Zeus foi bem recebido');addAlarm(s,-1,'a bênção de Zeus acalma a costa');}
   function addFavor(s,amount,reason){if(s.result||!amount)return;const before=s.favor;s.favor=Math.max(0,Math.min(FAVOR_MAX,s.favor+amount));if(s.favor!==before)log(s,'Favor dos deuses '+(amount>0?'+':'')+amount+' ('+s.favor+'/'+FAVOR_MAX+'): '+reason+'.');}
   function feat(s,id,amount=1){
     const p=s.personal?.[id],def=PERSONAL[id],h=s.heroes.find(x=>x.id===id);if(!p||p.done||!def||!h||s.result)return;
@@ -161,13 +164,14 @@
   const CHRONICLE_CHECKS={
     sinal:{check:s=>s.heroes.some(h=>h.hp>0&&['P1','P6','C2'].includes(h.zone)),success:s=>log(s,'Crônica: o sinal de fumaça foi abafado antes de se espalhar.'),fail:s=>addAlarm(s,1,'o sinal de fumaça se espalhou pelas colinas')},
     agua:{check:s=>s.heroes.some(h=>h.hp>0&&h.zone==='N1'),success:s=>{log(s,'Crônica: os barris de água chegaram: '+eat(s,woundedAt(s,'N1'),1)+'.');},fail:s=>log(s,'Crônica: ninguém buscou os barris; eles voltaram aos navios.')},
-    batedores:{check:s=>!s.enemies.some(e=>e.type==='explorador'&&isRevealed(s,e.zone)),success:s=>addAlarm(s,-1,'nenhum explorador troiano vigia a costa'),fail:s=>log(s,'Crônica: exploradores troianos continuam à espreita.')},
-    fogueiras:{check:s=>s.built,success:s=>addAlarm(s,-1,'o acampamento aceso tranquiliza a frota'),fail:s=>addAlarm(s,1,'a escuridão favorece os exploradores')}
+    batedores:{check:s=>!s.enemies.some(e=>e.type==='explorador'&&isRevealed(s,e.zone)),success:s=>addAlarm(s,-1,'nenhum batedor troiano vigia a costa'),fail:s=>log(s,'Crônica: batedores troianos continuam à espreita.')},
+    fogueiras:{check:s=>s.built,success:s=>addAlarm(s,-1,'o acampamento aceso tranquiliza a frota'),fail:s=>addAlarm(s,1,'a escuridão favorece os batedores')}
   };
   function resolveChronicle(s){const c=s.chronicle;if(!c||c.status!=='open'||s.result)return;const rule=CHRONICLE_CHECKS[c.id];const ok=c.favored||rule.check(s);c.status=ok?'success':'fail';s.chronicleResult={id:c.id,status:c.status};(ok?rule.success:rule.fail)(s);}
   function startChronicle(s){
-    const entry=CHRONICLE[s.round];if(!entry||s.result){s.chronicle=null;return;}
-    s.chronicle={round:s.round,id:entry.id,status:CHRONICLE_CHECKS[entry.id]?'open':'told'};
+    const quiet=!s.moments.length;s.moments=[];if(s.result){s.chronicle=null;return;}
+    const id=s.chronicleQueue.shift()||(quiet?BREATHERS.find(b=>!s.told.includes(b)):null);if(!id){s.chronicle=null;return;}
+    const entry=CHRONICLE[id];s.told.push(id);s.chronicle={round:s.round,id,status:CHRONICLE_CHECKS[id]?'open':'told'};
     log(s,'Crônica da rodada '+s.round+': '+entry.title+'.');
     
   }
@@ -177,11 +181,11 @@
     if(s.beggar.status==='escort'&&s.beggar.escort===h.id){s.beggar.zone=zone;if(zone==='A1'&&!s.built)blessing(s);}
     if(s.visited.includes(zone))return;s.visited.push(zone);
     if(zone===SHIP&&!s.shipNoise){s.shipNoise=true;addAlarm(s,1,'o casco do navio encalhado range com a chegada dos heróis');}
-    if(zone===s.castaways.zone&&s.castaways.status==='unseen'){s.castaways.status='met';s.encounter={id:'castaways',zone};}
-    if(zone===BEGGAR&&s.beggar.status==='unseen'){s.beggar.status='met';s.encounter={id:'beggar',zone};}
+    if(zone===s.castaways.zone&&s.castaways.status==='unseen'){s.castaways.status='met';moment(s,'naufragos');s.encounter={id:'castaways',zone};}
+    if(zone===BEGGAR&&s.beggar.status==='unseen'){s.beggar.status='met';moment(s,'velho');s.encounter={id:'beggar',zone};}
   }
   function dropCargo(s,h){if(h.cargo){s.supplies[h.zone]=(s.supplies[h.zone]||0)+1;h.cargo=false;log(s,'Uma caixa caiu em '+h.zone+' e pode ser recuperada.');}if(s.beggar.status==='escort'&&s.beggar.escort===h.id){s.beggar.status='waiting';s.beggar.escort=null;s.beggar.zone=h.zone;log(s,'O velho ficou em '+h.zone+' esperando outra escolta.');}}
-  function kill(s,e,damage,ignoreArmor=0){const armor=ignoreArmor===true?0:Math.max(0,(e.armor||0)-ignoreArmor);e.hp-=Math.max(0,damage-armor);if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');if(e.watch)postTaken(s);if(e.type==='eneias'){s.eneiasDown=true;s.retreated=s.enemies.length;s.enemies=[];log(s,'Com Enéias caído, as tropas troianas recuam para a cidade.');postTaken(s);}}}
+  function kill(s,e,damage,ignoreArmor=0){const armor=ignoreArmor===true?0:Math.max(0,(e.armor||0)-ignoreArmor);e.hp-=Math.max(0,damage-armor);if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');if(e.watch)postTaken(s);if(e.type==='eneias'){s.eneiasDown=true;const guard=s.enemies.filter(a=>!a.watch&&distance(a.zone,e.zone)<=1);s.retreated=guard.length;s.enemies=s.enemies.filter(a=>!guard.includes(a));s.alarmFired=s.alarmFired.filter(n=>n!==15);log(s,'Enéias caiu. A guarda dele recua com o corpo para a cidade'+(guard.length?' ('+guard.length+' tropa'+(guard.length>1?'s':'')+')':'')+', mas Troia não desiste.');addAlarm(s,-7,'Enéias caiu');postTaken(s);}}}
   function strike(s,h,e,amount,options={}){
     const zone=e.zone;
     if(options.precision)e.hp=1;else kill(s,e,amount,options.piercing||h.id==='odisseu');
@@ -207,7 +211,7 @@
     const token=s.tokens[h.zone];if(token&&!token.resolved&&isRevealed(s,h.zone)&&tokenOf(s,h.zone).kind==='evolution')add('lookout','Escalar o posto de vigia ('+(token.progress||0)+'/2)',token.peeked?'Atena revelou: '+foundPreview(s,h.zone):'2 ações no total, sem inimigos; o barulho chama Troia');
     else if(token&&!token.resolved&&isRevealed(s,h.zone)){const quiet=tokenOf(s,h.zone).kind==='clue',noise=quiet?'Seguir a pista não faz barulho.':'A busca faz barulho (Alarme +1).';add('explore','Investigar: '+tokenOf(s,h.zone).hint.toLocaleLowerCase('pt-BR'),token.peeked?'Atena revelou: '+foundPreview(s,h.zone)+' '+noise:'Ninguém sabe o que há ali. '+noise);}
     if(h.zone===s.castaways.zone&&s.castaways.status==='met')add('castaways','Resgatar náufragos',`${s.castaways.progress}/2 ações · antes do Alarme ${CASTAWAY_LIMIT}`);
-    if(h.zone===s.beggar.zone&&s.beggar.status==='met')add('feed','Dar pão ao velho','Custa 1 de vida de quem dá o pão; depois escoltem-no até A1',h.hp>1);
+    if(h.zone===s.beggar.zone&&s.beggar.status==='met')add('feed','Dar pão ao velho','Custa 1 de vida de quem dá o pão',h.hp>1);
     if(h.zone===s.beggar.zone&&s.beggar.status==='waiting')add('escort','Escoltar o velho','Leve-o até o fogo de A1');
     return list;
   }
@@ -241,17 +245,17 @@
       const options=interactions(s,h),choice=target?options.find(x=>x.id===target):options.find(x=>x.available);
       if(foes().length)return fail('Elimine os inimigos nesta peça antes de interagir.');
       if(!choice||!choice.available)return fail(choice?.id==='feed'?'Dar pão ao velho custa 1 de vida: o herói precisa ter ao menos 2.':'Não há nada para resolver aqui.');
-      if(choice.id==='deliver'){h.cargo=false;s.delivered++;message='entregou uma caixa em A1 ('+s.delivered+'/'+s.required+')';}
+      if(choice.id==='deliver'){h.cargo=false;s.delivered++;moment(s,s.delivered===s.required?'carga':s.delivered===1?'entrega':'caixa');message='entregou uma caixa em A1 ('+s.delivered+'/'+s.required+')';}
       else if(choice.id==='pickup'){s.supplies[h.zone]--;h.cargo=true;message='carregou uma caixa de '+h.zone;}
-      else if(choice.id==='install'){s.built=true;message='instalou o acampamento';const king=s.heroes.find(a=>a.id==='agamemnon'&&a.hp>0&&a.zone==='A1');if(king)feat(s,'agamemnon');if(['met','waiting','escort'].includes(s.beggar.status))spy(s,'O acampamento foi erguido sem honrar o pedido do velho.');}
+      else if(choice.id==='install'){s.built=true;moment(s,'acampamento');message='instalou o acampamento';const king=s.heroes.find(a=>a.id==='agamemnon'&&a.hp>0&&a.zone==='A1');if(king)feat(s,'agamemnon');if(['met','waiting','escort'].includes(s.beggar.status))spy(s,'O acampamento foi erguido sem honrar o pedido do velho.');}
       else if(choice.id==='explore'){if(h.id==='odisseu')feat(s,'odisseu');if(h.zone==='P6'){s.encounter={id:'tracks',zone:'P6',hero:h.id};message='encontrou pegadas frescas na trilha';}else message=resolveToken(s,h,def);}
       else if(choice.id==='lookout'){const token=s.tokens[h.zone];token.progress=(token.progress||0)+1;
         if(token.progress<2)message='começou a escalar o posto de vigia (1/2)';
         else{token.resolved=true;addAlarm(s,1,'os troianos avistam gregos no mirante');const eligible=s.heroes.filter(a=>a.hp>0&&a.level<3).map(a=>a.id);
-          if(eligible.length){s.encounter={id:'evolution',zone:h.zone,choices:eligible};message='conquistou o mirante troiano';}
+          if(eligible.length){moment(s,'mirante');s.encounter={id:'evolution',zone:h.zone,choices:eligible};message='conquistou o mirante troiano';}
           else{message='conquistou o mirante; todos já estão no nível máximo ('+eat(s,h,1)+')';}}}
-      else if(choice.id==='castaways'){if(h.id==='menelau')feat(s,'menelau');s.castaways.progress++;if(s.castaways.progress>=2){s.castaways.status='rescued';const meal=eat(s,h,1);const found=BEACHES.filter(z=>(s.supplies[z]||0)>0&&!isRevealed(s,z));for(const z of found)reveal(s,z);message='resgatou os náufragos: '+meal+(found.length?'. Eles indicaram onde a carga caiu: '+found.join(', '):'');}else message='começou o resgate dos náufragos (1/2)';}
-      else if(choice.id==='feed'){h.hp--;s.foodSpent++;s.beggar.status='escort';s.beggar.escort=h.id;message='deu pão ao velho e passou a escoltá-lo até o acampamento';}
+      else if(choice.id==='castaways'){if(h.id==='menelau')feat(s,'menelau');s.castaways.progress++;if(s.castaways.progress>=2){s.castaways.status='rescued';const meal=eat(s,h,1);addFavor(s,2,'os deuses viram o resgate dos náufragos');const found=BEACHES.filter(z=>(s.supplies[z]||0)>0&&!isRevealed(s,z));for(const z of found)reveal(s,z);message='resgatou os náufragos: '+meal+'; os deuses viram (+2 de Favor)'+(found.length?'. Eles indicaram onde a carga caiu: '+found.join(', '):'');}else message='começou o resgate dos náufragos (1/2)';}
+      else if(choice.id==='feed'){h.hp--;s.foodSpent++;blessing(s,h);message='deu pão ao velho';}
       else if(choice.id==='escort'){s.beggar.status='escort';s.beggar.escort=h.id;message='passou a escoltar o velho';if(h.zone==='A1'&&!s.built)blessing(s);}
     }else if(action==='rest'){
       if(foes().length)return fail('Não é possível recuperar com inimigos nesta peça.');if(!h.used.length)return fail('As habilidades já estão prontas. Vida só se recupera com comida encontrada.');h.used=[];message='preparou suas habilidades';
@@ -276,7 +280,7 @@
       else if(c.type==='grantAction'){if(!a||a.id===h.id||a.zone!==h.zone||a.hp<=0)return fail('Escolha outro herói de pé nesta área.');a.ap++;a.bonusActions++;}
       else if(c.type==='taunt'){h.tauntRound=s.round;}
       else if(c.type==='refresh'){if(!a||a.id===h.id||a.zone!==h.zone||a.hp===0||!a.used.length)return fail('Escolha outro herói de pé com habilidades esgotadas nesta peça.');a.used=[];}
-      else if(c.type==='intimidate'){const zone=e&&e.zone===h.zone?intimidationZone(s,e):null;if(!zone)return fail('Escolha um inimigo nesta área que possa recuar.');const origin=e.zone;kill(s,e,c.value);if(s.enemies.includes(e)){e.zone=zone;e.intimidated=true;reveal(s,zone,'troia');log(s,TROOPS.label(e)+' sofreu '+c.value+' de dano, recuou de '+origin+' para '+zone+' e não poderá atacar na próxima resposta.');}}
+      else if(c.type==='intimidate'){const zone=e&&e.zone===h.zone?intimidationZone(s,e):null;if(!zone)return fail('Escolha um inimigo nesta área que possa recuar.');const origin=e.zone;kill(s,e,c.value);if(s.enemies.includes(e)){if(e.hold&&!e.post)e.post=origin;e.zone=zone;e.intimidated=true;reveal(s,zone,'troia');log(s,TROOPS.label(e)+' sofreu '+c.value+' de dano, recuou de '+origin+' para '+zone+' e não poderá atacar na próxima resposta.');}}
       else return fail('Habilidade desconhecida.');
       if(c.once)h.onceUsed.push(n);else h.used.push(n);message='usou '+c.name;
     }else return fail('Ação desconhecida.');
@@ -294,7 +298,10 @@
   }
   // Escolhas dos encontros (caixas de diálogo).
   // Depois de qualquer encontro, abre a escolha de habilidade que ficou na fila.
-  function choose(state,choice){const r=chooseOne(state,choice);if(r.ok&&!r.state.encounter&&r.state.pendingAbility){const s=r.state,h=s.heroes.find(a=>a.id===s.pendingAbility);s.pendingAbility=null;const left=h?[0,1,2].filter(x=>!h.known.includes(x)):[];if(left.length)s.encounter={id:'ability',hero:h.id,zone:h.zone,choices:left};}return r;}
+  function choose(state,choice){const r=chooseOne(state,choice);
+    // Habilidade escolhida depois do fim da missão (feito cumprido na última ação): também segue para a campanha.
+    if(r.ok&&r.state.outcome?.heroes)for(const oh of r.state.outcome.heroes){const h=r.state.heroes.find(x=>x.id===oh.id);if(h&&!h.patroclus)oh.known=[...h.known];}
+    if(r.ok&&!r.state.encounter&&r.state.pendingAbility){const s=r.state,h=s.heroes.find(a=>a.id===s.pendingAbility);s.pendingAbility=null;const left=h?[0,1,2].filter(x=>!h.known.includes(x)):[];if(left.length)s.encounter={id:'ability',hero:h.id,zone:h.zone,choices:left};}return r;}
   function chooseOne(state,choice){
     const s=clone(state),fail=error=>({ok:false,error,state});if(!s.encounter)return fail('Não há encontro aberto.');
     s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;
@@ -308,7 +315,7 @@
       return fail('Escolha inválida.');}
     if(s.encounter.id==='ability'){const h=s.heroes.find(a=>a.id===s.encounter.hero),n=Number(choice);if(!h||!s.encounter.choices.includes(n))return fail('Escolham uma das habilidades ainda não aprendidas.');h.known.push(n);h.known.sort();s.encounter=null;s.lastLearn={hero:h.id,kind:'ability',card:n};log(s,heroName(h.id)+' aprendeu '+HEROES.find(d=>d.id===h.id).cards[n].name+'. Virem a carta no tabuleiro do herói.');const next=s.pendingAbility&&s.heroes.find(a=>a.id===s.pendingAbility);s.pendingAbility=null;if(next){const left=[0,1,2].filter(x=>!next.known.includes(x));if(left.length)s.encounter={id:'ability',hero:next.id,zone:next.zone,choices:left};}return {ok:true,state:s};}
     if(s.encounter.id==='evolution'){const h=s.heroes.find(a=>a.id===choice&&s.encounter.choices.includes(a.id)&&a.hp>0&&a.level<3);if(!h)return fail('Escolham um herói de pé abaixo de N3.');const before=HEROES.stats(h);h.level++;const after=HEROES.stats(h);h.ap+=Math.max(0,after.actions-before.actions);s.encounter=null;s.lastLearn={hero:h.id,kind:'evolution',level:h.level};log(s,'A equipe escolheu '+heroName(h.id)+' para receber a experiência do mirante: evolução para N'+h.level+'.');return {ok:true,state:s};}
-    if(s.encounter.id==='beggar'){if(choice==='accept'){s.encounter=null;log(s,'O velho pediu pão e escolta até o fogo do acampamento.');return {ok:true,state:s};}if(choice==='refuse'){s.encounter=null;addFavor(s,-1,'os heróis negaram hospitalidade');spy(s,'Os heróis mandaram o velho embora.');return {ok:true,state:s};}return fail('Escolha inválida.');}
+    if(s.encounter.id==='beggar'){if(choice==='accept'){const h=s.heroes.filter(a=>a.zone===s.beggar.zone&&a.hp>1).sort((a,b)=>b.hp-a.hp)[0];if(!h)return fail('Ninguém aqui tem forças para dividir o pão: quem dá perde 1 de vida.');s.encounter=null;h.hp--;s.foodSpent++;blessing(s,h);return {ok:true,state:s};}if(choice==='refuse'){s.encounter=null;addFavor(s,-1,'os heróis negaram hospitalidade');spy(s,'Os heróis mandaram o velho embora.');return {ok:true,state:s};}return fail('Escolha inválida.');}
     return fail('Encontro desconhecido.');
   }
   function allocateFood(state,heroId,delta){
@@ -319,19 +326,25 @@
     return {ok:true,state:s};
   }
   function finishFoodSetup(state){const s=clone(state);if(!s.foodSetup)return {ok:false,error:'A distribuição já foi encerrada.',state};s.foodSetup=false;log(s,'Distribuição inicial concluída. '+s.campFood+' comida(s) permaneceram no armazém.');return {ok:true,state:s};}
+  // Quem atira (arqueiros) acerta o herói de pé mais próximo dentro do alcance, sem sair do lugar; de longe, o tiro tira 1 a menos.
+  function rangedTarget(s,e){const r=TROOPS.types[e.type]?.range||0;if(!r)return null;return s.heroes.filter(h=>h.hp>0&&distance(e.zone,h.zone)<=r&&isRevealed(s,h.zone)).sort((a,b)=>distance(e.zone,a.zone)-distance(e.zone,b.zone)||a.hp-b.hp)[0]||null;}
   function trojanTurn(state){
-    const s=clone(state);if(s.result||s.phase!=='heroes')return s;s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;s.lastFind=null;
+    const s=clone(state);if(s.result||s.phase!=='heroes')return s;s.chronicleResult=null;s.lastAttacks=[];s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;s.lastFind=null;
     log(s,'Troia responde na rodada '+s.round+'.');
     for(const e of [...s.enemies]){
       if(!s.enemies.some(a=>a.id===e.id))continue;
       if(e.stunned){e.stunned=false;log(s,TROOPS.label(e)+' perdeu a ativação por Atordoamento.');continue;}
-      if(e.hold&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))continue;
+      // Tropa de posto empurrada para fora volta ao posto, uma peça por fase, e retoma a guarda ao chegar.
+      if(e.hold&&e.post&&e.zone!==e.post&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone)&&!rangedTarget(s,e)){e.intimidated=false;e.zone=nextStep(e.zone,e.post);reveal(s,e.zone,'troia');log(s,TROOPS.label(e)+' voltou para '+e.zone+(e.zone===e.post?', o seu posto.':', a caminho do posto em '+e.post+'.'));continue;}
+      if(e.hold&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone)&&!rangedTarget(s,e))continue;
       const intimidated=!!e.intimidated;e.intimidated=false;
-      const lure=HEROES.taunt(s,e,distance,false);
-      if(lure&&lure.zone!==e.zone){e.zone=ZONES[e.zone].links.slice().sort((a,b)=>distance(a,lure.zone)-distance(b,lure.zone))[0];reveal(s,e.zone,'troia');log(s,TROOPS.label(e)+' avançou para Agamêmnon em '+e.zone+'.');continue;}
+      const lure=HEROES.taunt(s,e,distance,false),shot=intimidated?null:rangedTarget(s,e);
+      // A flecha entrega de onde veio: atirar de uma peça fora da mesa revela a peça.
+      if(shot&&!isRevealed(s,e.zone))reveal(s,e.zone,'troia');
+      if(lure&&lure.zone!==e.zone&&!shot){e.zone=ZONES[e.zone].links.slice().sort((a,b)=>distance(a,lure.zone)-distance(b,lure.zone))[0];reveal(s,e.zone,'troia');log(s,TROOPS.label(e)+' avançou para Agamêmnon em '+e.zone+'.');continue;}
       const guard=s.guards[e.zone]||0;
-      const h=intimidated?null:lure||s.heroes.filter(h=>h.zone===e.zone&&h.hp>0).sort((a,b)=>b.hp-a.hp)[0];
-      if(h){const damage=HEROES.damage(s,h,e.attack??2,log,{distance});log(s,heroName(h.id)+' sofreu '+damage+' de dano.');if(h.hp>0&&(TROOPS.types[e.type]?.range||0)===0&&h.id!=='odisseu'&&e.zone===h.zone){const rebound=Math.floor(HEROES.stats(h).attack/2);kill(s,e,rebound);log(s,'Rebote grego corpo a corpo: '+rebound+' de dano em '+TROOPS.label(e)+'.');if(!s.enemies.includes(e)&&h.id==='aquiles')feat(s,'aquiles');}if(h.hp>0&&h.id==='ajax')feat(s,'ajax');if(!h.hp){h.ap=0;dropCargo(s,h);}}
+      const h=intimidated?null:shot||lure||s.heroes.filter(h=>h.zone===e.zone&&h.hp>0).sort((a,b)=>b.hp-a.hp)[0];
+      if(h){const hp0=h.hp,damage=HEROES.damage(s,h,h.zone!==e.zone?Math.ceil((e.attack??2)/2):(e.attack??2),log,{distance});s.lastAttacks.push({enemy:e.id,hero:h.id,damage:hp0-h.hp,ranged:h.zone!==e.zone});log(s,heroName(h.id)+' sofreu '+damage+' de dano'+(h.zone!==e.zone?' à distância':'')+'.');if(h.hp>0&&(TROOPS.types[e.type]?.range||0)===0&&h.id!=='odisseu'&&e.zone===h.zone){const rebound=Math.floor(HEROES.stats(h).attack/2),ehp=e.hp;kill(s,e,rebound);{const hit=s.lastAttacks[s.lastAttacks.length-1];if(hit&&hit.enemy===e.id){hit.rebound=Math.max(0,ehp-Math.max(0,e.hp));hit.killed=!s.enemies.includes(e);}}log(s,'Rebote grego corpo a corpo: '+rebound+' de dano em '+TROOPS.label(e)+'.');if(!s.enemies.includes(e)&&h.id==='aquiles')feat(s,'aquiles');}if(h.hp>0&&h.id==='ajax')feat(s,'ajax');if(!h.hp){h.ap=0;dropCargo(s,h);}}
       else if(e.relief){e.zone=reliefStep(e);reveal(s,e.zone,'troia');log(s,TROOPS.label(e)+' desceu para '+e.zone+' para render a vigia.');if(e.zone==='A1')reliefArrives(s,e);}
       else if(e.zone==='A1'&&s.post.status!=='taken'){}
       else if(e.zone==='A1'){if(guard){s.guards.A1--;log(s,'A proteção absorveu o ataque ao acampamento.');}else{s.campDamage++;const burn=s.delivered-s.burned>0;if(burn)s.burned++;log(s,'Ataque ao acampamento: '+s.campDamage+'/3 danos'+(burn?', e uma caixa foi queimada':'')+'.');}}
@@ -343,7 +356,7 @@
     resolveChronicle(s);if(s.result)return s;
     s.round++;s.combatZones=[];s.heroes.forEach(h=>{h.ap=h.hp>0?HEROES.stats(h).actions:0;h.bonusActions=0;h.tauntRound=0;h.moves=0;});
     addAlarm(s,1,'o tempo passa e Troia percebe o desembarque');
-    const spotters=s.enemies.filter(e=>e.type==='explorador'&&!e.watch&&s.heroes.some(h=>h.hp>0&&distance(e.zone,h.zone)<=1));if(spotters.length)addAlarm(s,1,spotters.length>1?'exploradores avistaram os heróis e correram para relatar':'um explorador avistou os heróis e correu para relatar');
+    const spotters=s.enemies.filter(e=>e.type==='explorador'&&!e.watch&&s.heroes.some(h=>h.hp>0&&distance(e.zone,h.zone)<=1));if(spotters.length)addAlarm(s,1,spotters.length>1?'batedores avistaram os heróis e correram para relatar':'um batedor avistou os heróis e correu para relatar');
     startChronicle(s);
     return s;
   }
@@ -363,7 +376,8 @@
     if(!s.post||!['hidden','found','taken'].includes(s.post.status)||s.post.status!=='hidden'&&!isRevealed(s,'A1'))return false;
     if(!s.beggar||!['unseen','met','waiting','escort','zeus','spy'].includes(s.beggar.status)||!ZONES[s.beggar.zone]||(s.beggar.status==='escort')!==!!s.beggar.escort||(s.beggar.escort&&!s.heroes.some(h=>h.id===s.beggar.escort)))return false;
     if(!s.personal||Object.keys(s.personal).sort().join()!==s.heroes.map(h=>h.id).sort().join()||Object.entries(s.personal).some(([id,p])=>typeof p.done!=='boolean'||!integer(p.progress,0,PERSONAL[id].goal)||p.done!==(p.progress>=PERSONAL[id].goal))||!Array.isArray(s.lastFeats))return false;
-    if(s.chronicle!==null&&(!s.chronicle||!CHRONICLE[s.chronicle.round]||CHRONICLE[s.chronicle.round].id!==s.chronicle.id||!['open','told','success','fail'].includes(s.chronicle.status)))return false;
+    if(!Array.isArray(s.moments)||!Array.isArray(s.chronicleQueue)||s.chronicleQueue.some(id=>!CHRONICLE[id])||!Array.isArray(s.told)||s.told.some(id=>!CHRONICLE[id]))return false;
+    if(s.chronicle!==null&&(!s.chronicle||!CHRONICLE[s.chronicle.id]||!['open','told','success','fail'].includes(s.chronicle.status)))return false;
     if(s.encounter!==null&&(!s.encounter||(s.encounter.id==='evolution'&&!Array.isArray(s.encounter.choices))||!['castaways','beggar','evolution','ability','tracks'].includes(s.encounter.id)))return false;
     if(!Array.isArray(s.enemies)||new Set(s.enemies.map(e=>e.id)).size!==s.enemies.length||!s.enemies.every(e=>/^e\d+$/.test(e.id)&&ZONES[e.zone]&&(e.type===undefined||TROOPS.types[e.type])&&integer(e.hp,1,e.type?TROOPS.types[e.type].hp:3)&&(e.armor===undefined||integer(e.armor,0,100))&&(e.attack===undefined||integer(e.attack,0,100))&&(e.stunned===undefined||typeof e.stunned==='boolean')&&(e.intimidated===undefined||typeof e.intimidated==='boolean'))||!Number.isInteger(s.nextEnemy)||s.nextEnemy<1||s.enemies.some(e=>Number(e.id.slice(1))>=s.nextEnemy)||!s.guards||Object.entries(s.guards).some(([id,n])=>!ZONES[id]||!integer(n,0,100)))return false;
     if(s.result==='victory'&&(!s.built||s.campDamage>=3||s.outcome?.completed!=='desembarque'||s.outcome.supplies!==s.delivered-s.burned||s.outcome.horseMaterials!==0))return false;

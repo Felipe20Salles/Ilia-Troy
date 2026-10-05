@@ -20,7 +20,12 @@ function play(ids,options={}){let s=G.newGame({heroes:ids,players:ids.length,...
    if(here.length){const foe=here.sort((a,b)=>a.hp-b.hp)[0];const c=def.cards.findIndex((c,n)=>['attack','intimidate'].includes(c.type)&&!h.used.includes(n)&&h.known.includes(n));doAct(id,c<0?'attack':'card:'+c,foe.id);continue;}
    const down=s.heroes.find(a=>a.zone===h.zone&&!a.hp);if(down&&h.hp>=2){doAct(id,'rescue',down.id);continue;}
    const option=G.interactions(s,h).find(x=>x.available&&(x.id==='recon'||(x.id==='explore'&&(opens(h.zone)||h.hp<=G.HEROES.stats(h).maxHp-2))));if(option){doAct(id,'interact',option.id);continue;}
-   let goal=s.reconned?(reporter&&!reporter.hp&&h.hp>=3?reporter.zone:'A1'):'M1';
+   // Atira primeiro nos arqueiros ao alcance; antes do reconhecimento, os guerreiros calam a torre que atira na aproximação.
+   const range=G.HEROES.stats(h).range,archers=s.enemies.filter(e=>e.type==='arqueiro'&&G.isRevealed(s,e.zone));
+   const inRange=s.enemies.filter(e=>G.isRevealed(s,e.zone)&&G.distance(h.zone,e.zone)<=range).sort((a,b)=>(b.type==='arqueiro')-(a.type==='arqueiro')||a.hp-b.hp)[0];
+   if(inRange&&range>=1){doAct(id,'attack',inRange.id);continue;}
+   const tower=!s.reconned&&range===0&&h.hp>=4?archers.find(e=>G.distance(e.zone,'M1')<=1):null;
+   let goal=s.reconned?(reporter&&!reporter.hp&&h.hp>=3?reporter.zone:'A1'):(tower?tower.zone:'M1');
    if(kd(h.zone,goal)===Infinity){const clue=s.revealed.filter(z=>s.tokens[z]&&!s.tokens[z].resolved&&opens(z)&&kd(h.zone,z)<Infinity).sort((a,b)=>kd(h.zone,a)-kd(h.zone,b))[0];if(clue)goal=clue;}
    if(goal!==h.zone&&kd(h.zone,goal)<Infinity){const step=links.slice().sort((a,b)=>kd(a,goal)-kd(b,goal))[0];doAct(id,'move',step);continue;}
    if(h.used.length){doAct(id,'rest');continue;}break;
@@ -45,10 +50,10 @@ test('reconnaissance takes 2 actions at M1 clear of enemies; afterwards Troy cha
  let s=setup();s.revealed.push(...G.WALLS);s.enemies=[];hero(s,'odisseu').zone='M1';s=act(s,'odisseu','interact','recon');assert.equal(s.reconned,false);s=act(s,'odisseu','interact','recon');assert.ok(s.reconned);assert.equal(s.reporter,'odisseu');assert.equal(s.alarm,2);hero(s,'odisseu').zone='P1';s=G.trojanTurn(s);assert.equal(s.enemies.filter(e=>e.zone==='M1'&&e.type==='lanceiro').length,2,'os perseguidores saem do portão na fase de Troia');assert.ok(s.enemies.filter(e=>e.zone==='M1').length>=2);
  s.enemies=[];const a=s.alarm;s=G.trojanTurn(s);assert.equal(s.alarm,a+2);
 });
-test('the Greeks win when every standing hero is back in A1 after the reconnaissance',()=>{
+test('the Greeks win when every standing hero is back in A1; whoever lies fallen in the field dies',()=>{
  let s=setup();s.revealed.push(...G.WALLS);s.enemies=[];hero(s,'odisseu').zone='M1';s=act(s,'odisseu','interact','recon');s=act(s,'odisseu','interact','recon');s.enemies=[];
  hero(s,'odisseu').zone='M4';s=G.trojanTurn(s);assert.equal(s.result,null,'Odisseu ainda está longe');
- hero(s,'odisseu').zone='A1';hero(s,'aquiles').hp=0;hero(s,'aquiles').zone='P4';s=G.trojanTurn(s);assert.equal(s.result,'victory','os caídos são arrastados pelos seus homens');assert.equal(hero(s,'aquiles').zone,'A1');assert.equal(s.personal.agamemnon.done,false,'a volta não foi completa');
+ hero(s,'odisseu').zone='A1';hero(s,'aquiles').hp=0;hero(s,'aquiles').zone='P4';s=G.trojanTurn(s);assert.equal(s.result,'victory','a vitória vem mesmo com uma perda');assert.equal(hero(s,'aquiles').zone,'P4','ninguém arrasta o caído');assert.match(s.reason,/Aquiles ficou na planície/);assert.equal(s.personal.agamemnon.done,false,'a volta não foi completa');
  let d=setup();d.revealed.push(...G.WALLS);d.enemies=[];hero(d,'odisseu').zone='M1';d=act(d,'odisseu','interact','recon');d=act(d,'odisseu','interact','recon');d.enemies=[];hero(d,'odisseu').hp=0;d=G.trojanTurn(d);assert.equal(d.result,null,'quem leva o relato precisa voltar de pé');assert.equal(s.outcome.completed,'reconhecimento');assert.ok(s.outcome.heroes.length===3);
 });
 test('Criseida, the shepherds and the tower are choices with hidden effects',()=>{
@@ -77,4 +82,36 @@ test('heroes only move between revealed pieces; the clues of P3, P7 and P4 open 
  const alarm=s.alarm;s=act(s,'odisseu','interact','explore');assert.deepEqual(s.lastReveals,['M4','P7']);assert.equal(s.alarm,alarm,'observar as torres não faz barulho');
  s=act(s,'odisseu','move','P7');s=G.trojanTurn(s);s.enemies=[];s=act(s,'odisseu','interact','explore');assert.ok(G.isRevealed(s,'M1')&&G.isRevealed(s,'P4'));assert.equal(s.personal.odisseu.done,true,'duas fichas investigadas');
  let r=setup({abilities:{aquiles:0,odisseu:2,agamemnon:0}});r.enemies=[];assert.equal(G.act(r,'odisseu','card:2','P7').ok,false,'Caminho Seguro só vai a peças reveladas');
+});
+
+test('fallen heroes die: they leave the campaign, and the next mission starts with the smaller team',()=>{
+ const C=require('../cooperativo/campaign-state.js');
+ const rec=C.record(null,{completed:'desembarque',campFood:1,heroes:[{id:'odisseu',owner:1,hp:3,level:1,known:[0]},{id:'agamemnon',owner:2,hp:0,level:1,known:[0]},{id:'aquiles',owner:3,hp:5,level:1,known:[0]}]},[],3,['Ana','Bia','Caio']);
+ assert.deepEqual(rec.team.heroes,['odisseu','aquiles']);assert.ok(rec.fallen.includes('agamemnon'));assert.equal(rec.team.players,2);assert.deepEqual(rec.team.playerNames,['Ana','Caio']);assert.deepEqual(rec.team.owners,[1,2]);
+ const s=G.newGame({campaign:true,players:rec.team.players,heroes:rec.team.heroes,owners:rec.team.owners,known:rec.team.known,life:rec.team.life});assert.ok(G.validSave(s));assert.equal(s.heroes.length,2);
+});
+test('an archer hidden in an unrevealed tower reveals the piece when it shoots',()=>{
+ let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],players:1});const h=s.heroes.find(x=>x.id==='aquiles');h.zone='P3';
+ const archer=s.enemies.find(e=>e.type==='arqueiro'&&e.zone==='M4');assert.ok(archer,'arqueiro na torre');assert.equal(s.revealed.includes('M4'),false);
+ const hp=h.hp;s=G.trojanTurn(s);
+ assert.ok(s.revealed.includes('M4'),'a torre aparece na mesa');assert.ok(s.lastReveals.includes('M4'));assert.ok(s.heroes.find(x=>x.id==='aquiles').hp<hp,'o tiro acerta');assert.ok(G.validSave(s));
+});
+test('reconnoitring the gate sends a raid from P2 to burn the ships; each burned ship is one food less for mission 3',()=>{
+ let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],players:1});s.enemies=s.enemies.filter(e=>e.type!=='arqueiro');
+ const h=s.heroes.find(x=>x.id==='odisseu');h.zone='M1';s.revealed.push('M1');s.enemies=s.enemies.filter(e=>e.zone!=='M1');
+ let r=G.act(s,'odisseu','interact','recon');if(r.ok&&!r.state.reconned)r=G.act(r.state,'odisseu','interact','recon');assert.ok(r.ok,r.error);s=r.state;assert.ok(s.reconned);
+ const raid=s.enemies.find(e=>e.raid);assert.ok(raid);assert.equal(raid.zone,'P2');assert.match(G.intent(raid,s),/navios/);
+ s.heroes.forEach(x=>{x.zone=x.id==='odisseu'?'M1':'A1';});raid.zone='N1';s.campFood=4;
+ s=G.trojanTurn(s);assert.equal(s.shipsBurned,1,'sem herói em N1, um navio queima');
+ s.heroes.find(x=>x.id==='aquiles').zone='N1';const burned=s.shipsBurned;s=G.trojanTurn(s);assert.equal(s.shipsBurned,burned,'com herói em N1, os navios ficam');assert.ok(G.validSave(s));
+});
+test('respecting the sanctuary of Apollo earns the favor of the gods',()=>{
+ let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],players:1});s.favor=1;const h=s.heroes.find(x=>x.id==='odisseu');h.zone='P2';s.enemies=s.enemies.filter(e=>e.zone!=='C1');
+ let r=G.act(s,'odisseu','move','C1');assert.ok(r.ok,r.error);s=r.state;assert.equal(s.encounter?.id,'criseida');s=G.choose(s,'respect').state;assert.equal(s.criseida,'respected');assert.equal(s.favor,2,'+1 de Favor');
+});
+test('taking Criseida is the tempting choice: food, an ability for Agamemnon and the altar gold for mission 3; respecting gives 1 Favor',()=>{
+ const atC1=()=>{let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],players:1,abilities:{odisseu:0,agamemnon:0,aquiles:0}});s.favor=1;s.enemies=s.enemies.filter(e=>e.zone!=='C1');s.heroes.find(x=>x.id==='odisseu').zone='P2';const r=G.act(s,'odisseu','move','C1');assert.ok(r.ok,r.error);return r.state;};
+ let t=G.choose(atC1(),'take').state;assert.equal(t.criseida,'taken');assert.equal(t.encounter?.id,'ability');assert.equal(t.encounter.hero,'agamemnon');assert.ok(t.altarGold);
+ let r=G.choose(atC1(),'respect').state;assert.equal(r.favor,2,'+1 de Favor');
+ const M3=require('../cooperativo/segurar.js');const s3=M3.newGame({heroes:['odisseu','agamemnon','aquiles'],campFood:1,legacy:{criseida:'taken',altarGold:true}});assert.equal(s3.campFood,3,'o ouro do altar vale +2 de comida');
 });

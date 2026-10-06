@@ -1,10 +1,10 @@
 # Cenário da missão 2 — Diante das muralhas (proposta)
 
-Status: **jogável** (02/10/2026) em `cooperativo/reconhecimento.html` (motor `reconhecimento.js`). Substitui a missão 2 antiga (`muralhas.js`), que fica no repositório só como referência.
+Status: **jogável** (02/10/2026) em `cooperativo/reconhecimento.html` (motor `reconhecimento.js`). Substitui a missão 2 antiga (`muralhas.js`), que fica no repositório só como referência. A exploração por indícios foi programada em 03/10/2026 (ver "Exploração por missão", abaixo).
 
 **Ajustes feitos ao programar (depois das simulações):**
 - Reconhecer o portão custa **2 ações em M1**, sem inimigos na peça (o guarda precisa cair ou ser intimidado). Quem completa **leva o relato** e precisa voltar de pé a A1.
-- Vitória: o relato em A1 e **todos os heróis de pé em A1**. Os caídos são arrastados pelos seus homens e seguem na campanha sem vida (o armazém os repõe na missão seguinte).
+- Vitória: o relato em A1 e **todos os heróis de pé em A1**. Quem ficar caído no campo morre e sai da campanha (CAMPANHA.md).
 - Os perseguidores (uma companhia de lanceiros a cada dois heróis) saem do portão **na fase de Troia seguinte** ao reconhecimento; o Alarme passa a subir 2 por fase de Troia.
 - Patamares: 4 exploradores (P4), 7 lanceiros (P7), 11 lanceiros (M1), **15 Sarpédon** (derrubá-lo faz Troia recuar), 18 Troia em peso. Com 4 ou 5 heróis, 7 e 15 trazem uma tropa a mais.
 - A preparação repõe a vida com o armazém (comida da missão 1 + 2 por caixa que sobreviveu).
@@ -86,21 +86,44 @@ Dois pergaminhos possíveis por missão, como decidido; o II de Rotas da costa �
 ## Crônica e feitos
 
 - **Crônica** com 10 a 12 entradas próprias (sons de trompas na cidade, Heitor nas muralhas, Páris observando, chuva, cavalos troianos, um corvo no portão), algumas com pedidos.
-- **Feitos pessoais** novos para cada herói, cada um ensinando uma habilidade:
-  - Aquiles: derrotar o guarda do portão.
-  - Ájax: estar em M1 ou M4 e não cair na missão.
-  - Odisseu: revelar M1.
-  - Menelau: socorrer um aliado caído.
-  - Agamêmnon: estar em A1 quando a expedição voltar completa.
+- **Feitos pessoais** (aprovados em 03/10/2026, conforme o código em `reconhecimento.js`). Recompensa: +1 Favor e uma habilidade nova, à escolha do jogador.
+
+| Herói | Feito | Meta |
+|---|---|---|
+| Aquiles | O guarda do portão | Derrotar o guarda do portão |
+| Odisseu | Olhos de Ítaca | Investigar 2 fichas de exploração (até 03/10/2026: revelar M1) |
+| Agamêmnon | Ninguém fica na planície | Estar em A1 quando a expedição voltar completa |
+| Menelau | Irmão de armas | Socorrer ou curar um aliado |
+| Ájax | Escudo diante das muralhas | Resistir de pé a 2 ataques perto das muralhas (P3, P7, P4, M4 ou M1) |
+
+  O feito de Ájax foi alinhado ao código; a versão anterior deste doc ("estar em M1 ou M4 e não cair na missão") foi descartada.
+
+## Incursão aos navios (04/10/2026)
+
+Quando o portão é reconhecido, uma companhia de lanceiros sai de P2 rumo aos navios (N1) para queimá-los. Cada fase de Troia que ela termina em N1 sem herói de pé queima um navio (até 3). Navio queimado não faz perder a missão: cada um é 1 comida a menos no armazém da missão 3. Sarpédon passou a ser surpresa: a trilha mostra "?" no 15 até ele sair.
 
 ## O que passa para a missão 3
+- Navios queimados na incursão (comida a menos no armazém).
 
 - Criseida tomada ou não (peste).
 - Segredos de Troia I / Rotas da costa II / Favor dos pastores I.
 - Heróis caídos que não voltaram: começam a missão 3 com 1 de vida a menos.
 
+## Exploração por missão (programada em 03/10/2026)
+
+- Só se anda por peças reveladas. A costa da missão 1 começa toda revelada, e Agamêmnon aponta a planície: P3 também começa na mesa.
+- Quem tomou o mirante na missão 1 já começa vendo a torre de vigia (M4).
+
+| Investigar… | Revela… |
+|---|---|
+| Torres no horizonte (P3, ficha nova; não faz barulho) | M4 e P7 |
+| Trilha dos pinheiros (P7) | P4 e M1 |
+| Rebanho troiano (P4) | B5 |
+
+As tropas continuam revelando as peças onde entram. O Caminho Seguro de Odisseu só vai a peças reveladas.
+
 ## Decisões em aberto
 
 1. Aprovar o cenário em linhas gerais.
 2. A retirada com perseguição (Alarme +2 por resposta) é a pressão certa, ou prefere um prazo fixo de respostas depois do reconhecimento?
-3. Os feitos pessoais propostos.
+3. ~~Os feitos pessoais propostos.~~ Aprovados em 03/10/2026.

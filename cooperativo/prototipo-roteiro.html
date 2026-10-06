@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roteiro da preparação · Ilia</title>
+<style>
+@font-face{font-family:'Marcellus';src:url('../assets/fonts/marcellus.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url('../assets/fonts/cormorant-garamond-italic.woff2') format('woff2');font-weight:300 700;font-style:italic;font-display:swap}
+@font-face{font-family:'DM Sans';src:url('../assets/fonts/dm-sans.woff2') format('woff2');font-weight:400 700;font-display:swap}
+:root{--bg:#141517;--g1:#1d1f22;--g2:#26292d;--line:#383c42;--ink:#f1ecde;--muted:#a9adb3;--gold:#e4bd77;--ochre:#d29a4a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;background:var(--bg);color:var(--ink);font:15px/1.5 'DM Sans',system-ui,sans-serif;display:grid;grid-template-rows:auto 1fr auto}
+button{font:inherit;color:inherit;cursor:pointer}
+header{text-align:center;padding:22px 16px 6px}
+.eyebrow{margin:0;color:var(--ochre);font-size:13px;letter-spacing:.03em}
+h1{margin:4px 0 0;font:400 clamp(26px,4vw,40px)/1.15 Marcellus,serif}
+h1.grand{font-size:clamp(44px,8vw,84px);margin-top:28vh}
+main{display:grid;place-items:center;padding:12px 16px;min-height:0}
+.sheet{width:min(1040px,100%);border:1px solid var(--line);border-top:2px solid #9c6a2c;border-radius:6px 6px 12px 12px;background:linear-gradient(180deg,#1f2124,#17181a);padding:18px}
+footer{display:flex;justify-content:flex-end;gap:10px;width:min(1040px,calc(100% - 32px));margin:0 auto;padding:6px 0 18px}
+.btn{min-height:46px;padding:0 22px;border-radius:6px;border:1px solid var(--line);background:var(--g1)}
+.btn.main{border:0;background:var(--gold);color:#1a1408;font-weight:700;min-width:180px}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.quiet{background:none;border:0;color:var(--muted);text-decoration:underline;min-width:0}
+/* Escolha */
+.simple{max-width:760px;margin:0 auto}
+.big{display:grid;gap:10px;font:400 22px Marcellus,serif;text-align:center;justify-items:center}
+select,input{min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--g2);color:var(--ink);font:inherit}
+.big select{min-width:120px;text-align:center}
+.names{display:grid;gap:10px;max-width:420px;margin:18px auto 0}
+.hint{text-align:center;color:#d8d3c6;margin:0 0 14px}
+.picks{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.pick{padding:0;border:1px solid var(--line);border-radius:8px;background:var(--g1);overflow:hidden;text-align:left}
+.pick[aria-pressed="true"]{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.pick span{display:block;aspect-ratio:4/5;background-size:cover;background-position:center 22%}
+.pick b{display:block;padding:8px 10px 0;font:400 17px Marcellus,serif}
+.pick small{display:block;padding:0 10px 10px;color:var(--muted)}
+.abil{display:grid;gap:14px}
+.abil-row{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}
+.who-mini{display:grid;justify-items:center;gap:6px;text-align:center}
+.who-mini span{width:64px;height:64px;border-radius:50%;background-size:cover;box-shadow:0 0 0 2px #111,0 0 0 4px var(--gold)}
+.who-mini b{font:400 17px Marcellus,serif}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--g1);text-align:left;display:grid;gap:4px}
+.card[aria-pressed="true"]{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);background:var(--g2)}
+.card b{font:400 18px Marcellus,serif}.card small{color:var(--muted);line-height:1.35;font-size:12.5px}
+/* Pop-ups: diálogos e ordens, um por vez, centralizados, sem rolagem */
+.backdrop{position:fixed;inset:0;display:grid;place-items:center;padding:16px;background:#000a;z-index:5}
+.pop{width:min(440px,100%);max-height:calc(100dvh - 32px);overflow:hidden;display:grid;justify-items:center;gap:10px;text-align:center;padding:20px 22px 22px;border:1px solid #6d5a36;border-radius:12px;background:linear-gradient(160deg,#25272b,#18191b);box-shadow:0 24px 70px #000}
+.pop .eyebrow{font-size:12px}
+.pop h2{margin:0;font:400 24px/1.2 Marcellus,serif}
+.pop p{margin:0;color:#d8d0bf;line-height:1.5}
+.pop .tale{font:italic 500 22px/1.45 'Cormorant Garamond',serif;color:#efe6cf}
+.pop .row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.feat{width:100%;padding:10px 12px;border-left:3px solid var(--gold);background:var(--g2);border-radius:0 8px 8px 0;text-align:left}
+.feat b{display:block;color:var(--gold);font-size:13px}
+.avatar{width:84px;height:84px;border-radius:50%;background-size:cover;box-shadow:0 0 0 2px #111,0 0 0 4px var(--gold)}
+.steps{width:100%;margin:0;padding:0;list-style:none;display:grid;gap:8px;text-align:left}
+.steps li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;background:var(--g2)}
+.steps li i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#3a2a1c;color:var(--gold);font-style:normal;font-weight:700}
+.food{display:inline-flex;gap:4px;vertical-align:middle;margin-left:4px}
+.food i,.steps .food i{display:inline-block;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#e98f6a,#a5452a)}
+.piece-art{max-width:100%;max-height:220px;display:block}
+.n1{width:100%;height:190px;border-radius:8px;background:url('assets/tabuleiro-principal-final.webp') 2% 100%/330% auto no-repeat;box-shadow:inset 0 0 40px #000}
+.icon{display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:var(--g2);box-shadow:0 0 0 2px #120c09,0 0 0 4px #b98d4f;font-size:30px}
+.minis{display:flex}
+.minis span{width:58px;height:58px;border-radius:50%;background-size:cover;box-shadow:0 0 0 2px #111,0 0 0 4px var(--gold);margin:0 -4px}
+@media (max-width:760px),(max-height:520px){.picks{grid-template-columns:repeat(3,1fr)}.cards{grid-template-columns:1fr}.abil-row{grid-template-columns:1fr}.pop{gap:6px;padding:14px 16px}.pop .tale{font-size:18px}.n1{height:120px}}
+</style>
+<script src="territory.js"></script><script src="piece-art.js"></script><script src="troops.js"></script><script src="heroes.js"></script><script src="landing.js"></script>
+</head>
+<body>
+<header id="head"></header>
+<main id="main"></main>
+<footer id="nav"></footer>
+<div id="popup"></div>
+<script>
+const H=window.TroyHeroes;
+const team={players:1,names:[],heroes:['odisseu','agamemnon'],abilities:{}};
+const hero=id=>H.find(h=>h.id===id),count=()=>Math.max(3,team.players);
+const list=ids=>ids.map(id=>hero(id).name).join(', ').replace(/, ([^,]*)$/,' e $1');
+const avatar=id=>`<span class="avatar" style="background-image:url('assets/identidade/avatar-${id}.webp')"></span>`;
+// O feito de cada herói contado pela personagem. As regras são as mesmas do jogo; só muda a voz.
+const FEATS={
+ odisseu:{tale:'Ágil e astuto, Odisseu não confia numa terra que não conhece. Quer estudar a região: cada trilha, cada enseada, cada rastro.',goal:'Investigar 3 fichas de exploração.'},
+ agamemnon:{tale:'Agamêmnon lidera a coalizão dos reis. Cabe a ele escolher onde a Grécia vai acampar e fincar ali o seu estandarte.',goal:'Estar presente quando o acampamento for erguido.'},
+ aquiles:{tale:'Aquiles veio a Troia pela glória, a que faz um nome durar para sempre. Ela só se ganha lutando.',goal:'Derrotar 2 tropas troianas.'},
+ menelau:{tale:'Foi a esposa de Menelau que Páris levou. Ele já perdeu demais para deixar um grego ficar para trás.',goal:'Socorrer ou curar um aliado, ou salvar gregos em perigo.'},
+ ajax:{tale:'Ájax é o escudo dos aqueus. Onde ele está, a linha não cede.',goal:'Aguentar de pé 3 ataques troianos.'}};
+const INTRO=[
+ ['Há mais de três mil anos','A Grécia não era um país. Era um mosaico de reinos, cada um com o seu rei, e reis que se respeitavam e se temiam.'],
+ ['Do outro lado do mar','Na costa da Ásia, atravessando o mar Egeu, ficava Troia: uma cidade rica, de muralhas altas, governada pelo velho rei Príamo.'],
+ ['O hóspede','Páris, filho de Príamo, foi recebido em Esparta pelo rei Menelau. Quando partiu, levou Helena, a rainha.'],
+ ['O juramento','Anos antes, os reis que disputaram Helena juraram defender quem se casasse com ela. Menelau e o irmão, Agamêmnon, rei de Micenas, cobraram a promessa.'],
+ ['A frota',()=>`Mil navios se reuniram no porto de Áulis, sob o comando de Agamêmnon. Com ele vieram ${list(team.heroes.filter(id=>id!=='agamemnon'))}.`],
+ ['A costa de Troia','Depois da travessia, a costa de Troia aparece no horizonte. O navio que trazia a carga se desgarrou no caminho: os mantimentos estão espalhados pelas praias. E em terra, os troianos já viram as velas.']];
+const f=x=>typeof x==='function'?x():x;
+// O roteiro inteiro: telas (sheet) e pop-ups (pop), na ordem em que aparecem.
+function flow(){const s=[];
+ s.push({sheet:true,eyebrow:'Preparação · 1 de 3',title:'Quem está à mesa?',html:playersHTML});
+ s.push({sheet:true,eyebrow:'Preparação · 2 de 3',title:'Escolham os heróis',html:heroesHTML,need:()=>team.heroes.length===count()});
+ s.push({sheet:true,eyebrow:'Preparação · 3 de 3',title:'A habilidade de cada herói',html:abilitiesHTML,need:()=>team.heroes.every(id=>Number.isInteger(team.abilities[id]))});
+ team.heroes.forEach((id,k)=>{const d=hero(id),c=d.cards[team.abilities[id]??0],hp=H.stats(H.create(id,1)).maxHp;
+  s.push({pop:true,eyebrow:`Os heróis · ${k+1} de ${team.heroes.length}`,body:()=>`${avatar(id)}<h2>${d.name}</h2><ol class="steps"><li><i>1</i><span>Peguem o <b>tabuleiro</b> de ${d.name}.</span></li><li><i>2</i><span>Ponham a carta <b>${c.name}</b> para cima. As outras ficam viradas.</span></li><li><i>3</i><span>Coloquem <b>${hp} fichas de comida</b> no tabuleiro<span class="food">${'<i></i>'.repeat(hp)}</span>: é a vida dele. O dano retira fichas.</span></li></ol>`,ok:'Feito'});});
+ INTRO.forEach(([t,x],k)=>s.push({pop:true,intro:true,eyebrow:`A história · ${k+1} de ${INTRO.length}`,body:()=>`<h2>${t}</h2><p class="tale">${f(x)}</p>`,ok:'Ok'}));
+ s.push({sheet:true,grand:true,title:'O Desembarque'});
+ team.heroes.forEach((id,k)=>{const d=hero(id),ft=FEATS[id];
+  s.push({pop:true,eyebrow:`O feito de cada herói · ${k+1} de ${team.heroes.length}`,body:()=>`${avatar(id)}<h2>${d.name}</h2><p class="tale">${ft.tale}</p><div class="feat"><b>Feito pessoal</b>${ft.goal}</div>`,ok:'Ok'});});
+ s.push({pop:true,eyebrow:'Na mesa · 1 de 3',body:()=>`${TroyPieceArt.pieceArt("N1")}<h2>Encaixem a peça N1</h2><p>A praia dos navios. As outras peças ficam guardadas.</p>`,ok:'Feito'});
+ s.push({pop:true,eyebrow:'Na mesa · 2 de 3',body:()=>`<span class="icon">&#128269;</span><h2>Coloquem 1 ficha de exploração em N1</h2><p>Virada para baixo.</p>`,ok:'Feito'});
+ s.push({pop:true,eyebrow:'Na mesa · 3 de 3',body:()=>`<div class="minis">${team.heroes.map(id=>`<span style="background-image:url('assets/identidade/avatar-${id}.webp')"></span>`).join('')}</div><h2>Coloquem as miniaturas em N1</h2><p>${list(team.heroes)}.</p>`,ok:'Iniciar missão'});
+ return s;}
+function playersHTML(){return `<div class="simple"><label class="big">Quantas pessoas vão jogar?<select id="players">${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===team.players?'selected':''}>${n}</option>`).join('')}</select></label><div class="names">${Array.from({length:team.players},(_,k)=>`<input data-name="${k}" value="${team.names[k]||'Jogador '+(k+1)}" aria-label="Nome do jogador ${k+1}">`).join('')}</div></div>`;}
+function heroesHTML(){return `<div class="simple"><p class="hint">Escolham ${count()} heróis. Odisseu e Agamêmnon são obrigatórios.</p><div class="picks">${H.map(d=>`<button class="pick" data-pick="${d.id}" aria-pressed="${team.heroes.includes(d.id)}"><span style="background-image:url('assets/identidade/card-${d.id}.webp')"></span><b>${d.name}</b><small>${d.contingent}</small></button>`).join('')}</div></div>`;}
+function abilitiesHTML(){return `<div class="abil">${team.heroes.map(id=>{const d=hero(id);return `<div class="abil-row"><div class="who-mini"><span style="background-image:url('assets/identidade/avatar-${id}.webp')"></span><b>${d.name}</b></div><div class="cards">${d.cards.map((c,k)=>`<button class="card" data-ability="${id}:${k}" aria-pressed="${team.abilities[id]===k}"><b>${c.name}</b></button>`).join('')}</div></div>`;}).join('')}</div>`;}
+let i=0;
+function render(){const s=flow();i=Math.max(0,Math.min(i,s.length));const st=s[i];
+ const head=document.getElementById('head'),main=document.getElementById('main'),nav=document.getElementById('nav'),pop=document.getElementById('popup');
+ if(!st){head.innerHTML='';main.innerHTML='<p style="color:var(--muted)">Aqui começa a partida.</p>';nav.innerHTML='';pop.innerHTML='';return;}
+ if(st.sheet){head.innerHTML=st.grand?`<h1 class="grand">${st.title}</h1>`:`<p class="eyebrow">${st.eyebrow}</p><h1>${st.title}</h1>`;main.innerHTML=st.html?`<section class="sheet">${st.html()}</section>`:'';
+  nav.innerHTML=`${i&&!st.grand?'<button class="btn" data-go="back">← Voltar</button>':''}<button class="btn main" data-go="next" ${st.need&&!st.need()?'disabled':''}>Avançar →</button>`;pop.innerHTML='';return;}
+ // Pop-up: o fundo fica limpo, só o grafite.
+ head.innerHTML='';main.innerHTML='';nav.innerHTML='';
+ setTimeout(()=>TroyPieceArt.hydrate(pop));pop.innerHTML=`<div class="backdrop"><section class="pop" role="dialog" aria-modal="true"><p class="eyebrow">${st.eyebrow}</p>${st.body()}<div class="row">${st.intro?'<button class="btn quiet" data-go="skip">Pular introdução</button>':''}<button class="btn main" data-go="next">${st.ok}</button></div></section></div>`;}
+document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
+ if(b.dataset.pick){const id=b.dataset.pick;if(['odisseu','agamemnon'].includes(id))return;if(team.heroes.includes(id))team.heroes=team.heroes.filter(x=>x!==id);else if(team.heroes.length<count())team.heroes.push(id);render();return;}
+ if(b.dataset.ability){const [id,k]=b.dataset.ability.split(':');team.abilities[id]=+k;render();return;}
+ const go=b.dataset.go;if(!go)return;
+ if(go==='next')i++;if(go==='back')i--;
+ if(go==='skip')i=flow().findIndex(x=>x.grand);
+ render();});
+document.addEventListener('change',ev=>{if(ev.target.id==='players'){team.players=+ev.target.value;team.heroes=team.heroes.slice(0,count());render();}});
+document.addEventListener('input',ev=>{if(ev.target.dataset.name)team.names[+ev.target.dataset.name]=ev.target.value;});
+render();
+</script>
+</body>
+</html>

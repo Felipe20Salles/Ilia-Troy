@@ -62,7 +62,13 @@
   if(name==='recover'){tone(260,390,.2,.065,'sine');tone(390,585,.28,.07,'sine',.16);return;}
   if(name==='ability'){tone(155,310,.3,.1,'sawtooth');tone(310,465,.28,.065,'triangle',.15);return;}
   if(name==='reveal'){tone(330,660,.28,.08,'triangle');tone(494,988,.32,.065,'sine',.12);return;}
-  if(name==='death'){tone(260,75,.65,.13,'sawtooth');noise(.45,.06,220,.12);}
+  if(name==='death'){tone(260,75,.65,.13,'sawtooth');noise(.45,.06,220,.12);return;}
+  if(name==='fall'){noise(.18,.14,900);tone(180,60,.35,.12,'triangle',.05);return;}
+  if(name==='hurt'){tone(140,70,.22,.13,'sawtooth');noise(.12,.08,400);return;}
+  if(name==='chime'){tone(784,784,.6,.05,'sine');tone(1175,1175,.7,.04,'sine',.12);tone(1568,1568,.8,.03,'sine',.24);return;}
+  if(name==='fanfare'){[392,494,587,784].forEach((f,i)=>tone(f,f,.35,.07,'triangle',i*.14));return;}
+  if(name==='retreat'){tone(220,150,1.2,.08,'sawtooth');tone(165,110,1.2,.05,'triangle',.3);return;}
+  if(name==='plague'){noise(1.1,.07,300);tone(110,70,1.2,.06,'sine');}
  }
  // Cada herói golpeia com a sua arma; mover é a marcha do contingente.
  const WEAPON={aquiles:'espada',agamemnon:'espada',menelau:'lanca',ajax:'escudo',odisseu:'flecha'};
@@ -78,11 +84,15 @@
   if(type==='attack')return play(card?.name?.toLocaleLowerCase('pt-BR').includes('escudo')?'escudo':WEAPON[heroId]||'espada');
   if(type==='charge')return play(WEAPON[heroId]||'espada');
   if(['sprint','guide'].includes(type))return play('marcha');
-  if(['heal','healAlly','refresh'].includes(type))return effect('recover');
+  // A vida que volta toca em changes(), quando o estado muda.
+  if(['heal','healAlly'].includes(type))return;
+  if(type==='refresh')return effect('recover');
+  if(type==='intimidate')return play('comando');
+  if(type==='taunt')return play('provocacao');
   if(['guard','protect'].includes(type))return play('escudo');
   return effect('ability');
  }
- function trojan(step){if(!step)return;const intent=(step.intent||'').toLocaleLowerCase('pt-BR');if(intent.includes('atacar'))cue(['arqueiro','paris'].includes(step.type)?'flecha':'espada');else if(intent.includes('sabotar'))cue('escudo');else cue('marcha');}
+ function trojan(step){if(!step)return;const intent=(step.intent||'').toLocaleLowerCase('pt-BR');if(intent.includes('atirar')||(intent.includes('atacar')&&['arqueiro','paris'].includes(step.type)))cue('flecha');else if(intent.includes('atacar'))cue('espada');else if(intent.includes('sabotar'))cue('escudo');else cue('marcha');}
  function mount(){
   const header=document.querySelector('header'),host=header||document.body;if(!host.querySelector('[data-audio-toggle]')){const button=document.createElement('button');button.type='button';button.className='audio-control'+(header?'':' audio-control-floating');button.dataset.audioToggle='';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggle();});const rules=header?.querySelector('#rules-button');header?header.insertBefore(button,rules||null):host.appendChild(button);}
   syncButton();
@@ -100,8 +110,10 @@
  // (acima de 1 amplifica) e "max" corta com fade os sons longos demais para um momento.
  const LEVELS={mar:{gain:1.3},'tambores-longe':{gain:.3},'tambores-guerra':{gain:.32},batimento:{gain:.2},
   caixa:{gain:1,max:1.5},marcha:{gain:1,max:1.5},espada:{gain:.9,max:1.5},lanca:{gain:1,max:1.5},escudo:{gain:1.2,max:1.5},flecha:{gain:1.3,max:2},troianos:{gain:.58,max:4},acampamento:{gain:.8,max:3},revelar:{gain:.52,max:5},descoberta:{gain:2.5},encontro:{gain:.7},cronica:{gain:1.8},feito:{gain:1.45},queda:{gain:.8,max:8},
-  'deus-atena':{gain:3.4},'deus-poseidon':{gain:2.1},'deus-zeus':{gain:1.7,max:6}};
- const CUE_FALLBACK={caixa:'explore',marcha:'move',espada:'attack',lanca:'attack',escudo:'shield',flecha:'arrow',troianos:'march',acampamento:'ui',revelar:'reveal',descoberta:'explore',encontro:'ability',cronica:'reveal',feito:'ability',queda:'death','deus-atena':'reveal','deus-poseidon':'move','deus-zeus':'attack'};
+  corneta:{gain:.3,max:5.5},// Secundários (05/10/2026): nivelados um pouco abaixo dos sons principais, por serem consequência deles.
+  'tropa-cai':{gain:1.16,max:2.5},ferido:{gain:.76},cura:{gain:2,max:3},favor:{gain:2.85,max:4.5},retirada:{gain:10,max:6},peste:{gain:.8,max:5},comando:{gain:.95},vitoria:{gain:.52,max:8},
+  'transicao-missao':{gain:.76},provocacao:{gain:.69,max:3},'deus-atena':{gain:3.4},'deus-poseidon':{gain:2.1},'deus-zeus':{gain:1.7,max:6}};
+ const CUE_FALLBACK={caixa:'explore',marcha:'move',espada:'attack',lanca:'attack',escudo:'shield',flecha:'arrow',troianos:'march',acampamento:'ui',revelar:'reveal',descoberta:'explore',encontro:'ability',cronica:'reveal',feito:'ability',queda:'death','deus-atena':'reveal','deus-poseidon':'move','deus-zeus':'attack','transicao-missao':'fanfare',provocacao:'shield','tropa-cai':'fall',ferido:'hurt',cura:'recover',favor:'chime',vitoria:'fanfare',derrota:'death',retirada:'retreat',peste:'plague',comando:'attack'};
  const sfxURL=name=>new URL('audio/sfx/'+name+'.mp3',script.src).href,clips={};
  function clip(name,loop=false){
   if(clips[name])return clips[name];
@@ -117,12 +129,32 @@
   else entry.el.volume=Math.max(0,Math.min(1,value));
  }
  function cue(name){
-  if(!enabled)return;unlocked=true;const fallback=()=>effect(CUE_FALLBACK[name]||'ui');
+  if(!enabled)return;unlocked=true;
+  // A trombeta dos alertas: sem o arquivo, tocam os tambores de guerra dos troianos.
+  const fallback=()=>name==='corneta'?cue('troianos'):effect(CUE_FALLBACK[name]||'ui');
   const entry=clip(name);if(!entry.ok){fallback();return;}
   const level=LEVELS[name]||{gain:1};entry.onError=fallback;clearTimeout(entry.timer);
   setLevel(entry,level.gain);try{entry.el.currentTime=0;}catch(_){}entry.el.play().catch(()=>{});
   if(level.max)entry.timer=setTimeout(()=>{setLevel(entry,0,.8);entry.timer=setTimeout(()=>entry.el.pause(),900);},level.max*1000);
  }
+ // Sons secundários: comparam o estado antes e depois de uma ação ou da fase de Troia e tocam o mais marcante.
+ // Entram um pouco depois do som principal (o golpe, a marcha), como consequência dele.
+ function changes(b,a,delay=400){
+  if(!enabled||!b||!a)return;let name=null;
+  // A vitória abre a transição para a missão seguinte. Com duelo em cena (A ira de Aquiles), ela espera o fim da cena.
+  // A derrota usa o violoncelo da queda.
+  if(a.result&&!b.result){if(a.result==='victory'){if(!a.duel)setTimeout(victory,delay);return;}name='queda';}
+  else if(a.commanderDown&&!b.commanderDown)name='retirada';
+  else if(a.plagueActive&&!b.plagueActive)name='peste';
+  else{const ids=new Set((a.enemies||[]).map(e=>e.id)),hp=id=>a.heroes.find(h=>h.id===id)?.hp??0;
+   const killed=(b.enemies||[]).some(e=>!ids.has(e.id)),healed=b.heroes.some(h=>hp(h.id)>h.hp),hurt=b.heroes.some(h=>hp(h.id)<h.hp&&hp(h.id)>0);
+   // Fugir de uma luta: um herói sai de uma peça onde havia inimigos.
+   const fled=b.heroes.some(h=>{const n=a.heroes.find(x=>x.id===h.id);return n&&n.hp>0&&n.zone!==h.zone&&(b.enemies||[]).some(e=>e.zone===h.zone);});
+   name=fled?'retirada':killed?'tropa-cai':(a.favor??0)>(b.favor??0)?'favor':healed?'cura':hurt?'ferido':null;}
+  if(name)setTimeout(()=>cue(name),delay);
+ }
+ // Vitória: a fanfarra e, enquanto ela se apaga, a transição para a missão seguinte.
+ function victory(){cue('vitoria');setTimeout(()=>cue('transicao-missao'),7500);}
  // Ambiente da missão: mar sempre; tambores entram conforme a tensão (o Alarme); batimento com herói em perigo.
  const LAYERS=['mar','tambores-longe','tambores-guerra'];let tension=-1,heartbeatOn=false;
  function ambient(name,want){
@@ -134,6 +166,6 @@
  function setHeartbeat(on){heartbeatOn=on;const want=on&&enabled&&!document.hidden;if(want||clips.batimento)ambient('batimento',want);}
  function pauseAmbience(){for(const name of [...LAYERS,'batimento'])if(clips[name])ambient(name,false);}
  function resumeAmbience(){if(tension>=0)setTension(tension);if(heartbeatOn)setHeartbeat(true);}
- window.TroyAudio={effect,action,trojan,cue,setTension,setHeartbeat,playMusic,stopMusic,isEnabled:()=>enabled};
+ window.TroyAudio={effect,action,trojan,cue,changes,victory,setTension,setHeartbeat,playMusic,stopMusic,isEnabled:()=>enabled};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();

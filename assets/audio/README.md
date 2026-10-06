@@ -20,7 +20,7 @@ Durante a partida, `../audio.js` toca os arquivos de `sfx/` e, para cada vaga ai
 | `sfx/descoberta.mp3` | Chest Opening | freesound_community | https://pixabay.com/sound-effects/household-chest-opening-87569/ |
 | `sfx/encontro.mp3` | Ancient Lyre Sound, Short Arpeggio | Lesiakower | https://pixabay.com/sound-effects/musical-ancient-lyre-sound-short-arpeggio-sound-effect-430628/ |
 | `sfx/cronica.mp3` | Single Church Bell | Universfield | https://pixabay.com/sound-effects/musical-single-church-bell-156463/ |
-| `sfx/feito.mp3` | Loud Fanfare Trumpet Effect #01 | AberrantRealities | https://pixabay.com/sound-effects/musical-loud-fanfare-trumpet-effect-01-412045/ |
+| `sfx/feito.mp3` | Grito curto de soldados aclamando o herói (escolhido pelo Felipe em 02/10/2026) | Pixabay | — |
 | `sfx/queda.mp3` | Dark Melancholic Cello Solo | Chrysalyn | https://pixabay.com/sound-effects/musical-dark-melancholic-cello-solo-540238/ |
 | `sfx/deus-atena.mp3` | Magic Twinkle | Universfield | https://pixabay.com/sound-effects/film-special-effects-magic-twinkle-244951/ |
 | `sfx/deus-poseidon.mp3` | Waves Crashing | DRAGON-STUDIO | https://pixabay.com/sound-effects/nature-waves-crashing-397977/ |

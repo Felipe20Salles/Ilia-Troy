@@ -19,7 +19,7 @@ function play(ids,options={}){let s=G.newGame({heroes:ids,players:ids.length,...
    const hec=hector(s);if(!hec)break;
    const duel=G.interactions(s,h).find(x=>x.id==='duel'&&x.available);if(duel){doAct(id,'interact','duel');continue;}
    const here=s.enemies.filter(e=>e.zone===h.zone&&e.type!=='heitor');
-   let goal;const chaser=s.heroes.some(x=>x.id==='aquiles')?'aquiles':ids.find(x=>x!==guard),gateHeld=s.heroes.some(x=>x.id===guard&&x.hp>0&&x.zone==='M1');
+   let goal;const chaser=G.championId(s),gateHeld=s.heroes.some(x=>x.id===guard&&x.hp>0&&x.zone==='M1');
    if(id===chaser)goal=hec.zone;
    else if(id===guard)goal='M1';
    else{const n=G.chaseNext(s);goal=gateHeld&&n&&n.ahead!=='M1'?n.ahead:'M1';}
@@ -72,4 +72,12 @@ test('the bot brings Hector down in most rosters',()=>{
   for(const deifobo of [false,true]){const s=play(team,{favor:3,deifobo});games++;if(s.result==='victory')wins++;}}
  // Meta do Felipe (05/10/2026): no máximo 6 vitórias em 14 (43%).
  assert.ok(wins/games>=.2&&wins/games<=6/14,'vitórias do robô: '+wins+'/'+games);
+});
+test('without Achilles, Ajax faces Hector; without both, Odysseus wounds him to death and he dies inside the walls',()=>{
+ for(const [team,who] of [[['ajax','odisseu','agamemnon'],'ajax'],[['menelau','odisseu','agamemnon'],'odisseu']]){
+  let s=G.newGame({heroes:team,players:1,owners:[1,1,1]});assert.equal(G.championId(s),who);s.revealed.push('P4');hector(s).zone='P4';s.chase.status='stopped';
+  const other=team.find(id=>id!==who);hero(s,who).zone='P4';hero(s,other).zone='P4';
+  assert.ok(!G.interactions(s,hero(s,other)).some(x=>x.id==='duel'),'só o campeão enfrenta Heitor');
+  s=act(s,who,'interact','duel');assert.equal(s.result,'victory');assert.equal(s.duel,who);assert.equal(s.outcome.legacy.heitorSlayer,who);
+  if(who==='odisseu')assert.match(s.reason,/dentro das muralhas/);}
 });

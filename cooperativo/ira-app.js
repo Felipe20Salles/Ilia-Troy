@@ -9,6 +9,9 @@ let completed=false;try{completed=localStorage.getItem('ilia-campanha-ira')==='c
 // A campanha (missão 1) traz a equipe, a vida, as habilidades, o armazém, os pergaminhos e as consequências.
 let campaign=null;try{const c=JSON.parse(localStorage.getItem('ilia-campanha-v1'));if(c?.version===4&&c.team?.heroes?.length)campaign=c;}catch(e){}
 if(campaign)setup={players:campaign.team.players,playerNames:campaign.team.playerNames,heroes:[...campaign.team.heroes],owners:[...campaign.team.owners],levels:campaign.team.levels,abilities:{}};
+// Cópia da campanha de antes desta missão: a fuga de Heitor fica registrada nela, e recomeçar a desfaz.
+const BEFORE_KEY='ilia-campanha-antes-ira';try{const raw=localStorage.getItem(SAVE_KEY),s=raw&&JSON.parse(raw);if(!s?.result)localStorage.setItem(BEFORE_KEY,localStorage.getItem('ilia-campanha-v1')||'');}catch(e){}
+function rollbackCampaign(){try{const before=localStorage.getItem(BEFORE_KEY);if(before===null)return;if(before)localStorage.setItem('ilia-campanha-v1',before);else localStorage.removeItem('ilia-campanha-v1');localStorage.removeItem('ilia-campanha-ira');completed=false;campaign=null;const c=before&&JSON.parse(before);if(c?.version===4&&c.team?.heroes?.length)campaign=c;if(campaign)setup={players:campaign.team.players,playerNames:campaign.team.playerNames,heroes:[...campaign.team.heroes],owners:[...campaign.team.owners],levels:campaign.team.levels,abilities:{}};}catch(e){}}
 const storeFromCampaign=()=>campaign?(campaign.resources?.food||0):0;
 const app = document.getElementById('app');
 const esc = value => String(value).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -133,7 +136,8 @@ function detectStory(before){
 const RESULT_TEXT={};
 // O que falta para vencer, de acordo com o Alarme.
 function heitor(){return state.enemies.find(e=>e.type==='heitor');}
-function holdOrder(){const c=state.chase,h=heitor();if(!h)return 'Heitor caiu.';let o=c.status==='waiting'?'Heitor espera diante das portas Ceias. Quando Aquiles chegar a 2 peças dele, ele foge em volta das muralhas.':c.status==='stopped'?'Heitor parou. Aquiles, na mesma peça, pode enfrentá-lo.':`Heitor foge em volta das muralhas (volta ${c.laps+1} de ${G.LAPS}). Guardem o portão (M1): se ele passar por lá sem um grego de pé, entra em Troia. Quem fecha a peça à frente dele o faz dar meia-volta; cercado, ele para.`;if(state.patroclus?.status==='active')o+=' Pátroclo veste a armadura de Aquiles: se enfrentar Heitor, cairá diante dele.';return o;}
+const champName=()=>G.HEROES.find(d=>d.id===G.championId(state))?.name||'Aquiles';
+function holdOrder(){const c=state.chase,h=heitor();if(!h)return 'Heitor caiu.';let o=c.status==='waiting'?`Heitor espera diante das portas Ceias. Quando ${champName()} chegar a 2 peças dele, ele foge em volta das muralhas.`:c.status==='stopped'?`Heitor parou. ${champName()}, na mesma peça, pode enfrentá-lo.`:`Heitor foge em volta das muralhas (volta ${c.laps+1} de ${G.LAPS}). Guardem o portão (M1): se ele passar por lá sem um grego de pé, entra em Troia. Quem fecha a peça à frente dele o faz dar meia-volta; cercado, ele para.`;if(state.patroclus?.status==='active')o+=' Pátroclo veste a armadura de Aquiles: se enfrentar Heitor, cairá diante dele.';return o;}
 const reconOrder=holdOrder;
 const campOrder=reconOrder;
 // Trilha do Alarme com os patamares de reforço marcados.
@@ -150,21 +154,21 @@ const COMMAND_WARNINGS=[null,
 let commandWarned=0;
 function commandLevel(){if(!state||state.result||!heitor())return 0;const c=state.chase;return state.alarm>=18?3:c.status==='running'&&G.chaseNext(state)?.ahead==='M1'&&!state.heroes.some(h=>h.hp>0&&!h.away&&h.zone==='M1')?2:c.status==='running'?1:0;}
 function commandHTML(){
-  const level=commandLevel();if(level<=commandWarned||busy()||(state.chronicle?.round===state.round&&chronicleSeen<state.round))return '';
+  const level=commandLevel();if(level<=commandWarned||busy()||(state.chronicle?.round===state.round&&chronicleSeen<state.round)||state.encounter||findAlert||storyAlert||featAlert.length)return '';
   const w=COMMAND_WARNINGS[level],owner=state.heroes.find(h=>h.id==='agamemnon')?.owner;
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="command-title"><section class="arrival-card command-card"><p class="eyebrow">Ordem do comandante${state.players>1&&owner?' · '+esc(playerName(owner,state)):''}</p><article><span class="mesa-avatar hero-agamemnon" aria-hidden="true"></span><div><h2 id="command-title">${w.title}</h2><p class="encounter-text">${w.text}</p></div></article>${button('Às ordens','dismiss-command','',false,'button')}</section></div>`;
 }
 function chronicleHTML(){
   const c=state?.chronicle;if(!c||c.round!==state.round||chronicleSeen>=state.round||busy()||state.result)return '';
   const entry=G.CHRONICLE[c.round],prev=state.chronicleResult&&RESULT_TEXT[state.chronicleResult.id]?.[state.chronicleResult.status];
-  return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="chronicle-title"><section class="arrival-card chronicle-card">${sceneArt(CHRONICLE_ART[c.round])}<p class="eyebrow">${TROY_STEPS.chronicle} · rodada ${c.round}</p>${prev?`<p class="chronicle-prev">${esc(prev)}</p>`:''}<h2 id="chronicle-title">${esc(entry.title)}</h2><p class="encounter-text">${esc(entry.text)}</p>${entry.demand?`<p class="chronicle-demand"><b>Pedido</b>${esc(entry.demand)}</p>`:''}${button('Continuar','dismiss-chronicle','',false,'button')}</section></div>`;
+  return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="chronicle-title"><section class="arrival-card chronicle-card">${sceneArt(CHRONICLE_ART[c.round])}<p class="eyebrow">${TROY_STEPS.chronicle} · rodada ${c.round}</p>${prev?`<p class="chronicle-prev">${esc(prev)}</p>`:''}<h2 id="chronicle-title">${esc(entry.title)}</h2><p class="encounter-text">${esc(entry.text)}</p>${entry.demand?`<p class="chronicle-demand"><b>Pedido</b>${esc(entry.demand)}</p>`:''}${entry.effect?`<p class="chronicle-demand"><b>Efeito</b>${esc(entry.effect)}</p>`:''}${button('Continuar','dismiss-chronicle','',false,'button')}</section></div>`;
 }
 function featHTML(){
   if(!featAlert.length||busy(true))return '';
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="feat-title"><section class="arrival-card feat-card"><p class="eyebrow">Feito pessoal</p>${featAlert.map(id=>{const p=G.PERSONAL[id];return `<article><span class="mesa-avatar hero-${id}" aria-hidden="true"></span><div><h2 id="feat-title">${esc(G.HEROES.find(h=>h.id===id).name)}: ${esc(p.name)}</h2><p>${esc(p.text)}</p><b>${esc(p.reward)}</b></div></article>`;}).join('')}${button('Continuar','dismiss-feat','',false,'button')}</section></div>`;
 }
 let duelBeat=0;
-function duelHTML(){if(!state?.duel||duelBeat>2)return '';const t=G.DUEL[state.duel];return `<div class="order-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="order-title"><section class="order-card cris-card"><p class="order-step">${state.duel==='ira'?'A ira de Aquiles':'Dois guerreiros'} · ${duelBeat+1} de 3</p><h2 id="order-title">${['Diante das portas Ceias','A lança de Heitor','A brecha no bronze'][duelBeat]}</h2><p class="order-tale">${esc(t[duelBeat])}</p>${button(duelBeat<2?'Continuar':'Ok','duel-next','',false,'button')}</section></div>`;}
+function duelHTML(){if(!state?.duel||duelBeat>2)return '';const t=G.DUEL[state.duel];return `<div class="order-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="order-title"><section class="order-card cris-card"><p class="order-step">${({ira:'A ira de Aquiles',ajax:'Ájax e Heitor',odisseu:'O arco de Ítaca'})[state.duel]||'Dois guerreiros'} · ${duelBeat+1} de 3</p><h2 id="order-title">${(state.duel==='odisseu'?['Diante das portas Ceias','A flecha','Dentro das muralhas']:state.duel==='ajax'?['Diante das portas Ceias','A pedra de Ájax','A brecha no bronze']:['Diante das portas Ceias','A lança de Heitor','A brecha no bronze'])[duelBeat]}</h2><p class="order-tale">${esc(t[duelBeat])}</p>${button(duelBeat<2?'Continuar':'Ok','duel-next','',false,'button')}</section></div>`;}
 function encounterHTML(){
   if(!state?.encounter||busy(true)||featAlert.length||findAlert||(state.encounter.id==='scales'&&(storyAlert||commandLevel()>commandWarned)))return '';
   const e=ENCOUNTERS[state.encounter.id]();
@@ -183,8 +187,8 @@ function playerName(owner,source=setup){return source.playerNames?.[owner-1]||`J
 // Depois, pop-ups: o tabuleiro de cada herói, a história (que pode ser pulada), o título, o feito de cada herói e a mesa.
 const INTRO=()=>{const l=campaign?.legacy||{};return [
  ['Heitor do lado de fora','A batalha virou. Os troianos correram para dentro das muralhas, mas Heitor ficou do lado de fora.'],
- ['As portas Ceias','Do alto da muralha, Príamo e Hécuba imploram ao filho que entre. Heitor não entra. Ele espera Aquiles diante das portas.'],
- l.patroclus==='alive'?['A armadura','Pátroclo ainda veste a armadura de Aquiles. Zeus vai pesar de novo o destino dele.']:l.patroclus==='dead'?['A ira','Aquiles voltou. Não há armadura que o detenha, nem homem que ele queira mais do que Heitor.']:['Dois guerreiros','Aquiles e Heitor. Só um sai da planície como o maior guerreiro de Troia.']];};
+ ['As portas Ceias','Do alto da muralha, Príamo e Hécuba imploram ao filho que entre. Heitor não entra. Ele espera '+(setup.heroes.includes('aquiles')?'Aquiles':'quem vier')+' diante das portas.'],
+ setup.heroes.includes('aquiles')&&l.patroclus==='alive'?['A armadura','Pátroclo ainda veste a armadura de Aquiles. Zeus vai pesar de novo o destino dele.']:setup.heroes.includes('aquiles')&&l.patroclus==='dead'?['A ira','Aquiles voltou. Não há armadura que o detenha, nem homem que ele queira mais do que Heitor.']:setup.heroes.includes('aquiles')?['Dois guerreiros','Aquiles e Heitor. Só um sai da planície como o maior guerreiro de Troia.']:setup.heroes.includes('ajax')?['Ájax','Aquiles não está. Ájax, o muro dos aqueus, vai buscar Heitor. Os dois já se mediram uma vez nesta planície, até a noite separá-los.']:['O arco de Ítaca','Aquiles não está, nem Ájax. Odisseu vai buscar Heitor com o arco. Não precisa vencê-lo: basta feri-lo de morte.']];};
 const FEAT_TALES={
  aquiles:{tale:'Aquiles quer Heitor, e só Heitor. O golpe que o derrubar tem de ser dele.',goal:'Dar o golpe que derruba Heitor.'},
  odisseu:{tale:'Odisseu lê o terreno: sabe por onde Heitor vai correr, e chega lá antes.',goal:'Fechar a peça à frente de Heitor e fazê-lo dar meia-volta.'},
@@ -276,7 +280,7 @@ function mesaMap(byZone){
     if(!onTable(id)){if(!frontier(id))return '';return `<button class="board-counters zone-anchor unknown-zone ${zoneCls[id]}" data-command="zone" data-zone="${id}" data-zone-anchor="${id}" style="left:${r.x}%;top:${r.y}%" aria-label="Território desconhecido"><span class="unknown-mark" aria-hidden="true">?</span></button>`;}
     const allies=state.heroes.filter(a=>a.zone===id),enemies=state.enemies.filter(e=>e.zone===id),options=byZone[id]||[];
     const crates=state.supplies[id]||0,token=state.tokens[id]&&!state.tokens[id].resolved;
-    const chips=[id==='A1'?`<small>${state.built?'Acampamento instalado':'Clareira · acampamento'}</small>`:'',crates?`<small class="crate-chip">${M.ICONS.crate}${crates}</small>`:'',token?`<small class="token-chip" title="Ficha de exploração">${M.ICONS.explore}</small>`:'',id==='N4'&&state.patroclus?.status==='active'?`<small class="story-chip">Aquiles nos navios negros</small>`:'',chronicleMark(id)].join('');
+    const chips=[id==='A1'?`<small>${state.built?'Acampamento instalado':'Clareira · acampamento'}</small>`:'',crates?`<small class="crate-chip">${M.ICONS.crate}${crates}</small>`:'',token?`<small class="token-chip" title="Ficha de exploração">${M.ICONS.explore}</small>`:'',...state.heroes.filter(h=>h.lost?.zone===id).map(h=>`<small class="story-chip lost-chip" title="Recuperem aqui: sem inimigos na peça, 1 ação">${M.ICONS.explore}${esc(h.lost.item.charAt(0).toUpperCase()+h.lost.item.slice(1))}</small>`),id==='N4'&&state.patroclus?.status==='active'?`<small class="story-chip">Aquiles nos navios negros</small>`:'',chronicleMark(id)].join('');
     return `<button class="board-counters zone-anchor ${zoneCls[id]}" data-command="zone" data-zone="${id}" data-zone-anchor="${id}" style="left:${r.x}%;top:${r.y}%" aria-label="${G.ZONES[id].name}${options.length?`, ${options.length} opções`:''}">${chips?`<span class="zone-chips">${chips}</span>`:''}<span class="zone-beacon" aria-hidden="true"></span><span class="territory-tokens">${allies.map(a=>`<span class="unit-token greek-unit mesa-avatar hero-${a.id} ${a.id===selected?'selected':''} ${a.hp===0?'down':''}" data-hero="${a.id}" title="${G.HEROES.find(d=>d.id===a.id).name} · ${a.hp} de vida"><b>${a.hp}</b></span>`).join('')}${enemies.map(e=>`<span class="unit-token troop-art enemy-miniature ${e.type} ${G.TROOPS.types[e.type]?.hero?'trojan-hero-unit':'trojan-unit'} ${focusEnemy===e.id?'focused':''}" title="${G.TROOPS.label(e)} · ${e.hp} de vida"><span aria-hidden="true"></span><b>${e.hp}</b></span>`).join('')}</span>${state.guards[id]?`<small>🛡 ${state.guards[id]}</small>`:''}</button>`;
   }).join('');
   return `<div class="natural-map mesa-natural camera-map" style="${camera?`transform:translate(${camera.tx}px,${camera.ty}px) scale(${camera.k});--zoom:${camera.k}`:''}">${landscape(state.revealed.filter(onTable),'map','Território do Desembarque: '+state.revealed.length+' peças reveladas')}<svg class="territory-overlay route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g class="territory-routes">${edges.join('')}</g></svg><svg class="zone-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${shapes}</svg>${counters}${state.built?'<div class="camp-miniatures" style="left:9%;top:62%" role="img" aria-label="Acampamento instalado"><span>⛺</span><span>⛺</span><span>⛺</span></div>':''}</div>`;
@@ -289,11 +293,11 @@ function missionHTML(){
     state.chronicle?.status==='open'?{label:'Crônica: '+G.CHRONICLE[state.chronicle.round].title,current:true}:null].filter(Boolean);
   const foes=state.enemies.filter(e=>known(e.zone)).length;
   return M.missionBlock({number:4,title:'A ira de Aquiles',phase:state.result?'':trojanPhase?'Fase de Troia':'Fase dos heróis · rodada '+state.round,objective,open:missionOpen,featsOpen,feats:featList(),troyOpen,resourcesExtra:state.result?'':godsMenu(),
-    steps:[{label:heitor()?(state.chase.status==='stopped'?'Aquiles enfrenta Heitor':'Encurralar Heitor: '+state.chase.laps+'/'+G.LAPS+' passagens'):'Heitor caiu',done:state.heitorDead,current:!state.heitorDead},...optional].filter(Boolean),
+    steps:[{label:heitor()?(state.chase.status==='stopped'?champName()+' enfrenta Heitor':'Encurralar Heitor: '+state.chase.laps+'/'+G.LAPS+' passagens'):'Heitor caiu',done:state.heitorDead,current:!state.heitorDead},...optional].filter(Boolean),
     alarm:{value:state.alarm,max:G.alarmMax(state),next:(()=>{const n=G.nextAlarm(state);return n.at>state.alarm&&n.at<G.alarmMax(state)?'próximo em '+n.at:n.at===G.alarmMax(state)&&state.alarm<n.at?'em peso no '+n.at:'';})()},resourcesOpen,
     resources:[{label:'Favor dos deuses',value:`${state.favor}<small>/${G.FAVOR_MAX}</small>`},{label:'Armazém (comida)',value:state.campFood}]});
 }
-function resultHTML(){if(!state.result||(state.duel&&duelBeat<3))return '';return `<section class="result mesa-result ${state.result}" role="status"><h2>${state.result==='victory'?'Heitor caiu.':'Heitor escapou.'}</h2><p>${esc(state.reason)}</p><p>${state.result==='victory'?'Príamo virá pedir o corpo, e a trégua do velório abre o caminho para o que vem depois.':'Sem velório não há trégua: Heitor vivo vai vigiar a cidade nas próximas missões.'}</p><div class="actions-row"><a class="button" href="campanha.html">Ver a campanha</a></div></section>`;}
+function resultHTML(){if(!state.result||(state.duel&&duelBeat<3))return '';return `<section class="result mesa-result ${state.result}" role="status"><h2>${state.result==='victory'?'Heitor caiu.':'Heitor escapou.'}</h2><p>${esc(state.reason)}</p><p>${state.result==='victory'?'Príamo virá pedir o corpo, e a trégua do velório abre o caminho para o que vem depois.':'Sem velório não há trégua: Heitor vivo vai vigiar a cidade nas próximas missões.'}</p><div class="actions-row">${state.result==='defeat'?'<button class="button" type="button" data-command="restart">Recomeçar a missão</button>':''}<a class="button" href="campanha.html">Ver a campanha</a></div></section>`;}
 function troyHTML(){
   const step=G.nextAlarm(state),next=state.result?'':step.entries.length?`No Alarme ${step.at}, chegam reforços: ${Object.values(step.entries.reduce((all,[zone,type])=>{const key=type+zone;(all[key]??={zone,type,n:0}).n++;return all;},{})).map(g=>(g.n>1?g.n+'× ':'')+G.TROOPS.types[g.type].short+' em '+g.zone).join(', ')}.`:'';
   const seen={...state,enemies:state.enemies.filter(e=>known(e.zone))};
@@ -351,23 +355,23 @@ function chooseEncounter(choice){const beforeCue=cueSnapshot(),beforeHeroes=stat
 function learnStory(){const l=state.lastLearn;if(!l)return;const d=G.HEROES.find(h=>h.id===l.hero);
   if(l.kind==='ability'){const c=d.cards[l.card];storyAlert={eyebrow:'Habilidade aprendida',title:d.name+' aprendeu '+c.name,text:'O que a habilidade faz está escrito na carta.',order:'Virem para cima a carta "'+c.name+'" no tabuleiro de '+d.name+'. A partir de agora ela aparece nas ações do herói.'};}
   else{storyAlert={eyebrow:'Evolução conquistada',title:d.name+' chega ao nível N'+l.level,text:'A experiência do mirante endurece '+d.name+' e os seus homens. O que muda está escrito na carta.',order:'Virem para cima a carta de evolução N'+l.level+' no tabuleiro de '+d.name+'. Os novos valores já valem nesta rodada.'};}}
-function cueSnapshot(){return {built:state.built,reveal:revealAlert.length,arrival:troopArrival,death:deathAlert,feat:featAlert.length,find:findAlert,story:storyAlert,encounter:state.encounter,round:state.round};}
+function cueSnapshot(){return {prev:state,built:state.built,reveal:revealAlert.length,arrival:troopArrival,death:deathAlert,feat:featAlert.length,find:findAlert,story:storyAlert,encounter:state.encounter,round:state.round};}
 // Toca o som do momento mais marcante que acabou de acontecer.
 let featCued=false,trojanPhase=false,resourcesOpen=false;
 // Selo da fase de Troia nos avisos que ela abre, sempre na mesma ordem.
 const TROY_STEPS={move:'Fase de Troia · 1 de 3 · Movimento e ataques',reinforce:'Fase de Troia · 2 de 3 · Reforços',chronicle:'Fase de Troia · 3 de 3 · Crônica'};
 function featSound(){if(featAlert.length&&!featCued&&!busy()){featCued=true;window.TroyAudio?.cue?.('feito');}}
 function soundCues(b){
-  const A=window.TroyAudio;if(!A?.cue)return;
+  const A=window.TroyAudio;if(!A?.cue)return;A.changes?.(b.prev,state);
   // O som do feito toca quando o aviso do feito aparece na tela (featSound), não junto com os outros.
   const arrival=troopArrival&&troopArrival!==b.arrival;
   if(deathAlert&&deathAlert!==b.death)A.cue('queda');
-  else if(state.built&&!b.built){A.cue('acampamento');if(arrival)setTimeout(()=>A.cue('corneta'),1600);}
+  else if(state.built&&!b.built){A.cue('acampamento');setTimeout(()=>A.cue('corneta'),1600);}
   else if(state.encounter&&!b.encounter&&state.encounter.id!=='ability')A.cue('encontro');
   else if(arrival)A.cue('corneta');
   else if(findAlert&&findAlert!==b.find)A.cue('descoberta');
   else if(revealAlert.length>b.reveal)A.cue('revelar');
-  else if(state.round>b.round&&state.chronicle?.round===state.round)A.cue('cronica');
+  else if(state.round>b.round&&state.chronicle?.round===state.round)A.cue(['trompas','portao'].includes(state.chronicle.id)?'corneta':'cronica');
 }
 function ambience(){const A=window.TroyAudio;if(!A?.setTension)return;if(!state||state.result){A.setTension(-1);A.setHeartbeat(false);return;}A.setTension(state.alarm>=12?2:state.alarm>=6?1:0);A.setHeartbeat(state.heroes.some(h=>h.hp>0&&h.hp<=2));}
 function openZone(zone){popZone=popZone===zone?null:zone;pending=null;confirmation=null;render();}
@@ -390,7 +394,7 @@ app.addEventListener('click',event=>{
   if(c==='place-sub'){placeStep++;render();return;}
   if(c==='response-sub'){responseSub++;render();return;}
   if(c==='arrival-sub'){arrivalSub++;render();return;}
-  if(c==='duel-next'){duelBeat++;render();return;}
+  if(c==='duel-next'){duelBeat++;if(duelBeat===3&&state.result==='victory')window.TroyAudio?.victory?.();render();return;}
   if(c==='dismiss-reveal'){placeStep=0;arrivalNote={};revealAlert=[];revealPhase='story';render();return;}
   if(c==='check-table'){showTable=!showTable;clearTimeout(showTableTimer);if(showTable)showTableTimer=setTimeout(()=>{showTable=false;render();},6000);render();return;}
   if(c==='toggle-feats'){featsOpen=!featsOpen;if(featsOpen){resourcesOpen=false;closeTroy();}render();return;}
@@ -423,6 +427,7 @@ app.addEventListener('click',event=>{
     onboardingStep=Math.max(0,onboardingStep+(fwd?1:-1));if(onboardingStep===3)introPos=0;briefing();document.getElementById('onboard-title')?.focus({preventScroll:true});return;}
   if(c==='intro-skip'){introPos=introPops().findIndex(p=>p.title);briefing();return;}
   if(['start','new-confirm'].includes(c)){try{freshExpedition();}catch(e){notice(e.message);return;}}
+  if(c==='restart'){rollbackCampaign();state=freshExpedition();commandWarned=0;chronicleSeen=0;featCued=false;duelBeat=0;selected=state.heroes[0].id;revealAlert=[];featAlert=[];findAlert=null;storyAlert=null;deathAlert=null;troopArrival=null;responseQueue=[];responseIndex=0;pending=null;confirmation=null;persist();render();window.scrollTo(0,0);return;}
   if(c==='start'){if((state&&!state.result)||(saved&&!saved.result)){confirmation='new';render();}else{state=freshExpedition();commandWarned=0;selected=state.heroes[0].id;revealAlert=[];persist();render();window.scrollTo(0,0);}}
   else if(c==='new-confirm'){state=freshExpedition();selected=state.heroes[0].id;pending=null;confirmation=null;revealAlert=[];persist();render();window.scrollTo(0,0);}
   else if(c==='continue'){confirmation=null;state=JSON.parse(JSON.stringify(saved));state.playerNames??=Array.from({length:state.players},(_,i)=>`Jogador ${i+1}`);chronicleSeen=state.round;selected=state.heroes[0].id;setup={players:state.players,playerNames:state.playerNames,heroes:state.heroes.map(h=>h.id),owners:state.heroes.map(h=>h.owner),levels:Object.fromEntries(state.heroes.map(h=>[h.id,h.level]))};render();}

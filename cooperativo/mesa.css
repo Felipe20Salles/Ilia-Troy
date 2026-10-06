@@ -791,3 +791,5 @@ dialog#rules .dialog-head h2{font:400 28px/1.15 'Marcellus',Georgia,serif;color:
 .how-legend{grid-template-columns:1fr 1fr}
 .how-foot{margin:14px 0 0!important;font-size:13px;color:var(--muted);text-align:center}
 @media (max-width:640px){.how-actions,.how-legend{grid-template-columns:1fr}.how-step{grid-template-columns:28px 1fr}.how-visual{display:none}}
+.cris-voice.solo{grid-template-columns:1fr;padding-left:14px}
+.cris-group{width:100%;display:grid;gap:8px;margin-top:6px}.cris-group h3{margin:0;font:400 15px 'Marcellus',Georgia,serif;color:var(--gold);text-align:left}

@@ -52,17 +52,17 @@
     ajax:{name:'Escudo diante das muralhas',goal:2,text:'Resista de pé a 2 ataques perto das muralhas (P3, P7, P4, M4 ou M1).',reward:'Aprende uma nova habilidade, à escolha do jogador.'}
   };
   const CHRONICLE={
-    2:{id:'trompas',title:'Trompas na cidade',text:'Do alto das muralhas soam trompas. Não é um ataque: é Troia contando os seus homens.'},
-    3:{id:'heitor',title:'Um elmo de crina',text:'Um guerreiro de elmo de crina observa do alto do portão. Os veteranos dizem o nome dele em voz baixa: Heitor.'},
+    2:{id:'trompas',effect:"Troia conta os seus homens: o Alarme sobe 1.",title:'Trompas na cidade',text:'Do alto das muralhas soam trompas. Não é um ataque: é Troia contando os seus homens.'},
+    3:{id:'heitor',effect:"O nome de Heitor esfria as preces: −1 de Favor (sem Favor, o Alarme sobe 1).",title:'Um elmo de crina',text:'Um guerreiro de elmo de crina observa do alto do portão. Os veteranos dizem o nome dele em voz baixa: Heitor.'},
     4:{id:'saque',title:'Saqueadores',text:'Enquanto os heróis sobem a planície, vultos rondam as tendas vazias.',demand:'Mantenham um herói de pé em A1 até a próxima resposta de Troia, ou os saqueadores levam 1 comida do armazém.'},
-    5:{id:'paris',title:'O arco de Páris',text:'Uma flecha crava na terra, a um passo dos heróis. Lá no alto, um arqueiro de manto colorido sorri. Não errou por acaso.'},
+    5:{id:'paris',effect:"O herói mais perto do portão se joga ao chão: 1 ação a menos nesta rodada.",title:'O arco de Páris',text:'Uma flecha crava na terra, a um passo dos heróis. Lá no alto, um arqueiro de manto colorido sorri. Não errou por acaso.'},
     6:{id:'batedores',title:'Cavalos troianos',text:'Cavaleiros troianos cruzam a planície ao longe, rápidos, e somem atrás das oliveiras.',demand:'Se nenhum batedor troiano estiver à vista ao fim da próxima resposta, o Alarme cai 1.'},
-    7:{id:'chuva',title:'Chuva no Ida',text:'Nuvens escuras descem do monte Ida. A chuva apaga as pegadas e encharca as cordas dos arcos.'},
-    8:{id:'mortos',title:'Os mortos da praia',text:'No acampamento, os mortos do desembarque são queimados. A fumaça sobe reta no ar parado.'},
+    7:{id:'chuva',effect:"A chuva apaga as pegadas: o Alarme cai 1.",title:'Chuva no Ida',text:'Nuvens escuras descem do monte Ida. A chuva apaga as pegadas e encharca as cordas dos arcos.'},
+    8:{id:'mortos',effect:"Os heróis no acampamento (A1) recuperam 1 de vida.",title:'Os mortos da praia',text:'No acampamento, os mortos do desembarque são queimados. A fumaça sobe reta no ar parado.'},
     9:{id:'torres',title:'Sinais nas torres',text:'As torres trocam sinais com espelhos de bronze. Alguém precisa cegar os olhos da muralha.',demand:'Se um herói estiver de pé em P3 ou P7 na próxima resposta de Troia, o Alarme cai 1. Se não, sobe 1.'},
-    10:{id:'andromaca',title:'Uma mulher na muralha',text:'Do alto da muralha, uma mulher com um menino no colo procura alguém na planície. Ela não procura os gregos.'},
-    11:{id:'conselho',title:'O conselho de Príamo',text:'Ouve-se um murmúrio que vem de dentro da cidade, como de uma assembleia. Troia está decidindo o que fazer com os gregos.'},
-    12:{id:'noite',title:'Noite sem lua',text:'A noite cai sem lua. Fogueiras nas muralhas, fogueiras no acampamento, e o escuro inteiro entre os dois.'}
+    10:{id:'andromaca',effect:"Troia olha para ela, não para os gregos: o Alarme cai 1.",title:'Uma mulher na muralha',text:'Do alto da muralha, uma mulher com um menino no colo procura alguém na planície. Ela não procura os gregos.'},
+    11:{id:'conselho',effect:"Troia decide: o Alarme sobe 1.",title:'O conselho de Príamo',text:'Ouve-se um murmúrio que vem de dentro da cidade, como de uma assembleia. Troia está decidindo o que fazer com os gregos.'},
+    12:{id:'noite',effect:"O escuro esconde os gregos: o Alarme cai 1.",title:'Noite sem lua',text:'A noite cai sem lua. Fogueiras nas muralhas, fogueiras no acampamento, e o escuro inteiro entre os dois.'}
   };
   const clone=s=>JSON.parse(JSON.stringify(s));
   const heroName=id=>HEROES.find(d=>d.id===id)?.name||id;
@@ -115,7 +115,7 @@
   function intent(e,s){if(e.stunned)return 'Atordoado: perderá esta ativação';{const shot=rangedTarget(s,e);if(shot&&!e.intimidated)return 'Atirar em '+heroName(shot.id)+(shot.zone!==e.zone?' em '+shot.zone:'');}if(e.hold&&e.post&&e.zone!==e.post&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return 'Voltar ao posto em '+e.post;if(e.hold&&!s.heroes.some(h=>h.hp>0&&h.zone===e.zone))return e.type==='guarda'?'Guardar o portão':'Vigiar do alto da torre';if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;if(s.heroes.some(h=>h.zone===e.zone&&h.hp>0))return 'Atacar um herói aqui';if(e.raid)return e.zone==='N1'?'Queimar um navio em N1':'Rumo aos navios: avançar para '+ZONES[nextStep(e.zone,'N1')].name;const goal=huntGoal(s,e);if(goal!=='A1')return 'Perseguir os gregos em '+goal;return e.zone==='A1'?'Atacar o acampamento':'Avançar para '+ZONES[nextStep(e.zone)].name;}
   function finish(s,result,reason){finishCore(s,result,reason);if(s.outcome)s.outcome.legacy={...(s.outcome.legacy||{}),lost:Object.fromEntries(s.heroes.filter(h=>h.lost).map(h=>[h.id,true]))};}
   function finishCore(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;
-    if(result==='victory')s.outcome={completed:'reconhecimento',next:'Segurar a linha',campFood:Math.max(0,s.campFood-(s.shipsBurned||0)),revealedZones:[...s.revealed],scrolls:[...s.scrolls],commanders:{sarpedon:s.sarpedonWounds?'wounded':s.commanderDown?'dead':'alive'},legacy:{criseida:s.criseida,shepherds:s.shepherds,shipsBurned:s.shipsBurned||0,altarGold:!!s.altarGold,sarpedonWounds:s.sarpedonWounds||0},heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]}))};
+    if(result==='victory')s.outcome={completed:'reconhecimento',next:'Segurar a linha',campFood:Math.max(0,s.campFood-(s.shipsBurned||0)),revealedZones:[...s.revealed],scrolls:[...s.scrolls],commanders:{sarpedon:s.sarpedonWounds?'wounded':s.commanderDown?'dead':'alive'},legacy:{criseida:s.criseida,shepherds:s.shepherds,shipsBurned:s.shipsBurned||0,altarGold:!!s.altarGold,sarpedonWounds:s.sarpedonWounds||0,parisDuel:s.parisDuel==='fled'?'fled':null},heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]}))};
     log(s,reason);}
   function defeat(s){if(s.result)return;if(s.campDamage>=3)finish(s,'defeat','Troia arrasou o acampamento enquanto os heróis estavam longe.');else if(s.heroes.every(h=>h.hp===0))finish(s,'defeat','Todos os heróis caíram diante das muralhas.');}
   // Vitória: o relato e todos os heróis de pé de volta em A1. Quem ficou caído no campo morre (CAMPANHA.md).
@@ -149,7 +149,28 @@
   // Pedido descumprido: Troia manda um contingente ligado à história. Uma tropa; duas com 5 heróis.
   const ESCALATION={"saque":["P2","explorador","Os saqueadores voltam em maior número"],"batedores":["P7","explorador","Os cavaleiros trazem outra patrulha"],"torres":["M4","arqueiro","As torres mandaram arqueiros para a muralha"]};
   function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];if(!s.nexusDone)loseItem(s,'ajax',e[0],'Na escaramuça, uma carga troiana arranca o escudo do braço de Ájax e o leva.');log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
-  function startChronicle(s){const entry=CHRONICLE[s.round];if(!entry||s.result){s.chronicle=null;return;}s.chronicle={round:s.round,id:entry.id,status:CHRONICLE_CHECKS[entry.id]?'open':'told'};log(s,'Crônica da rodada '+s.round+': '+entry.title+'.');}
+  // Menelau e Páris (Ilíada, canto 3): com Menelau de pé, a crônica do arco traz Páris ao campo, e Menelau pode desafiá-lo.
+  function parisChallenge(s){const m=s.heroes.find(h=>h.id==='menelau'&&h.hp>0&&!h.away);if(!m||s.parisDuel||s.commanderDown)return;const zone=['P4','P7','P3'].find(z=>isRevealed(s,z))||'P3';spawn(s,zone,'paris');s.parisDuel='open';
+    s.lastFind={zone,title:'Páris diante das muralhas',text:'Entre os arqueiros, Menelau reconhece o manto colorido e os cabelos perfumados do homem que levou Helena de Esparta. Páris também o vê e, por um instante, recua para trás dos seus. Depois sorri e volta a puxar a corda do arco. Só Menelau pode desafiá-lo: os outros não o alcançam.'};log(s,'Páris aparece em '+zone+'. Menelau o reconhece.');}
+  const CHRONICLE_FX={"trompas":["alarm",1],"heitor":["favorDown",0],"paris":["nearGateSlow",0],"chuva":["alarm",-1],"mortos":["healZone","A1"],"andromaca":["alarm",-1],"conselho":["alarm",1],"noite":["alarm",-1]};
+  const CHRONICLE_TITLE=id=>(((Object.values(CHRONICLE).find(c=>c.id===id))||{}).title||id).toLocaleLowerCase('pt-BR');
+  // Crônicas que só contavam história: cada uma traz um efeito pequeno, positivo ou negativo, ligado ao texto (06/10/2026).
+  function chronicleEffect(s,id){const fx=CHRONICLE_FX[id];if(!fx||s.result)return;const [kind,arg]=fx,alive=s.heroes.filter(h=>h.hp>0&&!h.away),why='crônica '+CHRONICLE_TITLE(id),max=h=>HEROES.stats(h).maxHp,say=t=>log(s,'Crônica: '+t);
+    if(kind==='alarm')addAlarm(s,arg,why);
+    else if(kind==='favorDown'){if(s.favor>0)addFavor(s,-1,why);else addAlarm(s,1,why);}
+    else if(kind==='favorUp')addFavor(s,1,why);
+    else if(kind==='food'){s.campFood+=arg;say('+'+arg+' comida no armazém.');}
+    else if(kind==='feed'){if(s.campFood>0){s.campFood--;say('os curandeiros levaram 1 comida do armazém.');}else{const w=alive.filter(h=>h.hp>1).sort((a,b)=>a.hp-b.hp)[0];if(w){w.hp--;say(heroName(w.id)+' perde 1 de vida.');}}}
+    else if(kind==='heal'){const w=alive.filter(h=>h.hp<max(h)).sort((a,b)=>a.hp-b.hp)[0];if(w){w.hp++;say(heroName(w.id)+' recupera 1 de vida.');}}
+    else if(kind==='healZone'){for(const h of alive)if(h.zone===arg&&h.hp<max(h)){h.hp++;say(heroName(h.id)+' recupera 1 de vida.');}}
+    else if(kind==='hurtZone'){for(const h of alive)if(h.zone===arg&&h.hp>1){h.hp--;say(heroName(h.id)+' perde 1 de vida.');}}
+    else if(kind==='cargoSlow'){for(const h of alive)if(h.cargo&&h.ap>0){h.ap--;say(heroName(h.id)+' tem 1 ação a menos.');}}
+    else if(kind==='nearGateSlow'){const h=alive.slice().sort((a,b)=>distance(a.zone,'M1')-distance(b.zone,'M1'))[0];if(h&&h.ap>0){h.ap--;say(heroName(h.id)+' tem 1 ação a menos.');}}
+    else if(kind==='kingAction'){const k=alive.find(h=>h.id==='agamemnon');if(k){k.ap++;k.bonusActions=(k.bonusActions||0)+1;say('Agamêmnon tem 1 ação a mais.');}}
+    else if(kind==='refresh'){for(const h of alive)h.used=[];say('as cartas usadas se desviram.');}
+    else if(kind==='spawn')spawn(s,arg[0],arg[1]);
+  }
+  function startChronicle(s){const entry=CHRONICLE[s.round];if(!entry||s.result){s.chronicle=null;return;}s.chronicle={round:s.round,id:entry.id,status:CHRONICLE_CHECKS[entry.id]?'open':'told'};if(entry.id==='paris')parisChallenge(s);if(s.chronicle.status==='told'&&!(entry.id==='paris'&&s.enemies.some(e=>e.type==='paris')))chronicleEffect(s,entry.id);log(s,'Crônica da rodada '+s.round+': '+entry.title+'.');}
   function enter(s,h,zone){
     h.zone=zone;
     if(s.visited.includes(zone))return;s.visited.push(zone);
@@ -184,6 +205,7 @@
     const token=s.tokens[h.zone];
     if(token&&!token.resolved&&isRevealed(s,h.zone)&&tokenOf(s,h.zone).kind==='tower')add('tower','Tomar a torre de vigia ('+(token.progress||0)+'/2)','2 ações no total, sem inimigos; o barulho chama Troia (Alarme +2)');
     else if(token&&!token.resolved&&isRevealed(s,h.zone)){const noise=tokenOf(s,h.zone).kind==='clue'?'Observar não faz barulho.':'A busca faz barulho (Alarme +1).';add('explore','Investigar: '+tokenOf(s,h.zone).hint.toLocaleLowerCase('pt-BR'),token.peeked?'Atena revelou: '+foundPreview(s,h.zone)+' '+noise:'Ninguém sabe o que há ali. '+noise);}
+    const paris=s.enemies.find(e=>e.type==='paris'&&e.zone===h.zone);if(paris&&h.id==='menelau')list.push({id:'paris',label:'Desafiar Páris',detail:'Por Helena, diante das muralhas · 1 ação',available:true});
     return list;
   }
   function foundPreview(s,zone){const t=tokenOf(s,zone);return (t.kind==='trail'&&s.scrolls.includes('rotas-1')?t.foundScroll:t.found).split('{hero}').join('quem investigar');}
@@ -203,6 +225,8 @@
     aquiles:{item:'as sandálias de Aquiles',cards:[1],lost:'Descalço sobre as pedras, Aquiles não consegue a Investida.',found:'Aquiles amarra as sandálias. A Investida volta.'},
     agamemnon:{item:'o cetro de Agamêmnon',cards:[2],lost:'Sem o cetro, os troianos não temem o rei: Agamêmnon perde a Intimidação.',found:'O cetro volta às mãos do rei. A Intimidação volta.'}};
   function loseItem(s,id,zone,why){const h=s.heroes.find(x=>x.id===id&&x.hp>0&&!x.away&&!x.patroclus),n=NEXUS[id];if(!h||!n||h.lost||!n.cards.some(c=>h.known.includes(c)))return false;
+    // O objeto cai numa peça que já está na mesa: a mais perto de onde a crônica falhou.
+    if(!isRevealed(s,zone))zone=s.revealed.filter(z=>z!=='A1').sort((p,q)=>distance(p,zone)-distance(q,zone))[0]||zone;
     h.lost={item:n.item,cards:[...n.cards],zone};s.nexusDone=true;const names=n.cards.map(c=>HEROES.find(d=>d.id===id).cards[c].name).join(' e ');
     s.lastFind={zone,title:'Perderam '+n.item,text:why+' '+n.lost+' Na mesa: virem para baixo '+names+' e coloquem 1 ficha de exploração em '+zone+': é onde '+n.item+' está.'};log(s,heroName(id)+' perdeu '+n.item+'. Recuperem-no em '+zone+'.');return true;}
   function recoverItem(s,h,owner){const n=NEXUS[owner.id];owner.lost=null;s.lastFind={zone:h.zone,title:'Recuperaram '+n.item,text:(h.id===owner.id?'':heroName(h.id)+' devolve '+n.item+'. ')+n.found+' Na mesa: retirem a ficha de '+h.zone+' e virem a carta para cima.'};log(s,heroName(h.id)+' recuperou '+n.item+'.');}
@@ -214,11 +238,14 @@
     if(!h||h.hp<=0||(h.ap<=0&&action!=='rescue'))return fail('Escolha um herói de pé com ações disponíveis.');
     s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;s.lastFind=null;
     const def=HEROES.find(d=>d.id===h.id),foes=()=>s.enemies.filter(e=>e.zone===h.zone),visible=e=>e&&isRevealed(s,e.zone);let message='';
+    if((action==='attack'||action.startsWith('card:'))&&String(target??'').split(',').some(id=>s.enemies.find(e=>e.id===id)?.type==='paris'))return fail('Páris fica atrás dos arqueiros: só Menelau pode desafiá-lo, na mesma peça.');
     if(action==='move'){if(!ZONES[h.zone].links.includes(target))return fail('Escolha uma região conectada.');if(!isRevealed(s,target))return fail('Essa peça ainda não foi descoberta: investiguem as fichas de exploração para encontrar o caminho.');const origin=h.zone;message=moveHero(s,h,target)?'moveu para '+target:'tentou fugir de '+origin+', mas caiu antes de sair';}
     else if(action==='attack'){const e=s.enemies.find(e=>e.id===target&&visible(e)&&distance(h.zone,e.zone)<=HEROES.stats(h).range);if(!e)return fail('Escolha um inimigo no alcance básico.');strike(s,h,e,HEROES.stats(h).attack,{ranged:h.id==='odisseu'||e.zone!==h.zone});message='atacou: '+HEROES.stats(h).attack+' de dano';}
     else if(action==='interact'){
       const options=interactions(s,h),choice=target?options.find(x=>x.id===target):options.find(x=>x.available);
       if(choice?.id==='recover'&&choice.available){const owner=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);recoverItem(s,h,owner);h.ap--;h.lastAction='interact';return {ok:true,state:s,message:heroName(h.id)+' recuperou '+NEXUS[owner.id].item};}
+      if(choice?.id==='paris'){const p=s.enemies.find(e=>e.type==='paris'&&e.zone===h.zone);s.enemies=s.enemies.filter(e=>e!==p);s.parisDuel='fled';addFavor(s,1,'Menelau desafiou Páris');
+        s.lastFind={zone:h.zone,title:'Menelau e Páris',text:'Os dois se medem diante das muralhas. A lança de Páris bate no escudo de Menelau e entorta a ponta. A de Menelau atravessa o escudo de Páris, e a espada se parte no elmo dele. Menelau o agarra pela crina do elmo e o arrasta para os gregos, até a correia arrebentar. Então desce uma névoa dourada: Afrodite envolve Páris e o leva para dentro de Troia. Os gregos gritam o nome de Menelau. Na mesa: retirem Páris do mapa.'};h.ap--;h.lastAction='interact';log(s,'Menelau desafiou Páris. Afrodite o levou para dentro de Troia, ferido.');return {ok:true,state:s,message:'Menelau desafiou Páris'};}
       if(foes().length)return fail('Elimine os inimigos nesta peça antes de interagir.');
       if(!choice||!choice.available)return fail('Não há nada para resolver aqui.');
       if(choice.id==='recon'){s.reconProgress++;if(s.reconProgress<2)message='começou a reconhecer o portão (1/2)';else{s.reconned=true;s.reporter=h.id;s.pursuit=Math.ceil(s.heroes.length/2);addAlarm(s,2,'os guardas viram gregos diante do portão');const raid=spawn(s,'P2','lanceiro');raid.raid=true;log(s,'Incursão: uma companhia sai de P2 rumo aos navios, para queimar a frota.');message='reconheceu o portão de Troia e leva o relato. Agora, de volta a A1';}}
@@ -228,6 +255,8 @@
         else{token.resolved=true;addAlarm(s,2,'a torre de vigia caiu em mãos gregas');s.encounter={id:'tower',zone:h.zone,hero:h.id};message='tomou a torre de vigia';}}
     }else if(action==='rest'){
       if(foes().length)return fail('Não é possível preparar habilidades com inimigos nesta peça.');if(!h.used.length)return fail('As habilidades já estão prontas. Vida só se recupera com comida encontrada.');h.used=[];message='preparou suas habilidades';
+    }else if(action==='pray'){// A prece: 2 ações por 1 de Favor; com uma ação só, a ação e 1 comida do armazém.
+      if(s.favor>=FAVOR_MAX)return fail('O Favor dos deuses já está no máximo.');if(h.ap>=2)h.ap--;else if(s.campFood>0)s.campFood--;else return fail('Com uma ação só, a prece pede 1 comida do armazém, e o armazém está vazio.');addFavor(s,1,'a prece de '+def.name);message='rezou aos deuses';
     }else if(action==='rescue'){
       const a=s.heroes.find(a=>a.id===target&&a.zone===h.zone&&a.hp===0);if(!a)return fail('Escolha um aliado caído nesta peça.');if(h.hp<2)return fail('Socorrer transfere 1 de vida: quem socorre precisa ter ao menos 2.');h.hp--;a.hp=1;a.ap=1;if(h.id==='menelau')feat(s,'menelau');message='socorreu '+heroName(a.id)+', dando-lhe 1 da sua própria força';
     }else if(action.startsWith('card:')){

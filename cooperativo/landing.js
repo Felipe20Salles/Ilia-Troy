@@ -82,12 +82,12 @@
     agua:{title:'Barris da frota',text:'Com a primeira caixa no alto, os remadores descem barris de água doce dos navios. Alguém precisa recebê-los na praia.',demand:'Se um herói estiver de pé em N1 na próxima resposta de Troia, o armazém recebe +1 comida.'},
     batedores:{title:'Olhos na mata',text:'Os batedores que desceram da colina contam os navios. Se voltarem à cidade, Troia saberá quantos somos.',demand:'Se nenhum batedor troiano estiver à vista ao fim da próxima resposta, o Alarme cai 1.'},
     fogueiras:{title:'Fogueiras ao longe',text:'A carga está toda no alto e o dia termina. Nas muralhas distantes, fogueiras se acendem uma a uma: Troia sabe que estamos aqui.',demand:'Se o acampamento estiver instalado ao fim da próxima resposta, a frota se tranquiliza: Alarme −1. Se não, a escuridão favorece os batedores: Alarme +1.'},
-    corvo:{title:'Um corvo no mastro',text:'Um corvo pousa no mastro do navio de Agamêmnon. Entre os soldados corre o murmúrio de maus presságios; alguns já falam em voltar para casa.'},
-    chuva:{title:'Chuva fria',text:'Uma chuva fria encharca a costa. A madeira das caixas incha, e os homens que as carregam praguejam baixo.'},
-    remadores:{title:'O canto dos remadores',text:'Dos navios, os remadores entoam o canto da travessia. Na praia, os soldados param por um instante e erguem a cabeça.'},
-    mensageiro:{title:'Um mensageiro do rei',text:'"O rei quer o acampamento seguro antes do amanhecer", diz o mensageiro, ofegante. "Os homens não aguentam outra noite na praia."'},
-    nevoa:{title:'Névoa marinha',text:'Uma névoa espessa sobe do mar. Os sentinelas mal enxergam a própria lança; cada ruído pode ser o inimigo.'},
-    madrugada:{title:'Madrugada',text:'O céu clareia sobre o mar. Os mortos da noite são enrolados em mantos. Quem ainda resiste, resiste por todos.'}
+    corvo:{effect:"Maus presságios: −1 de Favor (sem Favor, o Alarme sobe 1).",title:'Um corvo no mastro',text:'Um corvo pousa no mastro do navio de Agamêmnon. Entre os soldados corre o murmúrio de maus presságios; alguns já falam em voltar para casa.'},
+    chuva:{effect:"Quem carrega uma caixa tem 1 ação a menos nesta rodada.",title:'Chuva fria',text:'Uma chuva fria encharca a costa. A madeira das caixas incha, e os homens que as carregam praguejam baixo.'},
+    remadores:{effect:"Os remadores descem com o que sobrou nos porões: +1 comida no armazém.",title:'O canto dos remadores',text:'Dos navios, os remadores entoam o canto da travessia. Na praia, os soldados param por um instante e erguem a cabeça.'},
+    mensageiro:{effect:"O rei apressa os homens: Agamêmnon tem 1 ação a mais nesta rodada.",title:'Um mensageiro do rei',text:'"O rei quer o acampamento seguro antes do amanhecer", diz o mensageiro, ofegante. "Os homens não aguentam outra noite na praia."'},
+    nevoa:{effect:"A névoa esconde os gregos: o Alarme cai 1.",title:'Névoa marinha',text:'Uma névoa espessa sobe do mar. Os sentinelas mal enxergam a própria lança; cada ruído pode ser o inimigo.'},
+    madrugada:{effect:"Quem resiste, resiste por todos: o herói mais ferido recupera 1 de vida.",title:'Madrugada',text:'O céu clareia sobre o mar. Os mortos da noite são enrolados em mantos. Quem ainda resiste, resiste por todos.'}
   };
   const MOMENT_CHRONICLE={posto:'sinal',entrega:'agua',alarme4:'batedores',carga:'fogueiras'},BREATHERS=['corvo','chuva','remadores','mensageiro','nevoa','madrugada'];
   function moment(s,id){s.moments.push(id);const c=MOMENT_CHRONICLE[id];if(c&&!s.told.includes(c)&&!s.chronicleQueue.includes(c))s.chronicleQueue.push(c);}
@@ -172,10 +172,28 @@
   // Pedido descumprido: Troia manda um contingente ligado à história. Uma tropa; duas com 5 heróis.
   const ESCALATION={"sinal":["P2","explorador","Os vigias das colinas viram a fumaça e mandaram batedores"],"fogueiras":["P2","lanceiro","Na escuridão, uma companhia troiana se aproxima das tendas"]};
   function escalate(s,id){const e=ESCALATION[id];if(!e||s.commanderDown)return;const n=s.heroes.length>=5?2:1;for(let i=0;i<n;i++)spawn(s,e[0],e[1]);s.escalation=e[2];if(!s.nexusDone)loseItem(s,'odisseu',e[0],'Na noite, batedores troianos entram no acampamento e levam o arco de Odisseu.');log(s,'Crônica: '+e[2]+' ('+n+' '+(TROOPS.types[e[1]].short)+' em '+e[0]+').');}
+  const CHRONICLE_FX={"corvo":["favorDown",0],"chuva":["cargoSlow",0],"remadores":["food",1],"mensageiro":["kingAction",0],"nevoa":["alarm",-1],"madrugada":["heal",0]};
+  const CHRONICLE_TITLE=id=>(((CHRONICLE[id])||{}).title||id).toLocaleLowerCase('pt-BR');
+  // Crônicas que só contavam história: cada uma traz um efeito pequeno, positivo ou negativo, ligado ao texto (06/10/2026).
+  function chronicleEffect(s,id){const fx=CHRONICLE_FX[id];if(!fx||s.result)return;const [kind,arg]=fx,alive=s.heroes.filter(h=>h.hp>0&&!h.away),why='crônica '+CHRONICLE_TITLE(id),max=h=>HEROES.stats(h).maxHp,say=t=>log(s,'Crônica: '+t);
+    if(kind==='alarm')addAlarm(s,arg,why);
+    else if(kind==='favorDown'){if(s.favor>0)addFavor(s,-1,why);else addAlarm(s,1,why);}
+    else if(kind==='favorUp')addFavor(s,1,why);
+    else if(kind==='food'){s.campFood+=arg;say('+'+arg+' comida no armazém.');}
+    else if(kind==='feed'){if(s.campFood>0){s.campFood--;say('os curandeiros levaram 1 comida do armazém.');}else{const w=alive.filter(h=>h.hp>1).sort((a,b)=>a.hp-b.hp)[0];if(w){w.hp--;say(heroName(w.id)+' perde 1 de vida.');}}}
+    else if(kind==='heal'){const w=alive.filter(h=>h.hp<max(h)).sort((a,b)=>a.hp-b.hp)[0];if(w){w.hp++;say(heroName(w.id)+' recupera 1 de vida.');}}
+    else if(kind==='healZone'){for(const h of alive)if(h.zone===arg&&h.hp<max(h)){h.hp++;say(heroName(h.id)+' recupera 1 de vida.');}}
+    else if(kind==='hurtZone'){for(const h of alive)if(h.zone===arg&&h.hp>1){h.hp--;say(heroName(h.id)+' perde 1 de vida.');}}
+    else if(kind==='cargoSlow'){for(const h of alive)if(h.cargo&&h.ap>0){h.ap--;say(heroName(h.id)+' tem 1 ação a menos.');}}
+    else if(kind==='nearGateSlow'){const h=alive.slice().sort((a,b)=>distance(a.zone,'M1')-distance(b.zone,'M1'))[0];if(h&&h.ap>0){h.ap--;say(heroName(h.id)+' tem 1 ação a menos.');}}
+    else if(kind==='kingAction'){const k=alive.find(h=>h.id==='agamemnon');if(k){k.ap++;k.bonusActions=(k.bonusActions||0)+1;say('Agamêmnon tem 1 ação a mais.');}}
+    else if(kind==='refresh'){for(const h of alive)h.used=[];say('as cartas usadas se desviram.');}
+    else if(kind==='spawn')spawn(s,arg[0],arg[1]);
+  }
   function startChronicle(s){
     const quiet=!s.moments.length;s.moments=[];if(s.result){s.chronicle=null;return;}
     const id=s.chronicleQueue.shift()||(quiet?BREATHERS.find(b=>!s.told.includes(b)):null);if(!id){s.chronicle=null;return;}
-    const entry=CHRONICLE[id];s.told.push(id);s.chronicle={round:s.round,id,status:CHRONICLE_CHECKS[id]?'open':'told'};
+    const entry=CHRONICLE[id];s.told.push(id);s.chronicle={round:s.round,id,status:CHRONICLE_CHECKS[id]?'open':'told'};if(s.chronicle.status==='told')chronicleEffect(s,id);
     log(s,'Crônica da rodada '+s.round+': '+entry.title+'.');
     
   }
@@ -244,6 +262,8 @@
     aquiles:{item:'as sandálias de Aquiles',cards:[1],lost:'Descalço sobre as pedras, Aquiles não consegue a Investida.',found:'Aquiles amarra as sandálias. A Investida volta.'},
     agamemnon:{item:'o cetro de Agamêmnon',cards:[2],lost:'Sem o cetro, os troianos não temem o rei: Agamêmnon perde a Intimidação.',found:'O cetro volta às mãos do rei. A Intimidação volta.'}};
   function loseItem(s,id,zone,why){const h=s.heroes.find(x=>x.id===id&&x.hp>0&&!x.away&&!x.patroclus),n=NEXUS[id];if(!h||!n||h.lost||!n.cards.some(c=>h.known.includes(c)))return false;
+    // O objeto cai numa peça que já está na mesa: a mais perto de onde a crônica falhou.
+    if(!isRevealed(s,zone))zone=s.revealed.filter(z=>z!=='A1').sort((p,q)=>distance(p,zone)-distance(q,zone))[0]||zone;
     h.lost={item:n.item,cards:[...n.cards],zone};s.nexusDone=true;const names=n.cards.map(c=>HEROES.find(d=>d.id===id).cards[c].name).join(' e ');
     s.lastFind={zone,title:'Perderam '+n.item,text:why+' '+n.lost+' Na mesa: virem para baixo '+names+' e coloquem 1 ficha de exploração em '+zone+': é onde '+n.item+' está.'};log(s,heroName(id)+' perdeu '+n.item+'. Recuperem-no em '+zone+'.');return true;}
   function recoverItem(s,h,owner){const n=NEXUS[owner.id];owner.lost=null;s.lastFind={zone:h.zone,title:'Recuperaram '+n.item,text:(h.id===owner.id?'':heroName(h.id)+' devolve '+n.item+'. ')+n.found+' Na mesa: retirem a ficha de '+h.zone+' e virem a carta para cima.'};log(s,heroName(h.id)+' recuperou '+n.item+'.');}
@@ -276,6 +296,8 @@
       else if(choice.id==='escort'){s.beggar.status='escort';s.beggar.escort=h.id;message='passou a escoltar o velho';if(h.zone==='A1'&&!s.built)blessing(s);}
     }else if(action==='rest'){
       if(foes().length)return fail('Não é possível recuperar com inimigos nesta peça.');if(!h.used.length)return fail('As habilidades já estão prontas. Vida só se recupera com comida encontrada.');h.used=[];message='preparou suas habilidades';
+    }else if(action==='pray'){// A prece: 2 ações por 1 de Favor; com uma ação só, a ação e 1 comida do armazém.
+      if(s.favor>=FAVOR_MAX)return fail('O Favor dos deuses já está no máximo.');if(h.ap>=2)h.ap--;else if(s.campFood>0)s.campFood--;else return fail('Com uma ação só, a prece pede 1 comida do armazém, e o armazém está vazio.');addFavor(s,1,'a prece de '+def.name);message='rezou aos deuses';
     }else if(action==='rescue'){
       const a=s.heroes.find(a=>a.id===target&&a.zone===h.zone&&a.hp===0);if(!a)return fail('Escolha um aliado caído nesta peça.');if(h.hp<2)return fail('Socorrer transfere 1 de vida: quem socorre precisa ter ao menos 2.');h.hp--;a.hp=1;a.ap=1;if(h.id==='menelau')feat(s,'menelau');message='socorreu '+heroName(a.id)+', dando-lhe 1 da sua própria força';
     }else if(action.startsWith('card:')){

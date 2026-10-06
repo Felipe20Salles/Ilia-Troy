@@ -149,14 +149,14 @@ const COMMAND_WARNINGS=[null,
 let commandWarned=0;
 function commandLevel(){if(!state||state.result||state.commanderDown)return 0;return state.alarm>=18?3:state.alarmFired.includes(15)?2:0;}
 function commandHTML(){
-  const level=commandLevel();if(level<=commandWarned||busy()||(state.chronicle?.round===state.round&&chronicleSeen<state.round))return '';
+  const level=commandLevel();if(level<=commandWarned||busy()||(state.chronicle?.round===state.round&&chronicleSeen<state.round)||state.encounter||findAlert||storyAlert||featAlert.length)return '';
   const w=COMMAND_WARNINGS[level],owner=state.heroes.find(h=>h.id==='agamemnon')?.owner;
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="command-title"><section class="arrival-card command-card"><p class="eyebrow">Ordem do comandante${state.players>1&&owner?' · '+esc(playerName(owner,state)):''}</p><article><span class="mesa-avatar hero-agamemnon" aria-hidden="true"></span><div><h2 id="command-title">${w.title}</h2><p class="encounter-text">${w.text}</p></div></article>${button('Às ordens','dismiss-command','',false,'button')}</section></div>`;
 }
 function chronicleHTML(){
   const c=state?.chronicle;if(!c||c.round!==state.round||chronicleSeen>=state.round||busy()||state.result)return '';
   const entry=G.CHRONICLE[c.round],prev=state.chronicleResult&&RESULT_TEXT[state.chronicleResult.id]?.[state.chronicleResult.status];
-  return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="chronicle-title"><section class="arrival-card chronicle-card">${sceneArt(CHRONICLE_ART[c.round])}<p class="eyebrow">${TROY_STEPS.chronicle} · rodada ${c.round}</p>${prev?`<p class="chronicle-prev">${esc(prev)}</p>`:''}<h2 id="chronicle-title">${esc(entry.title)}</h2><p class="encounter-text">${esc(entry.text)}</p>${entry.demand?`<p class="chronicle-demand"><b>Pedido</b>${esc(entry.demand)}</p>`:''}${button('Continuar','dismiss-chronicle','',false,'button')}</section></div>`;
+  return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="chronicle-title"><section class="arrival-card chronicle-card">${sceneArt(CHRONICLE_ART[c.round])}<p class="eyebrow">${TROY_STEPS.chronicle} · rodada ${c.round}</p>${prev?`<p class="chronicle-prev">${esc(prev)}</p>`:''}<h2 id="chronicle-title">${esc(entry.title)}</h2><p class="encounter-text">${esc(entry.text)}</p>${entry.demand?`<p class="chronicle-demand"><b>Pedido</b>${esc(entry.demand)}</p>`:''}${entry.effect?`<p class="chronicle-demand"><b>Efeito</b>${esc(entry.effect)}</p>`:''}${button('Continuar','dismiss-chronicle','',false,'button')}</section></div>`;
 }
 function featHTML(){
   if(!featAlert.length||busy(true))return '';
@@ -283,8 +283,9 @@ function mesaMap(byZone){
   const counters=Object.entries(regions).map(([id,r])=>{
     if(!onTable(id)){if(!frontier(id))return '';return `<button class="board-counters zone-anchor unknown-zone ${zoneCls[id]}" data-command="zone" data-zone="${id}" data-zone-anchor="${id}" style="left:${r.x}%;top:${r.y}%" aria-label="Território desconhecido"><span class="unknown-mark" aria-hidden="true">?</span></button>`;}
     const allies=state.heroes.filter(a=>a.zone===id),enemies=state.enemies.filter(e=>e.zone===id),options=byZone[id]||[];
-    const crates=state.supplies[id]||0,token=state.tokens[id]&&!state.tokens[id].resolved;
-    const chips=[id==='A1'?`<small>${state.built?'Acampamento instalado':'Clareira · acampamento'}</small>`:'',crates?`<small class="crate-chip">${M.ICONS.crate}${crates}</small>`:'',token?`<small class="token-chip" title="Ficha de exploração">${M.ICONS.explore}</small>`:'',id==='M1'&&!state.reconned?`<small class="story-chip">Portão ${state.reconProgress}/2</small>`:'',chronicleMark(id)].join('');
+    // Encontros da missão também têm ficha na mesa: o santuário de Criseida (C1) e o bosque dos pastores (B5).
+    const crates=state.supplies[id]||0,token=(state.tokens[id]&&!state.tokens[id].resolved)||hiddenEncounter(id);
+    const chips=[id==='A1'?`<small>${state.built?'Acampamento instalado':'Clareira · acampamento'}</small>`:'',crates?`<small class="crate-chip">${M.ICONS.crate}${crates}</small>`:'',token?`<small class="token-chip" title="Ficha de exploração">${M.ICONS.explore}</small>`:'',...state.heroes.filter(h=>h.lost?.zone===id).map(h=>`<small class="story-chip lost-chip" title="Recuperem aqui: sem inimigos na peça, 1 ação">${M.ICONS.explore}${esc(h.lost.item.charAt(0).toUpperCase()+h.lost.item.slice(1))}</small>`),id==='M1'&&!state.reconned?`<small class="story-chip">Portão ${state.reconProgress}/2</small>`:'',chronicleMark(id)].join('');
     return `<button class="board-counters zone-anchor ${zoneCls[id]}" data-command="zone" data-zone="${id}" data-zone-anchor="${id}" style="left:${r.x}%;top:${r.y}%" aria-label="${G.ZONES[id].name}${options.length?`, ${options.length} opções`:''}">${chips?`<span class="zone-chips">${chips}</span>`:''}<span class="zone-beacon" aria-hidden="true"></span><span class="territory-tokens">${allies.map(a=>`<span class="unit-token greek-unit mesa-avatar hero-${a.id} ${a.id===selected?'selected':''} ${a.hp===0?'down':''}" data-hero="${a.id}" title="${G.HEROES.find(d=>d.id===a.id).name} · ${a.hp} de vida"><b>${a.hp}</b></span>`).join('')}${enemies.map(e=>`<span class="unit-token troop-art enemy-miniature ${e.type} ${G.TROOPS.types[e.type]?.hero?'trojan-hero-unit':'trojan-unit'} ${focusEnemy===e.id?'focused':''}" title="${G.TROOPS.label(e)} · ${e.hp} de vida"><span aria-hidden="true"></span><b>${e.hp}</b></span>`).join('')}</span>${state.guards[id]?`<small>🛡 ${state.guards[id]}</small>`:''}</button>`;
   }).join('');
   return `<div class="natural-map mesa-natural camera-map" style="${camera?`transform:translate(${camera.tx}px,${camera.ty}px) scale(${camera.k});--zoom:${camera.k}`:''}">${landscape(state.revealed.filter(onTable),'map','Território do Desembarque: '+state.revealed.length+' peças reveladas')}<svg class="territory-overlay route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g class="territory-routes">${edges.join('')}</g></svg><svg class="zone-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${shapes}</svg>${counters}${state.built?'<div class="camp-miniatures" style="left:9%;top:62%" role="img" aria-label="Acampamento instalado"><span>⛺</span><span>⛺</span><span>⛺</span></div>':''}</div>`;
@@ -301,7 +302,7 @@ function missionHTML(){
     alarm:{value:state.alarm,max:G.alarmMax(state),next:(()=>{const n=G.nextAlarm(state);return n.at>state.alarm&&n.at<G.alarmMax(state)?'próximo em '+n.at:n.at===G.alarmMax(state)&&state.alarm<n.at?'em peso no '+n.at:'';})()},resourcesOpen,
     resources:[{label:'Favor dos deuses',value:`${state.favor}<small>/${G.FAVOR_MAX}</small>`},{label:'Tendas',value:`${3-state.campDamage}<small>/3</small>`,alert:state.campDamage>=2},...(state.reconned?[{label:'Navios',value:`${3-(state.shipsBurned||0)}<small>/3</small>`,alert:(state.shipsBurned||0)>0}]:[]),{label:'Armazém (comida)',value:state.campFood}]});
 }
-function resultHTML(){if(!state.result)return '';return `<section class="result mesa-result ${state.result}" role="status"><h2>${state.result==='victory'?'O portão foi visto.':'A expedição não voltou.'}</h2><p>${esc(state.reason)}</p>${state.result==='victory'?`<p>Para a missão seguinte: ${state.outcome.campFood} comida no armazém${state.outcome.scrolls.length?`; pergaminhos: ${state.outcome.scrolls.length}`:''}.</p>`:''}<div class="actions-row">${state.result==='victory'?'<a class="button" href="segurar.html">Seguir para Segurar a linha</a>':'<a class="button" href="../troia.html">Voltar ao início da campanha</a>'}</div></section>`;}
+function resultHTML(){if(!state.result)return '';return `<section class="result mesa-result ${state.result}" role="status"><h2>${state.result==='victory'?'O portão foi visto.':'A expedição não voltou.'}</h2><p>${esc(state.reason)}</p>${state.result==='victory'?`<p>Para a missão seguinte: ${state.outcome.campFood} comida no armazém${state.outcome.scrolls.length?`; pergaminhos: ${state.outcome.scrolls.length}`:''}.</p>`:''}<div class="actions-row">${state.result==='defeat'?'<button class="button" type="button" data-command="restart">Recomeçar a missão</button>':''}${state.result==='victory'?'<a class="button" href="segurar.html">Seguir para Segurar a linha</a>':'<a class="button" href="../troia.html">Voltar ao início da campanha</a>'}</div></section>`;}
 function troyHTML(){
   const step=G.nextAlarm(state),next=state.result?'':step.at===15&&step.entries.some(([,t])=>t==='sarpedon')?'No Alarme 15, algo sai pelo portão.':step.entries.length?`No Alarme ${step.at}, chegam reforços: ${Object.values(step.entries.reduce((all,[zone,type])=>{const key=type+zone;(all[key]??={zone,type,n:0}).n++;return all;},{})).map(g=>(g.n>1?g.n+'× ':'')+G.TROOPS.types[g.type].short+' em '+g.zone).join(', ')}.`:'';
   const seen={...state,enemies:state.enemies.filter(e=>known(e.zone))};
@@ -359,23 +360,24 @@ function chooseEncounter(choice){criseidaBeat=0;const beforeCue=cueSnapshot(),be
 function learnStory(){const l=state.lastLearn;if(!l)return;const d=G.HEROES.find(h=>h.id===l.hero);
   if(l.kind==='ability'){const c=d.cards[l.card];storyAlert={eyebrow:'Habilidade aprendida',title:d.name+' aprendeu '+c.name,text:'O que a habilidade faz está escrito na carta.',order:'Virem para cima a carta "'+c.name+'" no tabuleiro de '+d.name+'. A partir de agora ela aparece nas ações do herói.'};}
   else{storyAlert={eyebrow:'Evolução conquistada',title:d.name+' chega ao nível N'+l.level,text:'A experiência do mirante endurece '+d.name+' e os seus homens. O que muda está escrito na carta.',order:'Virem para cima a carta de evolução N'+l.level+' no tabuleiro de '+d.name+'. Os novos valores já valem nesta rodada.'};}}
-function cueSnapshot(){return {built:state.built,reveal:revealAlert.length,arrival:troopArrival,death:deathAlert,feat:featAlert.length,find:findAlert,story:storyAlert,encounter:state.encounter,round:state.round};}
+function cueSnapshot(){return {prev:state,reconned:state.reconned,built:state.built,reveal:revealAlert.length,arrival:troopArrival,death:deathAlert,feat:featAlert.length,find:findAlert,story:storyAlert,encounter:state.encounter,round:state.round};}
 // Toca o som do momento mais marcante que acabou de acontecer.
 let featCued=false,trojanPhase=false,resourcesOpen=false;
 // Selo da fase de Troia nos avisos que ela abre, sempre na mesma ordem.
 const TROY_STEPS={move:'Fase de Troia · 1 de 3 · Movimento e ataques',reinforce:'Fase de Troia · 2 de 3 · Reforços',chronicle:'Fase de Troia · 3 de 3 · Crônica'};
 function featSound(){if(featAlert.length&&!featCued&&!busy()){featCued=true;window.TroyAudio?.cue?.('feito');}}
 function soundCues(b){
-  const A=window.TroyAudio;if(!A?.cue)return;
+  const A=window.TroyAudio;if(!A?.cue)return;A.changes?.(b.prev,state);
   // O som do feito toca quando o aviso do feito aparece na tela (featSound), não junto com os outros.
   const arrival=troopArrival&&troopArrival!==b.arrival;
-  if(deathAlert&&deathAlert!==b.death)A.cue('queda');
-  else if(state.built&&!b.built){A.cue('acampamento');if(arrival)setTimeout(()=>A.cue('corneta'),1600);}
+  if(state.reconned&&!b.reconned)A.cue('corneta');
+  else if(deathAlert&&deathAlert!==b.death)A.cue('queda');
+  else if(state.built&&!b.built){A.cue('acampamento');setTimeout(()=>A.cue('corneta'),1600);}
   else if(state.encounter&&!b.encounter&&state.encounter.id!=='ability')A.cue('encontro');
   else if(arrival)A.cue('corneta');
   else if(findAlert&&findAlert!==b.find)A.cue('descoberta');
   else if(revealAlert.length>b.reveal)A.cue('revelar');
-  else if(state.round>b.round&&state.chronicle?.round===state.round)A.cue('cronica');
+  else if(state.round>b.round&&state.chronicle?.round===state.round)A.cue(['trompas','portao'].includes(state.chronicle.id)?'corneta':'cronica');
 }
 function ambience(){const A=window.TroyAudio;if(!A?.setTension)return;if(!state||state.result){A.setTension(-1);A.setHeartbeat(false);return;}A.setTension(state.alarm>=12?2:state.alarm>=6?1:0);A.setHeartbeat(state.heroes.some(h=>h.hp>0&&h.hp<=2));}
 function openZone(zone){popZone=popZone===zone?null:zone;pending=null;confirmation=null;render();}
@@ -431,6 +433,7 @@ app.addEventListener('click',event=>{
     onboardingStep=Math.max(0,onboardingStep+(fwd?1:-1));if(onboardingStep===3)introPos=0;briefing();document.getElementById('onboard-title')?.focus({preventScroll:true});return;}
   if(c==='intro-skip'){introPos=introPops().findIndex(p=>p.title);briefing();return;}
   if(['start','new-confirm'].includes(c)){try{freshExpedition();}catch(e){notice(e.message);return;}}
+  if(c==='restart'){state=freshExpedition();commandWarned=0;chronicleSeen=0;featCued=false;selected=state.heroes[0].id;revealAlert=[];featAlert=[];findAlert=null;storyAlert=null;deathAlert=null;troopArrival=null;responseQueue=[];responseIndex=0;pending=null;confirmation=null;persist();render();window.scrollTo(0,0);return;}
   if(c==='start'){if((state&&!state.result)||(saved&&!saved.result)){confirmation='new';render();}else{state=freshExpedition();commandWarned=0;selected=state.heroes[0].id;revealAlert=[];persist();render();window.scrollTo(0,0);}}
   else if(c==='new-confirm'){state=freshExpedition();selected=state.heroes[0].id;pending=null;confirmation=null;revealAlert=[];persist();render();window.scrollTo(0,0);}
   else if(c==='continue'){confirmation=null;state=JSON.parse(JSON.stringify(saved));state.playerNames??=Array.from({length:state.players},(_,i)=>`Jogador ${i+1}`);chronicleSeen=state.round;selected=state.heroes[0].id;setup={players:state.players,playerNames:state.playerNames,heroes:state.heroes.map(h=>h.id),owners:state.heroes.map(h=>h.owner),levels:Object.fromEntries(state.heroes.map(h=>[h.id,h.level]))};render();}

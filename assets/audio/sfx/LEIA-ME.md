@@ -61,3 +61,35 @@ O `corneta.mp3` volta a tocar quando chegam tropas troianas (os patamares do Ala
 | Arquivo | Quando toca | Som |
 |---|---|---|
 | `corneta.mp3` | Chegam tropas troianas | [War Horn sfx](https://pixabay.com/sound-effects/film-special-effects-war-horn-sfx-319881/), o mesmo de antes |
+
+## Sons secundários (05/10/2026)
+
+Já estão ligados no jogo. Enquanto um arquivo não existir, toca um som gerado pelo app. Eles entram um pouco depois do som principal (o golpe, a marcha), como consequência dele, e só um por vez, o mais marcante.
+
+| Arquivo | Quando toca | Principal | Alternativa |
+|---|---|---|---|
+| `tropa-cai.mp3` | Uma tropa troiana é derrubada | [Man death scream](https://pixabay.com/sound-effects/people-man-death-scream-186763/), 0:03 | [Male Death Scream](https://pixabay.com/sound-effects/people-male-death-scream-123078/), 0:01 |
+| `ferido.mp3` | Um herói perde vida e continua de pé | [Male Grunting In Pain](https://pixabay.com/sound-effects/people-male-grunting-in-pain-45746/) | [Male Hurt Sound](https://pixabay.com/sound-effects/people-male-hurt-sound-95206/) |
+| `cura.mp3` | Um herói recupera vida (comida, Fôlego, socorro) | [Fantasy Healing Spell Soft Magic Chime #1](https://pixabay.com/sound-effects/film-special-effects-fantasy-healing-spell-soft-magic-chime-1-546563/), 0:04 | [Holy Healing Spell](https://pixabay.com/sound-effects/film-special-effects-holy-healing-spell-533279/), 0:02 |
+| `favor.mp3` | O Favor dos deuses sobe (prece, feito, sacrifício) | [Heavenly Choir Of Angels](https://pixabay.com/sound-effects/musical-heavenly-choir-of-angels-322708/), 0:05 | [Ethereal choir voices (3)](https://pixabay.com/sound-effects/film-special-effects-ethereal-choir-voices-3-534661/), 0:03 |
+| `vitoria.mp3` | A missão é vencida | [Brass fanfare with timpani and winchimes, reverberated](https://pixabay.com/sound-effects/musical-brass-fanfare-with-timpani-and-winchimes-reverberated-146260/), 0:10 | [Medieval Fanfare](https://pixabay.com/sound-effects/musical-medieval-fanfare-6826/), 0:07 |
+| `derrota.mp3` | A missão é perdida | [Dark Chords](https://pixabay.com/sound-effects/musical-dark-chords-103048/), 0:07 | [defeat](https://pixabay.com/sound-effects/film-special-effects-defeat-353673/), 0:08 |
+| `retirada.mp3` | Heitor recua ferido para trás das muralhas | [Erebor-like Horns](https://pixabay.com/sound-effects/musical-erebor-like-horns-72328/), 0:14 | [medieval horn](https://pixabay.com/sound-effects/musical-medieval-horn-by-kris-klavenes-wav-77565/), 0:08 |
+| `peste.mp3` | Começa a peste de Apolo | [ominous](https://pixabay.com/sound-effects/film-special-effects-ominous-47658/), 0:05 | [Ominous Drum](https://pixabay.com/sound-effects/film-special-effects-ominous-drum-96571/), 0:09 |
+| `comando.mp3` | Intimidação de Agamêmnon | [Middle Ages War Cry 2](https://pixabay.com/sound-effects/film-special-effects-middle-ages-war-cry-2-39931/), 0:01 | [War cry](https://pixabay.com/sound-effects/film-special-effects-war-cry-392900/), 0:05 |
+
+Os longos são cortados com fade (a vitória e a derrota em 6 s, a retirada em 5 s). Depois de baixar, me avise para eu nivelar o volume de cada um com os outros.
+
+### Escolhidos pelo Felipe (05/10/2026)
+
+Salvos: `tropa-cai`, `ferido`, `cura`, `favor`, `retirada` (também na fuga de uma luta), `peste` e `comando`. A vitória toca `transicao-missao.mp3` (27 s), a transição para a missão seguinte. `vitoria.mp3` deixou de ser usado; `derrota.mp3` ainda não tem arquivo e toca o som gerado pelo app.
+
+### Novas opções (06/10/2026)
+
+| Arquivo | Quando toca | Opção 1 | Opção 2 | Opção 3 |
+|---|---|---|---|---|
+| `derrota.mp3` | A missão é perdida | [lament](https://pixabay.com/sound-effects/musical-lament-60808/), 0:25 | [Dark Melancholic Cello Solo](https://pixabay.com/sound-effects/musical-dark-melancholic-cello-solo-540238/), 0:16 | [Losing Horn](https://pixabay.com/sound-effects/film-special-effects-losing-horn-313723/), 0:06 |
+| `provocacao.mp3` | Provocação de Agamêmnon | [Sfx33 - Shield tap](https://pixabay.com/sound-effects/film-special-effects-sfx33-shield-tap-534306/), 0:03 | [Combat Voice Stand Your Ground 1](https://pixabay.com/sound-effects/people-combat-voice-stand-your-ground-1-543681/), 0:01 | [Shout](https://pixabay.com/sound-effects/people-shout-104972/), 0:02 |
+| `vitoria.mp3` (opcional) | Antes da transição, na vitória | [Orchestral win](https://pixabay.com/sound-effects/musical-orchestral-win-331233/), 0:10 | [You Win Sequence 1](https://pixabay.com/sound-effects/musical-you-win-sequence-1-183948/), 0:05 | [Medieval Fanfare](https://pixabay.com/sound-effects/musical-medieval-fanfare-6826/), 0:07 |
+
+Escolhas de 06/10/2026: `provocacao.mp3` e `vitoria.mp3` salvos. A vitória toca a fanfarra e, 7,5 s depois, a transição. A derrota usa o `queda.mp3`.

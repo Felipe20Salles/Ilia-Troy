@@ -120,3 +120,16 @@ test('nexus: an unrecovered item stays lost in the next mission',()=>{
  const M3=require('../cooperativo/segurar.js');const s=M3.newGame({heroes:['odisseu','agamemnon','ajax'],campaign:true,legacy:{lost:{ajax:true}}});
  assert.deepEqual(s.heroes.find(h=>h.id==='ajax').lost.cards,[0,1],'Ájax segue sem o escudo');assert.ok(M3.validSave(s));
 });
+test('with Menelaus, the chronicle of Paris brings him to the field; only Menelaus can challenge him, and Aphrodite saves Paris',()=>{
+ const G=require('../cooperativo/reconhecimento.js');let s=G.newGame({heroes:['menelau','odisseu','agamemnon'],players:1,owners:[1,1,1],abilities:{menelau:0,odisseu:0,agamemnon:0}});s.foodSetup=false;
+ while(s.round<5&&!s.result){s.heroes.forEach(h=>h.ap=0);s.enemies=[];s=G.trojanTurn(s);s.encounter=null;}
+ const p=s.enemies.find(e=>e.type==='paris');assert.ok(p,'Páris entra com a crônica');assert.equal(s.parisDuel,'open');
+ s.heroes.forEach(h=>{h.ap=2;h.zone=p.zone;h.hp=6;});
+ assert.equal(G.act(s,'odisseu','attack',p.id).ok,false,'os outros não o alcançam');
+ assert.ok(!G.interactions(s,s.heroes.find(h=>h.id==='odisseu')).some(x=>x.id==='paris'));
+ const r=G.act(s,'menelau','interact','paris');assert.ok(r.ok,r.error);assert.ok(!r.state.enemies.some(e=>e.type==='paris'));assert.equal(r.state.parisDuel,'fled');assert.ok(G.validSave(r.state));
+ const n=G.newGame({heroes:['odisseu','agamemnon','ajax'],players:1,owners:[1,1,1],abilities:{odisseu:0,agamemnon:0,ajax:0}});let t=n;t.foodSetup=false;while(t.round<6&&!t.result){t.heroes.forEach(h=>h.ap=0);t.enemies=[];t=G.trojanTurn(t);t.encounter=null;}
+ assert.ok(!t.enemies.some(e=>e.type==='paris'),'sem Menelau, a crônica é só história');
+ const S=require('../cooperativo/segurar.js');const w=S.newGame({heroes:['menelau','odisseu','agamemnon'],players:1,owners:[1,1,1],abilities:{menelau:0,odisseu:0,agamemnon:0},legacy:{parisDuel:'fled'}});
+ assert.equal(w.enemies.find(e=>e.type==='paris').hp,3,'Páris volta ferido');assert.ok(w.glory.includes('menelau-paris'));
+});

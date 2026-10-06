@@ -18,7 +18,7 @@
   amphora:svg('<path d="M9 3h6M10 3v2.5c-3 1.3-4.5 3.8-4.5 7 0 3.6 2.2 6.3 4.3 7.5h4.4c2.1-1.2 4.3-3.9 4.3-7.5 0-3.2-1.5-5.7-4.5-7V3M7.5 6.5C5.5 6.2 4.5 7.6 5 9.5M16.5 6.5c2-.3 3 1.1 2.5 3M6.5 12.5h11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',22),
   close:svg('<path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',16)
  };
- const KIND_ICON={move:'move',attack:'attack',interact:'explore',rest:'recover',rescue:'recover',card:'ability',god:'laurel'};
+ const KIND_ICON={move:'move',attack:'attack',interact:'explore',rest:'recover',rescue:'recover',card:'ability',god:'laurel',pray:'laurel'};
 
  // Converte o alvo devolvido pelas regras na peça onde a ação acontece.
  function zoneOf(G,s,h,id){if(id==null)return h.zone;id=String(id);if(G.ZONES[id])return id;if(id.includes(':'))return id.split(':')[1];const enemy=s.enemies.find(e=>e.id===id.split(',')[0]);if(enemy)return enemy.zone;const ally=s.heroes.find(a=>a.id===id);return ally?ally.zone:h.zone;}
@@ -35,6 +35,7 @@
   if(G.interactions){for(const x of G.interactions(s,h))add(h.zone,{action:'interact',target:x.id,kind:'interact',title:x.label,detail:x.detail+' · 1 ação',disabled:!x.available,reason:foes?'Há inimigos nesta peça':x.detail});}
   else{const interaction=G.interaction(s,h);if(interaction.available)add(h.zone,{action:'interact',kind:'interact',title:interaction.label,detail:interaction.detail+' · 1 ação',disabled:foes,reason:'Há inimigos nesta peça'});}
   if(h.used.length)add(h.zone,{action:'rest',kind:'rest',title:'Preparar habilidades',detail:'Desvirar as cartas usadas · 1 ação',disabled:foes,reason:'Há inimigos nesta peça'});
+  if(G.FAVOR_MAX&&s.favor<G.FAVOR_MAX){const one=h.ap<2;add(h.zone,{action:'pray',kind:'pray',title:'Rezar aos deuses',detail:one?'+1 de Favor · 1 ação e 1 comida do armazém':'+1 de Favor · 2 ações',disabled:one&&!s.campFood,reason:'Com uma ação só, a prece pede 1 comida do armazém, e o armazém está vazio'});}
   d.cards.forEach((card,i)=>{
    if(card.passive||h.onceUsed.includes(i)||(h.known&&!h.known.includes(i))||h.lost?.cards?.includes(i))return;
    const action='card:'+i,used=h.used.includes(i),list=targets(action,h);

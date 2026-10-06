@@ -2,6 +2,8 @@
 
 Status: **rascunho** (03/10/2026); estrutura aprovada. Substitui a proposta anterior ("missão 4 — Outro caminho": noite sem lua, equipe inteira, antes da morte de Heitor). Mesmas regras da campanha (`REGRAS-CAMPANHA.md`), salvo onde indicado.
 
+> **Proposta de 05/10/2026:** a narrativa paralela (a festa, a noite de Príamo e a entrada de Odisseu pelo mesmo portão, o diálogo com Helena entrelaçado com o de Aquiles e Príamo, e os onze dias da trégua) está em `NARRATIVA-MISSAO-5.md`. Nela, Odisseu já está dentro da cidade quando o funeral começa.
+
 ## A ideia em uma frase
 
 Heitor está morto e Troia está de luto. Durante a trégua do velório, Odisseu entra sozinho na cidade, disfarçado de mendigo, para roubar o **Paládio**, a estátua de Atena: enquanto ela estiver no templo, Troia não cai.

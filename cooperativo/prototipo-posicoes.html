@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Posições e passagens · Ilia</title>
+<style>
+body{margin:0;background:#120c09;color:#efe3c8;font:14px/1.5 system-ui,sans-serif}
+header{padding:12px 18px}
+header h1{font:400 22px Georgia,serif;margin:0 0 4px}
+header p{margin:0;color:#b9a68a;max-width:110ch}
+#wrap{position:relative;max-width:1536px;margin:0 auto}
+#wrap img{display:block;width:100%;height:auto}
+#wrap svg{position:absolute;inset:0;width:100%;height:100%}
+.pos{fill:#f4e7c6;stroke:#1a120c;stroke-width:3}
+.pos.door{fill:#e0a24a}
+.inner{stroke:#f4e7c6;stroke-width:2.5;stroke-dasharray:4 6;opacity:.75}
+.route{stroke:#e0a24a;stroke-width:7;stroke-linecap:round}
+.gate{fill:#1a120c;stroke:#e0a24a;stroke-width:3}
+.legend{display:flex;gap:18px;flex-wrap:wrap;padding:8px 18px;color:#b9a68a}
+.legend b{color:#efe3c8}
+</style></head><body>
+<header><h1>Posições e passagens sobre o tabuleiro atual</h1>
+<p>Esboço para conferir a ideia: as peças, a arte e as rotas são as de hoje. Círculos claros são as posições (uma miniatura cada). Linhas pontilhadas ligam posições vizinhas dentro da peça. As faixas laranja são as passagens entre peças, só onde existe rota hoje; a posição laranja é a porta que dá para ela. Onde não há faixa, as peças se encostam mas não se cruzam (por exemplo, C1 com C2, P4 e B5).</p></header>
+<div class="legend"><span><b>○</b> posição</span><span><b style="color:#e0a24a">○</b> porta de passagem</span><span><b style="color:#e0a24a">━</b> rota entre peças</span><span><b>┄</b> vizinhança dentro da peça</span></div>
+<div id="wrap"><img src="assets/tabuleiro-principal-final.webp" alt="Tabuleiro"><svg id="svg" viewBox="0 0 1536 1024"></svg></div>
+<script>
+// Posições de cada peça, em % do tabuleiro (marcadas à mão sobre a arte; ajustáveis).
+const POS={
+ M3:[[10,16],[16,13],[19,18]],
+ M4:[[26,15],[32,12],[31,18]],
+ M1:[[40,17],[47,19],[54,18],[59,14],[44,12]],
+ M5:[[65,13],[67,18]],
+ M2:[[75,18],[81,15],[87,18]],
+ P3:[[9,26],[16,25],[23,28],[12,33],[22,34]],
+ P7:[[32,25],[34,31],[33,36]],
+ P4:[[42,26],[50,25],[56,28],[45,33],[53,34]],
+ B5:[[61,26],[64,31],[62,35]],
+ B3:[[71,26],[79,25],[87,28],[92,33],[78,33]],
+ P1:[[6,43],[13,42],[7,50],[15,50]],
+ P6:[[21,42],[25,47],[22,52]],
+ C2:[[31,43],[37,44],[31,51],[38,52]],
+ C1:[[45,46],[51,41],[58,44],[62,51],[52,51]],
+ B1:[[69,42],[77,42],[70,51],[78,51]],
+ B4:[[86,42],[93,45],[89,52]],
+ A1:[[5,62],[10,62],[7,67]],
+ A2:[[18,62],[25,61],[32,63],[24,68]],
+ P2:[[39,62],[46,60],[53,61],[59,64],[48,68]],
+ P5:[[66,62],[73,61],[68,69],[76,69]],
+ B2:[[82,61],[89,60],[85,67],[93,64]],
+ N1:[[17,78]],N2:[[31,79]],N3:[[50,80]],N4:[[70,80]],N5:[[88,79]]
+};
+// Rotas de hoje (as mesmas do motor do jogo).
+const ROUTES='A1-A2 A1-P1 A2-P1 A2-P6 A2-C2 A2-P2 P1-P6 P1-P3 P3-P6 P6-P7 C2-P6 C2-P7 C2-P4 C2-P2 C1-P2 P2-P5 B1-C1 C1-P5 B1-P5 B2-P5 B1-B2 B1-B4 B1-B3 B1-B5 B2-B4 B3-B4 B3-B5 B3-M5 B3-M2 B5-P4 B5-M5 P4-P7 M1-P4 M5-P4 P3-P7 M4-P7 M1-P7 M3-P3 M4-P3 M3-M4 M1-M4 M1-M5 M2-M5 A1-N1 A2-N1 N1-N2 A2-N2 N2-P2 N2-N3 N3-P2 N3-N4 N4-P2 N4-N5 N5-B2'.split(' ').map(r=>r.split('-'));
+const W=1536,H=1024,px=([x,y])=>[x/100*W,y/100*H],d=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+let routes='',inner='',dots='';const doors=new Set();
+for(const [a,b] of ROUTES){let best=null;for(const p of POS[a])for(const q of POS[b]){const dd=d(px(p),px(q));if(!best||dd<best.d)best={p,q,d:dd};}
+  doors.add(a+best.p.join());doors.add(b+best.q.join());const P=px(best.p),Q=px(best.q),m=[(P[0]+Q[0])/2,(P[1]+Q[1])/2];
+  routes+=`<line class="route" x1="${P[0]}" y1="${P[1]}" x2="${Q[0]}" y2="${Q[1]}"><title>${a} ↔ ${b}</title></line><rect class="gate" x="${m[0]-7}" y="${m[1]-7}" width="14" height="14" rx="2"/>`;}
+for(const [z,list] of Object.entries(POS)){const pts=list.map(px);
+  const seenIn=new Set();pts.forEach((p,i)=>pts.map((q,j)=>[j,d(p,q)]).filter(([j])=>j!==i).sort((x,y)=>x[1]-y[1]).slice(0,2).forEach(([j])=>{const k=[i,j].sort().join();if(seenIn.has(k))return;seenIn.add(k);inner+=`<line class="inner" x1="${p[0]}" y1="${p[1]}" x2="${pts[j][0]}" y2="${pts[j][1]}"/>`;}));
+  list.forEach((p,i)=>{const [x,y]=px(p);dots+=`<circle class="pos ${doors.has(z+p.join())?'door':''}" cx="${x}" cy="${y}" r="15"><title>${z} · posição ${i+1}</title></circle>`;});}
+document.getElementById('svg').innerHTML=inner+routes+dots;
+</script></body></html>

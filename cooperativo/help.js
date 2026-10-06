@@ -21,6 +21,7 @@
       ${action('explore','Investigar','A ficha de exploração da peça, sem inimigos nela. Traz comida, pergaminhos, encontros e as pistas que abrem o mapa.')}
       ${action('ability','Habilidade','Uma carta para cima no tabuleiro do herói. Depois de usada, vira.')}
       ${action('recover','Preparar','Desvira as cartas usadas, numa peça sem inimigos. Não cura.')}
+      ${action('laurel','Rezar','+1 de Favor por 2 ações. Com uma ação só, a prece custa a ação e 1 comida do armazém.','gold')}
       ${action('heart','Socorrer','Um aliado caído na mesma peça, sem gastar ação: passa 1 da sua vida a ele.','danger')}
     </ul>
     <h3 class="how-title">Uma costa que se revela</h3>

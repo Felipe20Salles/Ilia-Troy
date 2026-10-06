@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grade hexagonal · Ilia</title>
+<style>
+body{margin:0;background:#120c09;color:#efe3c8;font:14px/1.5 system-ui,sans-serif}
+header{padding:14px 18px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+header h1{font:400 22px Georgia,serif;margin:0 12px 0 0}
+label{display:flex;gap:6px;align-items:center}
+#wrap{position:relative;max-width:1536px;margin:0 auto}
+#wrap img{display:block;width:100%;height:auto}
+#wrap svg{position:absolute;inset:0;width:100%;height:100%}
+.hex{stroke:#fff6;stroke-width:1;fill-opacity:0}
+.hex:hover{fill:#ffffff33}
+.border{fill:none;stroke:#120c09;stroke-width:4;stroke-linecap:round}
+.tint .hex{fill-opacity:.35}
+#info{padding:8px 18px;color:#b9a68a}
+</style></head><body>
+<header><h1>Grade hexagonal sobre o tabuleiro</h1>
+<label>Tamanho do hexágono <input id="size" type="range" min="18" max="60" value="30"> <span id="sv"></span></label>
+<label><input id="tint" type="checkbox"> Colorir por zona</label>
+<label><input id="lines" type="checkbox" checked> Bordas de zona pela grade</label>
+</header>
+<p id="info"></p>
+<div id="wrap"><img id="board" src="assets/tabuleiro-principal-final.webp" alt="Tabuleiro"><svg id="svg" viewBox="0 0 1536 1024"></svg></div>
+<script src="territory.js"></script><script src="final-board.js"></script>
+<script>
+// A grade é geometria, não arte: cada hexágono pertence à zona onde está o seu centro.
+const W=1536,H=1024,T=window.TroyTerritory,P=window.TroyFinalBoard.points;
+const poly=Object.fromEntries(Object.entries(T).map(([id,z])=>[id,z.polygon.split(' ').map(p=>{const [x,y]=p.split(',').map(Number);return [x/100*W,y/100*H];})]));
+function inside(pt,vs){let [x,y]=pt,c=false;for(let i=0,j=vs.length-1;i<vs.length;j=i++){const [xi,yi]=vs[i],[xj,yj]=vs[j];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c;}return c;}
+function zoneOf(pt){for(const [id,vs] of Object.entries(poly))if(inside(pt,vs))return id;let best=null,d=1e9;for(const [id,[px,py]] of Object.entries(P)){if(poly[id])continue;const dd=Math.hypot(pt[0]-px/100*W,pt[1]-py/100*H);if(dd<d){d=dd;best=id;}}return best;}
+const COL={M:'#c9b48a',P:'#e0c062',C:'#9c9c90',B:'#3f7a35',A:'#eedbb0',N:'#2f8bcb'};
+let ctx=null;const img=document.getElementById('board');
+function onBoard(x,y){if(!ctx)return true;const [r,g,b]=ctx.getImageData(Math.round(x),Math.round(y),1,1).data;return !(r<45&&g<45&&b<45);}
+function draw(){
+  const s=+document.getElementById('size').value;document.getElementById('sv').textContent=s+' px';
+  const w=Math.sqrt(3)*s,h=2*s,vy=h*.75,hexes={},list=[];
+  for(let r=0;r*vy<H+s;r++)for(let c=0;c*w<W+w;c++){const x=c*w+(r%2?w/2:0),y=r*vy;if(!onBoard(x,y))continue;const z=zoneOf([x,y]);const k=r+','+c;hexes[k]={r,c,x,y,z};list.push(hexes[k]);}
+  const corner=(x,y,i)=>{const a=Math.PI/180*(60*i-30);return [x+s*Math.cos(a),y+s*Math.sin(a)];};
+  const nb=(r,c)=>{const o=r%2?[[0,1],[0,-1],[-1,0],[-1,1],[1,0],[1,1]]:[[0,1],[0,-1],[-1,-1],[-1,0],[1,-1],[1,0]];return o.map(([dr,dc])=>[r+dr,c+dc]);};
+  // Lado i do hexágono liga o vizinho na direção correspondente (pointy-top, odd-r).
+  const sideDir=(r,c,i)=>{const odd=r%2;const map=[[0,1],[odd?1:1,odd?1:0],[1,odd?0:-1],[0,-1],[-1,odd?0:-1],[-1,odd?1:0]];return map[i];};
+  let out='',borders='';const tint=document.getElementById('tint').checked,lines=document.getElementById('lines').checked;
+  for(const hx of list){const pts=[0,1,2,3,4,5].map(i=>corner(hx.x,hx.y,i));out+=`<polygon class="hex" points="${pts.map(p=>p.join(',')).join(' ')}" fill="${COL[hx.z[0]]}"><title>${hx.z} · r${hx.r}c${hx.c}</title></polygon>`;
+    if(lines)for(let i=0;i<6;i++){const [dr,dc]=sideDir(hx.r,hx.c,i),n=hexes[(hx.r+dr)+','+(hx.c+dc)];if(!n||n.z!==hx.z){const a=pts[i],b=pts[(i+1)%6];borders+=`<line class="border" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;}}}
+  const svg=document.getElementById('svg');svg.classList.toggle('tint',tint);svg.innerHTML=out+borders;
+  const count={};list.forEach(h=>count[h.z]=(count[h.z]||0)+1);
+  document.getElementById('info').textContent=list.length+' hexágonos. Por zona: '+Object.entries(count).sort().map(([z,n])=>z+' '+n).join(' · ');
+}
+function start(){try{const cv=document.createElement('canvas');cv.width=W;cv.height=H;ctx=cv.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,W,H);ctx.getImageData(0,0,1,1);}catch(e){ctx=null;}draw();}
+img.complete?start():img.addEventListener('load',start);
+for(const id of ['size','tint','lines'])document.getElementById(id).addEventListener('input',draw);
+</script></body></html>

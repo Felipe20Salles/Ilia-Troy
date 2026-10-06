@@ -37,7 +37,7 @@ test('the mission starts at the camp; Crises only comes if Criseida was taken',(
 test('returning Criseida with sacrifice costs 2 food, and the king pays what the store lacks',()=>{
  let s=setup({legacy:{criseida:'taken'},campFood:0});const king=hero(s,'agamemnon').hp;s=G.choose(s,'sacrifice').state;assert.equal(s.criseida,'returned');assert.equal(hero(s,'agamemnon').hp,king-2);assert.equal(s.plagueActive,false);
 });
-const briseida=()=>{const s=setup({legacy:{criseida:'taken'},levels:{aquiles:2},known:{aquiles:[0,2]}});return G.choose(s,'briseida').state;};
+const briseida=()=>{const s=setup({legacy:{criseida:'taken'},levels:{aquiles:2},known:{aquiles:[0,2]}});const t=G.choose(s,'briseida').state;assert.equal(t.encounter?.id,'ability','Pátroclo escolhe a habilidade');assert.deepEqual(t.encounter.choices,[0,1,2]);return G.choose(t,0).state;};
 test('taking Briseida puts Patroclus in Achilles place: initial strength and a single ability',()=>{
  const s=briseida(),p=hero(s,'aquiles');assert.ok(p.patroclus);assert.equal(p.away,false);assert.equal(p.level,1);assert.deepEqual(p.known,[0],'a habilidade inicial de Aquiles');assert.equal(p.hp,G.HEROES.stats(p).maxHp);assert.equal(G.label(s,p),'Pátroclo');assert.equal(s.patroclus.status,'active');assert.ok(G.validSave(s));
  const n=setup({legacy:{criseida:'taken'}});assert.equal(G.choose(n,'sacrifice').state.patroclus.status,'none','sem Briseida, Pátroclo não entra');
@@ -49,7 +49,7 @@ test('the embassy of Odysseus or Ajax always fails',()=>{
 test('Zeus weighs Patroclus and Hector when Hector comes out of the gate',()=>{
  const fall=x=>{x.enemies=[G.TROOPS.create('e90','A1','lanceiro')];x.enemies[0].hp=1;x.enemies[0].armor=0;x.nextEnemy=91;x.alarm=15;return act(x,'odisseu','attack','e90');};
  let s=fall(briseida());assert.ok(s.enemies.some(e=>e.type==='heitor'));assert.equal(s.encounter.id,'scales');assert.equal(G.act(s,'odisseu','rest').ok,false,'a cena pausa a partida');
- s=G.choose(s,'ok').state;assert.equal(s.encounter,null);assert.ok(G.SCALES.face.items.length===4&&G.SCALES.flee.items.length===2);
+ s=G.choose(s,'ok').state;assert.equal(s.encounter,null);assert.ok(G.SCALES.face.items.length===3&&G.SCALES.flee.items.length===1&&!JSON.stringify(G.SCALES).includes('Aquiles volt'),'a balança não antecipa a volta de Aquiles');
  let e=fall(setup());assert.equal(e.encounter,null,'sem Pátroclo, não há balança');assert.match(e.lastFind.text,/maior guerreiro/,'o duelo de egos');
 });
 test('Patroclus falling face to Hector earns the four rewards; Achilles returns next round with everything',()=>{
@@ -66,7 +66,7 @@ test('Patroclus has no rescue; falling far from Hector brings Achilles back with
  assert.equal(G.act(s,'odisseu','rescue','aquiles').ok,false,'sem socorro');
 });
 test('if Patroclus survives, Achilles never comes back and the outcome records it',()=>{
- let s=briseida();const hec=G.TROOPS.create('e90','A1','heitor');hec.hp=7;hec.armor=0;s.enemies=[hec];s.nextEnemy=91;s=act(s,'odisseu','attack','e90');
+ let s=briseida();const hec=G.TROOPS.create('e90','A1','heitor');hec.hp=7;hec.armor=0;s.enemies=[hec];s.nextEnemy=91;s.alarm=12;s=act(s,'odisseu','attack','e90');
  assert.equal(s.result,'victory');assert.equal(s.outcome.legacy.patroclus,'alive');assert.equal(s.outcome.legacy.duel,'ira');assert.match(s.reason,/braços cruzados/);
 });
 test('from mission 3 on, feats give Favor and Glory, not abilities',()=>{
@@ -86,9 +86,16 @@ test('Criseida in the camp delays the first reinforcement; Paris shoots from afa
  let s=setup({legacy:{criseida:'taken'}});s=G.choose(s,'intercede').ok?s:G.choose(s,'refuse').state;s.plagueActive=false;s.enemies=[];s=G.trojanTurn(s);assert.ok(s.waveHeld);assert.equal(s.enemies.length,0,'Troia hesita');s=G.trojanTurn(s);assert.ok(s.enemies.length>0,'depois os reforços vêm');
  let p=setup();p.enemies=[G.TROOPS.create('e90','P1','paris')];p.alarm=4;p.nextEnemy=91;const hp=hero(p,'odisseu').hp;p=G.trojanTurn(p);assert.ok(p.heroes.some(h=>h.hp<6),'Páris atira em quem está a até 2 peças');assert.equal(p.enemies[0].zone,'P1','quem atira não avança');
 });
-test('wounding Hector by 4 makes him and every Trojan retreat: victory',()=>{
- let s=setup();const hec=G.TROOPS.create('e90','A1','heitor');hec.hp=7;hec.armor=0;s.enemies=[hec,G.TROOPS.create('e91','P1','lanceiro')];s.nextEnemy=92;s.revealed.push('P1');
- s=act(s,'aquiles','attack','e90');assert.equal(s.result,'victory');assert.equal(s.enemies.length,0);assert.ok(s.personal.aquiles.done);
+test('wounding Hector by 4 sends him alone behind the walls and drops the flame by 8; victory is the flame down to the goal',()=>{
+ let s=setup();const hec=()=>{const e=G.TROOPS.create('e90','A1','heitor');e.hp=7;e.armor=0;return e;};s.enemies=[hec(),G.TROOPS.create('e91','P1','lanceiro')];s.nextEnemy=92;s.revealed.push('P1');s.heitorOut=true;s.alarm=14;
+ s=act(s,'aquiles','attack','e90');assert.equal(s.result,null,'14 − 8 = 6: ainda não');assert.equal(s.alarm,6);assert.ok(s.commanderDown);assert.deepEqual(s.enemies.map(e=>e.type),['lanceiro'],'só Heitor sai');assert.ok(s.personal.aquiles.done);
+ s.enemies[0].zone='A1';s.enemies[0].hp=1;s.enemies[0].armor=0;s=act(s,'odisseu','attack','e91');assert.equal(s.alarm,4);assert.equal(s.result,'victory');assert.match(s.reason,/Heitor recuou ferido/);
+ let p=setup();p.enemies=[hec()];p.nextEnemy=91;p.heitorOut=true;p.alarm=10;p.heroes.find(h=>h.id==='odisseu').zone='A1';const c=G.HEROES.find(d=>d.id==='odisseu').cards.findIndex(c=>c.type==='precision');
+ if(c>=0&&p.heroes.find(h=>h.id==='odisseu').known.includes(c)){p=act(p,'odisseu','card:'+c,'e90');assert.ok(p.commanderDown,'a Precisão fere Heitor, não o mata');assert.ok(!p.enemies.length);assert.equal(p.result,'victory');}
+});
+test('replaying the mission brings Crises back if Criseida had been taken',()=>{
+ for(const c of ['taken','camp','returned'])assert.equal(G.newGame({heroes:['aquiles','odisseu','agamemnon'],legacy:{criseida:c}}).encounter?.id,'crises',c);
+ assert.equal(G.newGame({heroes:['aquiles','odisseu','agamemnon'],legacy:{criseida:'free'}}).encounter,null);
 });
 test('the Trojans burn the tents when no hero stands in A1',()=>{
  let s=setup();s.heroes.forEach(h=>h.zone='N1');s.enemies=[G.TROOPS.create('e90','A1','lanceiro')];s.nextEnemy=91;s=G.trojanTurn(s);assert.equal(s.campDamage,1);
@@ -107,7 +114,7 @@ test('the flame starts at its peak with Paris and spearmen on the plain, falls w
  t.enemies=[G.TROOPS.create('e90','A1','lanceiro')];t.enemies[0].hp=1;t.enemies[0].armor=0;t.nextEnemy=91;t.alarm=18;t=act(t,'odisseu','attack','e90');assert.equal(t.alarm,16,'cada tropa derrubada apaga 2');assert.equal(t.heitorOut,false);
  t.enemies=[G.TROOPS.create('e92','A1','paris')];t.enemies[0].hp=1;t.nextEnemy=93;t=act(t,'odisseu','attack','e92');assert.equal(t.alarm,10,'Páris apaga 6');assert.ok(t.heitorOut,'abaixo de 15, Heitor sai');
  let u=setup();u.enemies=[G.TROOPS.create('e90','A1','lanceiro')];u.nextEnemy=91;u.alarm=10;u.heroes.forEach(h=>h.zone='N1');u=G.trojanTurn(u);assert.equal(u.campDamage,1);assert.ok(u.alarm>=11,'o fogo nas tendas anima Troia');
- let v=setup();v.alarm=7;v.enemies=[];v=G.trojanTurn(v);assert.equal(v.enemies.length,0,'chama baixa: sem reforços');
+ let v=setup();v.alarm=6;v.heitorOut=true;v.enemies=[];v=G.trojanTurn(v);assert.equal(v.enemies.length,0,'chama baixa: sem reforços');
 });
 test('the sacrifice takes the whole store and pleases Apollo; taking Briseida costs no food and gives Agamemnon glory',()=>{
  const s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],campFood:5,legacy:{criseida:'taken'}});assert.equal(s.encounter.id,'crises');
@@ -122,4 +129,15 @@ test('nexus: refusing Crises costs Agamemnon his sceptre (Intimidation) until Cr
  let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],campFood:3,known:{agamemnon:[0,2]},legacy:{criseida:'taken'}});
  s=G.choose(s,'refuse').state;const k=s.heroes.find(h=>h.id==='agamemnon');assert.deepEqual(k.lost.cards,[2]);
  s.enemies=[];s.heroes.forEach(h=>{h.hp=5;h.ap=2;h.zone='A1';});s=act(s,'agamemnon','interact','council');s=G.choose(s,'sacrifice').state;assert.equal(s.heroes.find(h=>h.id==='agamemnon').lost,null);
+});
+test('praying: two actions for 1 Favor, or one action and 1 store food',()=>{
+ const G=require('../cooperativo/segurar.js');let s=G.newGame({heroes:['aquiles','odisseu','agamemnon']});s.foodSetup=false;s.favor=0;s.campFood=1;const k=s.heroes.find(h=>h.id==='agamemnon');k.ap=2;
+ let r=G.act(s,'agamemnon','pray');assert.ok(r.ok,r.error);let a=r.state.heroes.find(h=>h.id==='agamemnon');assert.equal(a.ap,0);assert.equal(r.state.favor,1);assert.equal(r.state.campFood,1);
+ k.ap=1;r=G.act(s,'agamemnon','pray');assert.ok(r.ok,r.error);assert.equal(r.state.favor,1);assert.equal(r.state.campFood,0,'uma ação só: 1 comida do armazém');
+ s.campFood=0;assert.equal(G.act(s,'agamemnon','pray').ok,false,'sem comida e com uma ação, não');
+ s.campFood=3;s.favor=G.FAVOR_MAX;assert.equal(G.act(s,'agamemnon','pray').ok,false,'Favor no máximo');
+});
+test('every chronicle without a demand has an effect',()=>{
+ for(const m of ['landing','reconhecimento','segurar','ira']){const M=require('../cooperativo/'+m+'.js');for(const [k,c] of Object.entries(M.CHRONICLE))assert.ok(c.demand||c.effect,m+': '+(c.id||k)+' sem efeito');}
+ let s=setup();s.round=10;s.enemies=[];s.heitorOut=true;s=G.trojanTurn(s);assert.equal(s.chronicle.id,'ultima');assert.ok(s.enemies.some(e=>e.zone==='M1'&&e.type==='lanceiro'),'a última carga traz lanceiros');
 });

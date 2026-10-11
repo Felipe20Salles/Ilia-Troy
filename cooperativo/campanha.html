@@ -1,9 +1,91 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plano da campanha · Ilia</title><link rel="stylesheet" href="style.css"><style>main{max-width:900px;margin:auto;padding:32px 20px}h1{margin:.2em 0}.mission{display:grid;grid-template-columns:56px 1fr;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}.num{font:400 34px/1 'Marcellus',Georgia,serif;color:var(--gold)}.mission h2{margin:0 0 4px;font-size:24px}.state{font-size:12px;color:var(--muted)}.state b{color:var(--gold);font-weight:600}.mission p{margin:6px 0 0;color:var(--muted)}ul{color:var(--muted)}li{margin-bottom:8px}</style><script defer src="../assets/audio.js"></script></head><body><main><a href="./">← Voltar ao Desembarque</a><h1>Da praia aos portões de Troia</h1><p class="lead">Sete missões. As três primeiras já podem ser jogadas; o que acontece em cada uma passa para a seguinte.</p>
-<section class="mission"><span class="num">1</span><div><h2><a href="index.html">O Desembarque</a></h2><span class="state"><b>Jogável</b></span><p>A frota chega a uma costa desconhecida. A expedição revela o território, recolhe as caixas espalhadas pelas praias, toma o posto de vigia troiano em A1 e instala ali o acampamento. Encontros: os náufragos e o velho do círculo de pedras.</p></div></section>
-<section class="mission"><span class="num">2</span><div><h2><a href="reconhecimento.html">Diante das muralhas</a></h2><span class="state"><b>Jogável</b></span><p>A expedição sobe a planície para reconhecer o portão de Troia e volta com todos de pé, perseguida depois do reconhecimento. No santuário de Apolo, a decisão de tomar ou respeitar Criseida.</p></div></section>
-<section class="mission"><span class="num">3</span><div><h2><a href="segurar.html">Segurar a linha</a></h2><span class="state"><b>Jogável</b></span><p>Heitor lidera o contra-ataque contra o acampamento. Se Criseida foi tomada, Crises pede a filha: sacrifício, peste, ou Briseida tomada de Aquiles, e então Pátroclo entra no lugar dele.</p></div></section>
-<section class="mission"><span class="num">4</span><div><h2>A ira de Aquiles</h2><span class="state"><b>Em desenho</b></span><p>Heitor fica diante do portão, e a equipe o isola dos reforços enquanto ele corre de volta à cidade. Se escapar, a missão não se repete: as seguintes ficam bem mais difíceis.</p></div></section>
-<section class="mission"><span class="num">5</span><div><h2>O Paládio</h2><span class="state"><b>Em desenho</b></span><p>Durante a trégua do velório, Odisseu entra sozinho em Troia, disfarçado de mendigo, rouba o Paládio e traz a ideia do cavalo. Os outros distraem Troia do acampamento.</p></div></section>
-<section class="mission"><span class="num">6</span><div><h2>Construir o cavalo</h2><span class="state"><b>Planejada</b></span><p>A construção do cavalo enquanto patrulhas ameaçam a operação: trabalhar, buscar material e interceptar.</p></div></section>
-<section class="mission"><span class="num">7</span><div><h2>A noite do cavalo</h2><span class="state"><b>Planejada</b></span><p>Dois mapas com o mesmo Alarme: os infiltrados saem do cavalo e abrem o portão, enquanto a frota volta em silêncio.</p></div></section>
-<h2 style="margin-top:32px">O que vale em toda a campanha</h2><ul><li>1–5 jogadores na mesma mesa. Odisseu e Agamêmnon estão sempre na equipe; Aquiles, Ájax e Menelau a completam.</li><li>Cada rodada tem a fase dos heróis e a fase de Troia. O Alarme de Troia traz reforços em patamares.</li><li>A vida dos heróis são fichas de comida. O armazém só repõe vida entre uma missão e a seguinte.</li><li>Decisões importantes não mostram o efeito antes da escolha, e o que se faz numa missão volta na próxima.</li><li>Heróis caídos e não socorridos até o fim da missão saem da campanha. Nenhum herói morre por roteiro.</li></ul></main></body></html>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A campanha · Ilia</title><link rel="stylesheet" href="style.css">
+<style>
+/* A campanha (10/10/2026): o caminho da praia até a queda de Troia, com as cenas de cada missão. */
+body{background:var(--bg);color:var(--ink);margin:0}
+.camp-hero{position:relative;min-height:340px;display:flex;align-items:flex-end;background:#120c08 url('assets/identidade/cena-fogueiras.webp') center 40%/cover no-repeat}
+.camp-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,12,8,.15) 0%,rgba(18,12,8,.55) 55%,var(--bg) 100%)}
+.camp-hero>div{position:relative;z-index:1;width:100%;max-width:980px;margin:0 auto;padding:24px 20px 28px}
+.camp-back{display:inline-block;margin-bottom:56px;color:var(--ink);text-decoration:none;font:500 14px/1.2 'DM Sans',sans-serif;background:rgba(18,12,8,.55);border:1px solid rgba(228,189,119,.35);border-radius:999px;padding:8px 14px}
+.camp-hero h1{font:400 clamp(32px,6vw,54px)/1.05 'Marcellus',Georgia,serif;margin:0 0 10px;color:#fff3dc;text-wrap:balance;text-shadow:0 2px 18px rgba(0,0,0,.6)}
+.camp-hero p{font:italic 500 clamp(18px,2.6vw,22px)/1.35 'Cormorant Garamond',Georgia,serif;color:#f1e3c6;margin:0;max-width:60ch;text-shadow:0 1px 10px rgba(0,0,0,.7)}
+main.camp{max-width:980px;margin:0 auto;padding:8px 20px 56px}
+.camp-status{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 28px}
+.camp-status span{font:500 13px/1 'DM Sans',sans-serif;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:var(--panel)}
+.camp-status b{color:var(--gold);font-weight:600}
+.road{position:relative;display:grid;gap:22px;padding-left:34px}
+.road::before{content:'';position:absolute;left:13px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--gold),rgba(228,189,119,.15))}
+.m{position:relative;display:grid;grid-template-columns:minmax(0,42%) 1fr;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.m::before{content:attr(data-n);position:absolute;left:-34px;top:18px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:400 15px/1 'Marcellus',Georgia,serif;background:var(--bg);color:var(--gold);border:2px solid var(--gold)}
+.m.done::before{background:var(--gold);color:var(--bg)}
+.m.next{border-color:var(--gold);box-shadow:0 0 0 1px rgba(228,189,119,.35),0 10px 30px rgba(0,0,0,.35)}
+.m-img{position:relative;min-height:190px;background:#120c08 center/cover no-repeat;border-radius:13px 0 0 13px;overflow:hidden}
+.m-img::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 60%,var(--panel))}
+.m-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:8px}
+.m-act{font:500 12px/1 'DM Sans',sans-serif;letter-spacing:.06em;color:var(--muted)}
+.m h2{margin:0;font:400 26px/1.1 'Marcellus',Georgia,serif;color:#fff3dc}
+.m p{margin:0;color:var(--muted);font:400 15px/1.5 'DM Sans',sans-serif}
+.m .quote{font:italic 500 18px/1.35 'Cormorant Garamond',Georgia,serif;color:#e9dcc0}
+.m-foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:auto;padding-top:6px}
+.chip{font:600 12px/1 'DM Sans',sans-serif;border-radius:999px;padding:6px 10px;border:1px solid var(--line);color:var(--muted)}
+.chip.ok{color:var(--bg);background:var(--gold);border-color:var(--gold)}
+.chip.next{color:var(--gold);border-color:var(--gold)}
+.chip.test{color:var(--teal);border-color:rgba(146,198,182,.5)}
+.m-play{margin-left:auto;font:600 14px/1 'DM Sans',sans-serif;color:var(--bg);background:var(--gold);border-radius:8px;padding:10px 16px;text-decoration:none}
+.m-play:hover,.m-play:focus-visible{background:#f0cf92}
+.camp h3{font:400 28px/1.1 'Marcellus',Georgia,serif;color:#fff3dc;margin:48px 0 16px}
+.team{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.team figure{margin:0;text-align:center}
+.team img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:50%;border:2px solid var(--line);background:#120c08}
+.team figure.fallen img{filter:grayscale(1) brightness(.55)}
+.team figcaption{font:400 16px/1.2 'Marcellus',Georgia,serif;margin-top:8px;color:var(--ink)}
+.team small{display:block;font:400 12px/1.35 'DM Sans',sans-serif;color:var(--muted);margin-top:2px}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0;margin:0;list-style:none}
+.rules li{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--muted);font:400 15px/1.5 'DM Sans',sans-serif}
+.rules b{display:block;color:var(--gold);font:400 17px/1.2 'Marcellus',Georgia,serif;margin-bottom:4px}
+@media (max-width:720px){
+  .camp-hero{min-height:300px}.camp-back{margin-bottom:40px}
+  .road{padding-left:28px}.road::before{left:10px}.m::before{left:-28px;width:24px;height:24px;font-size:13px}
+  .m{grid-template-columns:1fr}.m-img{min-height:0;aspect-ratio:16/8;border-radius:13px 13px 0 0}.m-img::after{background:linear-gradient(180deg,transparent 55%,var(--panel))}
+  .m-body{padding:14px 16px 16px}.m h2{font-size:23px}
+  .team{grid-template-columns:repeat(3,minmax(0,1fr))}.rules{grid-template-columns:1fr}
+}
+@media (max-width:420px){.team{grid-template-columns:repeat(2,minmax(0,1fr))}.m-play{margin-left:0}}
+</style><script defer src="../assets/audio.js"></script></head><body>
+<header class="camp-hero"><div><a class="camp-back" href="./">← Voltar ao Desembarque</a><h1>Da praia à queda de Troia</h1><p>Sete missões, uma guerra. O que a equipe faz numa missão volta na seguinte: quem cai, o que se descobre, quem foge.</p></div></header>
+<main class="camp">
+<div class="camp-status" id="status"></div>
+<div class="road" id="road"></div>
+<h3>Os heróis</h3>
+<div class="team" id="team"></div>
+<h3>O que vale em toda a campanha</h3>
+<ul class="rules">
+<li><b>Na mesma mesa</b>De 1 a 5 jogadores. Odisseu e Agamêmnon estão sempre na equipe; Aquiles, Ájax e Menelau a completam.</li>
+<li><b>Duas fases por rodada</b>Primeiro os heróis agem, depois Troia responde. O Alarme de Troia traz reforços em patamares.</li>
+<li><b>A vida é comida</b>As fichas de comida são a vida dos heróis. O armazém só repõe a vida entre uma missão e a seguinte.</li>
+<li><b>Escolhas às cegas</b>Decisões importantes não mostram o efeito antes da escolha. O que se faz numa missão volta na próxima.</li>
+<li><b>Quem cai, sai</b>Heróis caídos e não socorridos até o fim da missão saem da campanha.</li>
+<li><b>O destino de Aquiles</b>A mãe dele sabia: glória longa, vida curta. Na noite do cavalo, a flecha de Páris, guiada por Apolo, o espera.</li>
+</ul>
+</main>
+<script>
+// As missões, na ordem da guerra. A situação de cada uma vem do progresso salvo da campanha (ilia-campanha-v1).
+const MISSIONS=[
+  {id:'desembarque',href:'index.html',img:'assets/identidade/cena-acampamento-erguido.webp',act:'A praia',title:'O Desembarque',quote:'A frota chega a uma costa desconhecida.',text:'Revelem o território, recolham as caixas espalhadas pelas praias, tomem o posto de vigia troiano em A1 e ergam ali o acampamento. Os náufragos e o velho do círculo de pedras esperam pelo caminho.'},
+  {id:'reconhecimento',href:'reconhecimento.html',img:'assets/aproximacao-troia.webp',act:'A planície',title:'Diante das muralhas',quote:'Ver o portão de perto, e voltar vivo.',text:'A expedição sobe a planície para reconhecer o portão de Troia e volta perseguida. No santuário de Apolo, a decisão de tomar ou respeitar Criseida.'},
+  {id:'segurar',href:'segurar.html',img:'assets/identidade/cena-sinal-fumaca.webp',act:'O acampamento',title:'Segurar a linha',quote:'Heitor não espera os gregos. Ele vem até eles.',text:'Heitor lidera o contra-ataque contra o acampamento. Se Criseida foi tomada, Crises pede a filha: sacrifício, peste, ou Briseida tomada de Aquiles, e então Pátroclo entra no lugar dele.'},
+  {id:'ira',href:'ira.html',img:'assets/identidade/heroi-aquiles.webp',act:'Diante das portas Ceias',title:'A ira de Aquiles',quote:'Como o falcão atrás da pomba.',text:'Por orgulho, Heitor fica fora das muralhas. Quando vê Aquiles, foge pelo bosque. Os heróis fecham o caminho; só Aquiles pode enfrentá-lo: a lança, a espada, e o destino de Pátroclo decide o fim.'},
+  {id:'paladio',href:'paladio.html',img:'assets/mapa-cidade-final.webp',act:'Dentro de Troia',title:'O Paládio',quote:'Um mendigo entra na cidade em luto.',text:'Durante a trégua do velório, Odisseu entra em Troia disfarçado, convence Helena e rouba a estátua de Atena do templo, enquanto a Suspeita cresce. Os outros distraem Troia do acampamento.'},
+  {id:'cavalo',href:'cavalo.html',img:'assets/identidade/cena-mirante.webp',act:'Os bosques do Ida',title:'Construir o cavalo',quote:'Um presente grande demais para o portão.',text:'A frota parte para trás de Tênedos. Os que ficam cortam madeira nos bosques do leste e no bosque sagrado de Apolo, arrastam as toras até o canteiro sob o olhar das torres e montam o cavalo antes que Troia descubra.'},
+  {id:'noite',href:'noite.html',img:'assets/mapa-cidade-noite.webp',act:'A última noite',title:'A noite do cavalo',quote:'Abrir o portão, e Troia acorda.',text:'Odisseu desce do cavalo no templo de Atena e abre o portão por dentro. A frota entra, e Troia acorda: Páris caça Aquiles com o arco de Apolo. Cinco incêndios, o último no palácio de Príamo.'}];
+const HEROES=[['odisseu','Odisseu','O astuto de Ítaca'],['agamemnon','Agamêmnon','Rei de Micenas'],['aquiles','Aquiles','O melhor dos gregos'],['ajax','Ájax','O escudo da frota'],['menelau','Menelau','O marido de Helena']];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let camp=null;try{camp=JSON.parse(localStorage.getItem('ilia-campanha-v1'))||null;}catch{}
+const done=new Set(camp?.completed||[]),next=MISSIONS.find(m=>!done.has(m.id));
+document.getElementById('road').innerHTML=MISSIONS.map((m,i)=>{const ok=done.has(m.id),isNext=camp&&next===m;
+  const chip=ok?'<span class="chip ok">Vencida</span>':isNext?'<span class="chip next">A seguir</span>':i>=3?'<span class="chip test">Em teste</span>':'<span class="chip">Jogável</span>';
+  return `<article class="m${ok?' done':''}${isNext?' next':''}" data-n="${i+1}"><div class="m-img" style="background-image:url('${m.img}')" role="img" aria-label="${esc(m.title)}"></div><div class="m-body"><span class="m-act">Missão ${i+1} · ${esc(m.act)}</span><h2>${esc(m.title)}</h2><p class="quote">${esc(m.quote)}</p><p>${esc(m.text)}</p><div class="m-foot">${chip}<a class="m-play" href="${m.href}">${ok?'Jogar de novo':'Jogar'}</a></div></div></article>`;}).join('');
+const fallen=new Set(camp?.fallen||[]);
+document.getElementById('team').innerHTML=HEROES.map(([id,name,tag])=>`<figure class="${fallen.has(id)?'fallen':''}"><img src="assets/identidade/avatar-${id}.webp" alt="${name}" loading="lazy"><figcaption>${name}<small>${fallen.has(id)?'Caiu na campanha':tag}</small></figcaption></figure>`).join('');
+const st=document.getElementById('status');
+st.innerHTML=camp?`<span>Missões vencidas <b>${done.size} de ${MISSIONS.length}</b></span><span>Favor <b>${camp.resources?.favor??1}</b></span><span>Comida no armazém <b>${camp.resources?.food??0}</b></span>${next?`<span>A seguir <b>${esc(next.title)}</b></span>`:'<span><b>Troia caiu</b></span>'}`:'<span>Nenhuma campanha em andamento. Comecem pelo <b>Desembarque</b>.</span>';
+</script></body></html>

@@ -86,10 +86,10 @@ test('Criseida in the camp delays the first reinforcement; Paris shoots from afa
  let s=setup({legacy:{criseida:'taken'}});s=G.choose(s,'intercede').ok?s:G.choose(s,'refuse').state;s.plagueActive=false;s.enemies=[];s=G.trojanTurn(s);assert.ok(s.waveHeld);assert.equal(s.enemies.length,0,'Troia hesita');s=G.trojanTurn(s);assert.ok(s.enemies.length>0,'depois os reforços vêm');
  let p=setup();p.enemies=[G.TROOPS.create('e90','P1','paris')];p.alarm=4;p.nextEnemy=91;const hp=hero(p,'odisseu').hp;p=G.trojanTurn(p);assert.ok(p.heroes.some(h=>h.hp<6),'Páris atira em quem está a até 2 peças');assert.equal(p.enemies[0].zone,'P1','quem atira não avança');
 });
-test('wounding Hector by 4 sends him alone behind the walls and drops the flame by 8; victory is the flame down to the goal',()=>{
- let s=setup();const hec=()=>{const e=G.TROOPS.create('e90','A1','heitor');e.hp=7;e.armor=0;return e;};s.enemies=[hec(),G.TROOPS.create('e91','P1','lanceiro')];s.nextEnemy=92;s.revealed.push('P1');s.heitorOut=true;s.alarm=14;
- s=act(s,'aquiles','attack','e90');assert.equal(s.result,null,'14 − 8 = 6: ainda não');assert.equal(s.alarm,6);assert.ok(s.commanderDown);assert.deepEqual(s.enemies.map(e=>e.type),['lanceiro'],'só Heitor sai');assert.ok(s.personal.aquiles.done);
- s.enemies[0].zone='A1';s.enemies[0].hp=1;s.enemies[0].armor=0;s=act(s,'odisseu','attack','e91');assert.equal(s.alarm,4);assert.equal(s.result,'victory');assert.match(s.reason,/Heitor recuou ferido/);
+test('wounding Hector by 4 sends him behind the walls with one escort and drops the flame by 8; victory is the flame down to the goal',()=>{
+ let s=setup();const hec=()=>{const e=G.TROOPS.create('e90','A1','heitor');e.hp=7;e.armor=0;return e;};s.enemies=[hec(),G.TROOPS.create('e91','A1','lanceiro'),G.TROOPS.create('e92','P1','lanceiro')];s.nextEnemy=93;s.revealed.push('P1');s.heitorOut=true;s.alarm=14;
+ s=act(s,'aquiles','attack','e90');assert.equal(s.result,null,'14 − 8 = 6: ainda não');assert.equal(s.alarm,6);assert.ok(s.commanderDown);assert.deepEqual(s.enemies.map(e=>e.id),['e92'],'Heitor sai amparado pela tropa mais perto; as outras ficam');assert.ok(s.personal.aquiles.done);
+ s.enemies[0].zone='A1';s.enemies[0].hp=1;s.enemies[0].armor=0;s=act(s,'odisseu','attack','e92');assert.equal(s.alarm,4);assert.equal(s.result,'victory');assert.match(s.reason,/Heitor recuou ferido/);
  let p=setup();p.enemies=[hec()];p.nextEnemy=91;p.heitorOut=true;p.alarm=10;p.heroes.find(h=>h.id==='odisseu').zone='A1';const c=G.HEROES.find(d=>d.id==='odisseu').cards.findIndex(c=>c.type==='precision');
  if(c>=0&&p.heroes.find(h=>h.id==='odisseu').known.includes(c)){p=act(p,'odisseu','card:'+c,'e90');assert.ok(p.commanderDown,'a Precisão fere Heitor, não o mata');assert.ok(!p.enemies.length);assert.equal(p.result,'victory');}
 });

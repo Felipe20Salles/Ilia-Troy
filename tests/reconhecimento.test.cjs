@@ -57,9 +57,9 @@ test('the Greeks win when every standing hero is back in A1; whoever lies fallen
  let d=setup();d.revealed.push(...G.WALLS);d.enemies=[];hero(d,'odisseu').zone='M1';d=act(d,'odisseu','interact','recon');d=act(d,'odisseu','interact','recon');d.enemies=[];hero(d,'odisseu').hp=0;d=G.trojanTurn(d);assert.equal(d.result,null,'quem leva o relato precisa voltar de pé');assert.equal(s.outcome.completed,'reconhecimento');assert.ok(s.outcome.heroes.length===3);
 });
 test('Criseida, the shepherds and the tower are choices with hidden effects',()=>{
- let s=setup();s.revealed.push(...G.WALLS,'B5');s.enemies=[];hero(s,'aquiles').zone='P2';hero(s,'aquiles').hp=4;s=act(s,'aquiles','move','C1');assert.equal(s.encounter.id,'criseida');
+ let s=setup();s.revealed.push(...G.WALLS,'B5');s.enemies=[];hero(s,'aquiles').zone='P2';hero(s,'aquiles').hp=4;s=act(act(s,'aquiles','move','C1'),'aquiles','interact','meet-criseida');assert.equal(s.encounter.id,'criseida');
  const t=G.choose(s,'take').state;assert.equal(t.criseida,'taken');assert.equal(hero(t,'aquiles').hp,6,'as oferendas viram vida');assert.equal(G.choose(s,'respect').state.criseida,'respected');
- let p=setup();p.revealed.push(...G.WALLS,'B5');p.enemies=[];hero(p,'odisseu').zone='P4';p.campFood=2;p=act(p,'odisseu','move','B5');assert.equal(p.encounter.id,'shepherds');p=G.choose(p,'pay').state;assert.equal(hero(p,'odisseu').hp,6,'a vida do herói não muda');assert.equal(p.campFood,1,'sai 1 comida do armazém');assert.ok(p.scrolls.includes('pastores-1'));
+ let p=setup();p.revealed.push(...G.WALLS,'B5');p.enemies=[];hero(p,'odisseu').zone='P4';p.campFood=2;p=act(act(p,'odisseu','move','B5'),'odisseu','interact','meet-shepherds');assert.equal(p.encounter.id,'shepherds');p=G.choose(p,'pay').state;assert.equal(hero(p,'odisseu').hp,6,'a vida do herói não muda');assert.equal(p.campFood,1,'sai 1 comida do armazém');assert.ok(p.scrolls.includes('pastores-1'));
  let w=setup();w.revealed.push(...G.WALLS);w.enemies=[];hero(w,'agamemnon').zone='M4';w=act(w,'agamemnon','interact','tower');w=act(w,'agamemnon','interact','tower');assert.equal(w.encounter.id,'tower');assert.equal(w.alarm,2);
  const plan=G.choose(w,'plan').state;assert.ok(plan.scrolls.includes('segredos-1'));const train=G.choose(w,'train').state;assert.equal(train.encounter.id,'evolution');
 });
@@ -108,10 +108,10 @@ test('reconnoitring the gate sends a raid from P2 to burn the ships; each burned
 });
 test('respecting the sanctuary of Apollo earns the favor of the gods',()=>{
  let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],players:1});s.favor=1;const h=s.heroes.find(x=>x.id==='odisseu');h.zone='P2';s.enemies=s.enemies.filter(e=>e.zone!=='C1');
- let r=G.act(s,'odisseu','move','C1');assert.ok(r.ok,r.error);s=r.state;assert.equal(s.encounter?.id,'criseida');s=G.choose(s,'respect').state;assert.equal(s.criseida,'respected');assert.equal(s.favor,2,'+1 de Favor');
+ let r=G.act(s,'odisseu','move','C1');assert.ok(r.ok,r.error);s=G.act(r.state,'odisseu','interact','meet-criseida').state;assert.equal(s.encounter?.id,'criseida');s=G.choose(s,'respect').state;assert.equal(s.criseida,'respected');assert.equal(s.favor,2,'+1 de Favor');
 });
 test('taking Criseida is the tempting choice: food, an ability for Agamemnon and the altar gold for mission 3; respecting gives 1 Favor',()=>{
- const atC1=()=>{let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],players:1,abilities:{odisseu:0,agamemnon:0,aquiles:0}});s.favor=1;s.enemies=s.enemies.filter(e=>e.zone!=='C1');s.heroes.find(x=>x.id==='odisseu').zone='P2';const r=G.act(s,'odisseu','move','C1');assert.ok(r.ok,r.error);return r.state;};
+ const atC1=()=>{let s=G.newGame({heroes:['odisseu','agamemnon','aquiles'],players:1,abilities:{odisseu:0,agamemnon:0,aquiles:0}});s.favor=1;s.enemies=s.enemies.filter(e=>e.zone!=='C1');s.heroes.find(x=>x.id==='odisseu').zone='P2';const r=G.act(s,'odisseu','move','C1');assert.ok(r.ok,r.error);const q=G.act(r.state,'odisseu','interact','meet-criseida');assert.ok(q.ok,q.error);return q.state;};
  let t=G.choose(atC1(),'take').state;assert.equal(t.criseida,'taken');assert.equal(t.encounter?.id,'ability');assert.equal(t.encounter.hero,'agamemnon');assert.ok(t.altarGold);
  let r=G.choose(atC1(),'respect').state;assert.equal(r.favor,2,'+1 de Favor');
  const M3=require('../cooperativo/segurar.js');const s3=M3.newGame({heroes:['odisseu','agamemnon','aquiles'],campFood:1,legacy:{criseida:'taken',altarGold:true}});assert.equal(s3.campFood,3,'o ouro do altar vale +2 de comida');
@@ -132,4 +132,12 @@ test('with Menelaus, the chronicle of Paris brings him to the field; only Menela
  assert.ok(!t.enemies.some(e=>e.type==='paris'),'sem Menelau, a crônica é só história');
  const S=require('../cooperativo/segurar.js');const w=S.newGame({heroes:['menelau','odisseu','agamemnon'],players:1,owners:[1,1,1],abilities:{menelau:0,odisseu:0,agamemnon:0},legacy:{parisDuel:'fled'}});
  assert.equal(w.enemies.find(e=>e.type==='paris').hp,3,'Páris volta ferido');assert.ok(w.glory.includes('menelau-paris'));
+});
+
+test('wounded Sarpedon retreats with a single escort, and the flame at its peak keeps sending guards after the heroes',()=>{
+ const G=require('../cooperativo/reconhecimento.js');let s=G.newGame({heroes:['aquiles','odisseu','agamemnon'],players:1,owners:[1,1,1],abilities:{aquiles:0,odisseu:0,agamemnon:0}});s.foodSetup=false;
+ const sar=Object.assign(G.TROOPS.create('e90','P3','sarpedon'),{hp:7,armor:0});s.enemies=[sar,G.TROOPS.create('e91','P3','lanceiro'),G.TROOPS.create('e92','P2','explorador')];s.nextEnemy=93;
+ const a=s.heroes.find(h=>h.id==='aquiles');a.zone='P3';const r=G.act(s,'aquiles','attack','e90');assert.ok(r.ok,r.error);s=r.state;
+ assert.ok(s.commanderDown);assert.deepEqual(s.enemies.map(e=>e.id),['e92'],'só a escolta recua com ele');assert.match(s.lastFind.text,/retirem Sarpédon/);
+ s.alarm=18;s.enemies=[];s.heroes.forEach(h=>{h.ap=0;h.zone='A1';});s=G.trojanTurn(s);assert.equal(s.enemies.filter(e=>e.type==='guarda'&&e.zone==='M1').length,1,'3 heróis: 1 guarda por fase');
 });

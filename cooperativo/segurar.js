@@ -44,17 +44,17 @@
     agamemnon:{name:'Rei dos reis',goal:1,text:'Esteja de pé em A1 quando a linha segurar.',reward:'+1 Favor e Glória.'}
   };
   const CHRONICLE={
-    2:{id:'portao',effect:"Troia chama para a guerra: a chama sobe 1.",title:'O portão se abre',text:'De madrugada, as trompas de Troia não contam homens: chamam para a guerra. O portão se abre.'},
-    3:{id:'estacas',title:'Estacas afiadas',text:'Os carpinteiros da frota cravam estacas diante das tendas, mas alguém precisa vigiá-las.',demand:'Mantenham um herói de pé em A2 até a próxima resposta de Troia: o Alarme cai 1. Se não, os troianos arrancam as estacas: Alarme +1.'},
-    4:{id:'heitor',effect:"O nome de Heitor esfria as preces: −1 de Favor (sem Favor, a chama sobe 1).",title:'O nome de Heitor',text:'Nas fileiras troianas, um nome passa de boca em boca. Os gregos mais velhos sabem o que ele significa.'},
-    5:{id:'feridos',effect:"Os curandeiros levam 1 comida do armazém. Sem comida, o herói mais ferido perde 1 de vida (ninguém cai por isso).",title:'Os feridos',text:'Os feridos se amontoam nas tendas. Os curandeiros pedem comida, e não há muita.'},
-    6:{id:'batedores',title:'Olhos na planície',text:'Batedores troianos medem a linha grega de longe.',demand:'Se nenhum batedor troiano estiver à vista ao fim da próxima resposta, o Alarme cai 1.'},
-    7:{id:'flechas',effect:"Cada herói de pé nas tendas (A1) perde 1 de vida (ninguém cai por isso).",title:'Chuva de flechas',text:'Do alto das colinas, flechas caem sobre as tendas. Ninguém sabe de onde vêm, mas todos sabem de quem.'},
-    8:{id:'navios',title:'Fogo perto dos navios',text:'Uma tocha troiana cai perto dos navios. Se a frota queimar, ninguém volta para casa.',demand:'Mantenham um herói de pé em N1 até a próxima resposta de Troia, ou uma tenda pega fogo (1 dano às tendas).'},
-    9:{id:'noite',effect:"Na noite das fogueiras, os heróis descansam: desvirem todas as cartas usadas.",title:'A noite das fogueiras',text:'Os troianos acampam na planície, à vista dos gregos. Mil fogueiras.'},
-    10:{id:'aurora',effect:"O herói mais ferido recupera 1 de vida.",title:'Aurora',text:'O dia nasce cinza. Quem ainda está de pé olha para o portão e espera.'},
-    11:{id:'ultima',effect:"Troia joga tudo: uma companhia de lanceiros sai pelo portão (M1).",title:'A última carga',text:'Troia joga tudo o que tem contra as tendas. Ou a linha segura agora, ou não segura nunca.'},
-    12:{id:'silencio',effect:"Só se ouve o mar: a chama baixa 1.",title:'Silêncio',text:'Por um instante, ninguém grita. Só se ouve o mar.'}
+    2:{id:'portao',effect:"Troia chama para a guerra: a chama sobe 1.",title:'O portão se abre',text:'As trompas chamam, e as companhias troianas saem pelo portão.'},
+    3:{id:'estacas',title:'Estacas afiadas',text:'Os troianos tentam arrancar as estacas diante das tendas.',demand:'Mantenham um herói de pé em A2 até a próxima resposta de Troia: o Alarme cai 1. Se não, os troianos arrancam as estacas: Alarme +1.'},
+    4:{id:'heitor',effect:"O nome de Heitor esfria as preces: −1 de Favor (sem Favor, a chama sobe 1).",title:'O nome de Heitor',text:'O nome de Heitor corre pelas fileiras troianas.'},
+    5:{id:'feridos',effect:"Os curandeiros levam 1 comida do armazém. Sem comida, o herói mais ferido perde 1 de vida (ninguém cai por isso).",title:'Os feridos',text:'Os feridos lotam as tendas e os curandeiros pedem comida.'},
+    6:{id:'batedores',title:'Olhos na planície',text:'Batedores troianos medem a linha grega.',demand:'Se nenhum batedor troiano estiver à vista ao fim da próxima resposta, o Alarme cai 1.'},
+    7:{id:'flechas',effect:"Cada herói de pé nas tendas (A1) perde 1 de vida (ninguém cai por isso).",title:'Chuva de flechas',text:'Flechas caem sobre as tendas.'},
+    8:{id:'navios',title:'Fogo perto dos navios',text:'Uma tocha troiana avança para os navios.',demand:'Mantenham um herói de pé em N1 até a próxima resposta de Troia, ou uma tenda pega fogo (1 dano às tendas).'},
+    9:{id:'noite',effect:"Na noite das fogueiras, os heróis descansam: desvirem todas as cartas usadas.",title:'A noite das fogueiras',text:'Mil fogueiras troianas acesas na planície.'},
+    10:{id:'aurora',effect:"O herói mais ferido recupera 1 de vida.",title:'Aurora',text:'O dia nasce cinza.'},
+    11:{id:'ultima',effect:"Troia joga tudo: uma companhia de lanceiros sai pelo portão (M1).",title:'A última carga',text:'Troia joga tudo contra as tendas.'},
+    12:{id:'silencio',effect:"Só se ouve o mar: a chama baixa 1.",title:'Silêncio',text:'Por um instante, só se ouve o mar.'}
   };
   // A peste de Apolo (opção "Recusar"): castigo em ciclo, crescendo 1 a cada ciclo.
   const PLAGUE=['vida','favor','comida'];
@@ -72,15 +72,26 @@
     facing:'Pátroclo cai com a lança de Heitor no peito. O elmo de Aquiles rola pela poeira. Nos navios negros, Aquiles ouve a notícia e solta um grito que atravessa a planície. Os cavalos troianos recuam. Os homens de Heitor olham para o mar, e pela primeira vez sentem medo.',
     other:'Pátroclo cai longe de Heitor, numa escaramuça sem nome. Aquiles chora o amigo e volta à guerra, mas a balança de Zeus não se mexeu: essa morte não foi a que os deuses pesaram.',
     alive:'Pátroclo sobrevive ao dia. Nos navios negros, Aquiles continua de braços cruzados. A balança de Zeus volta a subir; ela será pesada outra vez.'};
-  function patroclusFalls(s){const h=s.heroes.find(a=>a.patroclus);if(!h||h.hp>0)return;const heitor=s.enemies.find(e=>e.type==='heitor'&&e.zone===h.zone),facing=!!heitor&&s.patroclus.struck;
+  function patroclusFalls(s){const h=s.heroes.find(a=>a.patroclus);if(!h||h.hp>0)return;s.patroclus.engaged=false;const heitor=s.enemies.find(e=>e.type==='heitor'&&e.zone===h.zone),facing=!!heitor&&s.patroclus.struck;
     h.patroclus=false;h.away=true;h.hp=0;h.ap=0;h.zone='N4';s.patroclus.status='fallen';s.patroclus.facing=facing;s.patroclus.returnRound=s.round+1;
     if(facing){addFavor(s,2,'os deuses honram a coragem de Pátroclo');if(!s.glory.includes('patroclo'))s.glory.push('patroclo');}
-    s.lastFind={zone:'N4',title:'A morte de Pátroclo',text:PATROCLUS_TEXT[facing?'facing':'other']+' Aquiles volta à guerra na próxima rodada, nos navios negros.'};log(s,'Pátroclo caiu'+(facing?' de frente para Heitor':'')+'. Não há socorro: ele sai de cena. Aquiles volta na próxima rodada.');}
+    s.lastFind={zone:'N4',title:'A morte de Pátroclo',text:(s.patroclus.apollo?'Diante das muralhas, Pátroclo sobe três vezes o muro, e três vezes Apolo o empurra de volta. Envolto em névoa, o deus o golpeia pelas costas, e a armadura de Aquiles cai na poeira. ':'')+PATROCLUS_TEXT[facing?'facing':'other']+' Aquiles volta à guerra na próxima rodada, nos navios negros. Na mesa: retirem Pátroclo do mapa.'};log(s,'Pátroclo caiu'+(facing?' de frente para Heitor':'')+'. Não há socorro: ele sai de cena. Aquiles volta na próxima rodada.');}
+  // O duelo de Pátroclo (07/10/2026): corre dentro das rodadas normais. Na vez de Heitor na fase de Troia, ele golpeia Pátroclo
+  // e recua uma peça em direção ao portão; Pátroclo o segue. Um herói de pé na peça seguinte prende Heitor onde está.
+  // Diante das muralhas, Apolo intervém e Pátroclo cai. Se Heitor recuar ferido antes (4 de dano), Pátroclo sobrevive ao dia.
+  const WALL_FRONT=['P4','P7','M4','B5','M1'];
+  function patroclusDuel(s,e){const p=s.heroes.find(a=>a.patroclus);if(!p||!up(p)){s.patroclus.engaged=false;return;}
+    const hp0=p.hp;HEROES.damage(s,p,e.attack??3,log,{distance});const hit=hp0-p.hp;s.lastAttacks.push({enemy:e.id,hero:p.id,damage:hit,ranged:false});
+    if(!p.hp){patroclusFalls(s);return;}
+    let moved=false,blocked=false;if(!WALL_FRONT.includes(e.zone)){const next=nextStep(e.zone,'M1');blocked=s.heroes.some(a=>a!==p&&up(a)&&a.zone===next);if(!blocked){e.zone=next;p.zone=next;reveal(s,next,'troia');moved=true;}}
+    log(s,'Duelo: Heitor golpeou Pátroclo ('+hit+' de dano)'+(moved?' e recuou para '+e.zone+'; Pátroclo o seguiu':blocked?' e ficou preso em '+e.zone:'')+'.');
+    if(WALL_FRONT.includes(e.zone)){p.hp=0;p.ap=0;s.patroclus.apollo=true;patroclusFalls(s);return;}
+    s.lastFind={zone:e.zone,title:'O duelo de Pátroclo',text:'Heitor golpeou Pátroclo ('+hit+' de dano)'+(moved?' e recuou para '+e.zone+'. Pátroclo o seguiu. Na mesa: movam Heitor e Pátroclo para '+e.zone+'.':blocked?'. O caminho para '+nextStep(e.zone,'M1')+' está fechado por um grego: Heitor fica em '+e.zone+'.':'.')+' Pátroclo já tirou '+(s.patroclus.dealt||0)+' de vida de Heitor.'};}
   function achillesReturns(s){const h=s.heroes.find(a=>a.id==='aquiles');if(!h||s.patroclus.status!=='fallen'||s.round<s.patroclus.returnRound)return;const saved=s.patroclus.saved;
     Object.assign(h,{away:false,level:saved.level,known:[...saved.known],onceUsed:[...saved.onceUsed],used:[],zone:'N4'});h.hp=HEROES.stats(h).maxHp;h.ap=HEROES.stats(h).actions;s.patroclus.status='avenged';
     let text='Aquiles volta à guerra, com a armadura nova e todas as suas habilidades.';
     if(s.patroclus.facing){const near=s.enemies.filter(e=>e.type!=='heitor'&&distance(e.zone,'N4')<=1);for(const e of near){e.intimidated=true;const away=ACTIVE[e.zone].links.slice().sort((a,b)=>distance(b,'N4')-distance(a,'N4'))[0];if(distance(away,'N4')>distance(e.zone,'N4')){e.zone=away;reveal(s,away,'troia');}}text+=near.length?' Diante da ira dele, os troianos por perto fogem e não atacam nesta rodada.':' Nenhum troiano ousa ficar por perto.';}
-    s.lastFind={zone:'N4',title:'A ira de Aquiles',text};log(s,'Aquiles voltou à guerra nos navios negros (N4).');}
+    s.lastFind=s.lastFind?{...s.lastFind,text:s.lastFind.text+' '+text}:{zone:'N4',title:'A ira de Aquiles',text};log(s,'Aquiles voltou à guerra nos navios negros (N4).');}
   function log(s,msg){s.log.unshift(msg);s.log=s.log.slice(0,80);}
   function isRevealed(s,zone){return s.revealed.includes(zone);}
   function reveal(s,zone,by='heroi'){if(!ACTIVE[zone]||isRevealed(s,zone))return false;s.revealed.push(zone);s.lastReveals.push(zone);log(s,(by==='troia'?'Tropas troianas surgiram em '+zone+'. ':'Nova peça: ')+'posicionem '+ACTIVE[zone].name+' na mesa.');return true;}
@@ -115,21 +126,23 @@
   }
   function distance(from,to){const Z=ACTIVE;if(!Z[from]||!Z[to])return Infinity;const queue=[[from,0]],seen=new Set([from]);for(const [at,d] of queue){if(at===to)return d;for(const n of Z[at].links)if(!seen.has(n)){seen.add(n);queue.push([n,d+1]);}}return Infinity;}
   function knownDistance(s,from,to){use(s);if(!isRevealed(s,from)||!isRevealed(s,to))return Infinity;const queue=[[from,0]],seen=new Set([from]);for(const [at,d] of queue){if(at===to)return d;for(const n of ACTIVE[at].links)if(!seen.has(n)&&isRevealed(s,n)){seen.add(n);queue.push([n,d+1]);}}return Infinity;}
-  function nextStep(zone,goal='A1'){return ACTIVE[zone].links.slice().sort((a,b)=>distance(a,goal)-distance(b,goal))[0];}
+  function nextStep(zone,goal='A1'){return (CONNECTIONS[zone]||ACTIVE[zone].links).slice().sort((a,b)=>troyDistance(a,goal)-troyDistance(b,goal))[0];}
   // A ofensiva marcha para as tendas; ataca quem estiver no caminho, a uma peça.
   function huntGoal(s,e){if(e.type==='heitor')return 'A1';const prey=s.heroes.filter(h=>up(h)&&distance(e.zone,h.zone)<=1).sort((a,b)=>distance(e.zone,a.zone)-distance(e.zone,b.zone))[0];return prey?prey.zone:'A1';}
   // Quem atira de outra peça perde 1 de força: o tiro de longe é mais fraco que o golpe.
-  function rangedTarget(s,e){const r=TROOPS.types[e.type]?.range||0;if(!r)return null;return s.heroes.filter(h=>up(h)&&distance(e.zone,h.zone)<=r).sort((a,b)=>distance(e.zone,a.zone)-distance(e.zone,b.zone)||a.hp-b.hp)[0]||null;}
+  // A trilha P1–P7 (pergaminho Rotas da costa II) é um segredo dos gregos: os tiros de Troia contam a distância sem ela.
+  function troyDistance(from,to){if(!CONNECTIONS[from]||!CONNECTIONS[to])return Infinity;const queue=[[from,0]],seen=new Set([from]);for(const [at,d] of queue){if(at===to)return d;for(const n of CONNECTIONS[at])if(!seen.has(n)){seen.add(n);queue.push([n,d+1]);}}return Infinity;}
+  function rangedTarget(s,e){const r=TROOPS.types[e.type]?.range||0;if(!r)return null;return s.heroes.filter(h=>up(h)&&troyDistance(e.zone,h.zone)<=r).sort((a,b)=>troyDistance(e.zone,a.zone)-troyDistance(e.zone,b.zone)||a.hp-b.hp)[0]||null;}
   function intimidationZone(s,e){return ACTIVE[e.zone].links.slice().sort((a,b)=>Number(s.heroes.some(h=>up(h)&&h.zone===a))-Number(s.heroes.some(h=>up(h)&&h.zone===b))||distance(b,'A1')-distance(a,'A1'))[0];}
   function alarmMax(){return ALARM_MAX;}
   function nextAlarm(s){return {at:null,entries:s.criseida==='camp'&&!s.waveHeld?[]:waveEntries(s)};}
   function waves(s){return nextAlarm(s).entries.map(([zone])=>zone);}
   // Com Criseida no acampamento, Troia hesita: o primeiro reforço não vem (DILEMAS.md).
   function criseidaDelays(s,step){return step===4&&s.criseida==='camp';}
-  function intent(e,s){use(s);if(e.stunned)return 'Atordoado: perderá esta ativação';if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;const shot=rangedTarget(s,e);if(shot)return 'Atirar em '+heroName(shot.id)+(shot.zone!==e.zone?' em '+shot.zone:'');if(s.heroes.some(h=>h.zone===e.zone&&up(h)))return 'Atacar um herói aqui';const goal=huntGoal(s,e);if(goal!=='A1')return 'Atacar os gregos em '+goal;return e.zone==='A1'?'Atacar as tendas':'Avançar para '+ACTIVE[nextStep(e.zone)].name;}
+  function intent(e,s){use(s);if(e.type==='heitor'&&s.patroclus?.engaged)return WALL_FRONT.includes(e.zone)?'Duelo: golpeia Pátroclo; Apolo espera diante das muralhas':'Duelo: golpeia Pátroclo e recua para '+nextStep(e.zone,'M1');if(e.stunned)return 'Atordoado: perderá esta ativação';if(e.intimidated)return 'Intimidado: não poderá atacar nesta resposta';const lure=HEROES.taunt(s,e,distance,false);if(lure)return 'Priorizar Agamêmnon em '+lure.zone;const shot=rangedTarget(s,e);if(shot)return 'Atirar em '+heroName(shot.id)+(shot.zone!==e.zone?' em '+shot.zone:'');if(s.heroes.some(h=>h.zone===e.zone&&up(h)))return 'Atacar um herói aqui';const goal=huntGoal(s,e);if(goal!=='A1')return 'Atacar os gregos em '+goal;return e.zone==='A1'?'Atacar as tendas':'Avançar para '+ACTIVE[nextStep(e.zone)].name;}
   function finish(s,result,reason){finishCore(s,result,reason);if(s.outcome)s.outcome.legacy={...(s.outcome.legacy||{}),lost:Object.fromEntries(s.heroes.filter(h=>h.lost).map(h=>[h.id,true]))};}
   function finishCore(s,result,reason){if(s.result)return;s.result=result;s.phase='end';s.reason=reason;if(s.encounter?.id!=='ability')s.encounter=null;
-    if(result==='victory')s.outcome={completed:MISSION,next:'Outro caminho',campFood:s.campFood,revealedZones:[...s.revealed],scrolls:[...s.scrolls],commanders:{heitor:'alive',paris:'alive'},legacy:{criseida:s.criseida,aquilesAway:s.heroes.some(h=>h.away||h.patroclus),plague:s.plague,patroclus:s.patroclus.status==='active'?'alive':s.patroclus.status==='none'?'none':'dead',patroclusFacing:!!s.patroclus.facing,heitorWounds:s.patroclus.facing?s.patroclus.dealt:0,achillesSaved:s.patroclus.status==='active'?s.patroclus.saved:null,duel:s.patroclus.status==='none'?'egos':'ira'},glory:[...s.glory],heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]}))};
+    if(result==='victory')s.outcome={completed:MISSION,favor:s.favor,next:'Outro caminho',campFood:s.campFood,revealedZones:[...s.revealed],scrolls:[...s.scrolls],commanders:{heitor:'alive',paris:'alive'},legacy:{criseida:s.criseida,aquilesAway:s.heroes.some(h=>h.away||h.patroclus),plague:s.plague,patroclus:s.patroclus.status==='active'?'alive':s.patroclus.status==='none'?'none':'dead',patroclusFacing:!!s.patroclus.facing,heitorWounds:s.patroclus.facing?s.patroclus.dealt:0,achillesSaved:s.patroclus.status==='active'?s.patroclus.saved:null,duel:s.patroclus.status==='none'?'egos':'ira'},glory:[...s.glory],heroes:s.heroes.map(h=>({id:h.id,owner:h.owner,hp:h.hp,level:h.level,known:[...h.known]}))};
     log(s,reason);}
   function defeat(s){if(s.result)return;patroclusFalls(s);if(s.campDamage>=TENTS)finish(s,'defeat','Troia rompeu a linha e incendiou as tendas.');else if(!s.heroes.some(up))finish(s,'defeat','Todos os heróis caíram, e a linha cedeu.');}
   // Vitória: Heitor ferido até a metade recua, e Troia recua com ele.
@@ -159,7 +172,7 @@
     log(s,'Feito de '+heroName(id)+': '+def.name+'. '+def.reward);
   }
   function eat(s,h,amount){const room=h&&up(h)?Math.max(0,HEROES.stats(h).maxHp-h.hp):0,gain=Math.min(room,amount),stored=amount-gain;if(gain)h.hp+=gain;s.campFood+=stored;
-    return [gain?'+'+gain+' de vida para '+heroName(h.id):'',stored?'+'+stored+' comida no armazém':''].filter(Boolean).join(' e ');}
+    const meal=[gain?'+'+gain+' de vida para '+heroName(h.id):'',stored?'+'+stored+' comida no armazém'+(gain?'':' (a vida já estava cheia)'):''].filter(Boolean).join(' e ');s.lastMeal=meal;return meal;}
   // Custo pago em comida do armazém; o que faltar sai da vida de Agamêmnon (o rei responde pela expedição).
   function payFood(s,amount,reason){const fromStore=Math.min(s.campFood,amount);s.campFood-=fromStore;const rest=amount-fromStore,king=s.heroes.find(h=>h.id==='agamemnon');let lost=0;if(rest&&king&&king.hp>0){lost=Math.min(king.hp,rest);king.hp-=lost;if(!king.hp)king.ap=0;}log(s,reason+': '+fromStore+' comida do armazém'+(lost?' e '+lost+' de vida de Agamêmnon':'')+'.');return {fromStore,lost};}
   const CHRONICLE_CHECKS={
@@ -192,7 +205,9 @@
   function startChronicle(s){const entry=CHRONICLE[s.round];if(!entry||s.result){s.chronicle=null;return;}s.chronicle={round:s.round,id:entry.id,status:CHRONICLE_CHECKS[entry.id]?'open':'told'};if(s.chronicle.status==='told')chronicleEffect(s,entry.id);log(s,'Crônica da rodada '+s.round+': '+entry.title+'.');}
   function enter(s,h,zone){h.zone=zone;reveal(s,zone);if(!s.visited.includes(zone))s.visited.push(zone);}
   function dropCargo(){}
-  function retreat(s){s.commanderDown=true;s.enemies=s.enemies.filter(e=>e.type!=='heitor');log(s,'Heitor, ferido, recua para trás do portão.');addAlarm(s,-HEITOR_DROP,'Heitor recuou ferido');}
+  function retreat(s){if(s.patroclus?.engaged){s.patroclus.engaged=false;log(s,'Heitor recua ferido no meio do duelo. Pátroclo sobrevive ao dia.');}s.commanderDown=true;const hec=s.enemies.find(e=>e.type==='heitor'),esc=hec&&escortOf(s,hec);s.enemies=s.enemies.filter(e=>e.type!=='heitor'&&e!==esc);log(s,'Heitor, ferido, recua para trás do portão'+(esc?', amparado por '+TROOPS.label(esc)+' de '+esc.zone:'')+'.');addAlarm(s,-HEITOR_DROP,'Heitor recuou ferido');}
+  // Herói troiano caído ou ferido: só uma tropa recua, a que o leva de volta à cidade (06/10/2026); as outras seguem lutando.
+  function escortOf(s,e){return s.enemies.filter(a=>a!==e&&!a.hold&&!a.watch&&!TROOPS.types[a.type]?.hero).sort((p,q)=>distance(p.zone,e.zone)-distance(q.zone,e.zone))[0]||null;}
   function kill(s,e,damage,ignoreArmor=0){const armor=ignoreArmor===true?0:Math.max(0,(e.armor||0)-ignoreArmor);const dealt=Math.max(0,damage-armor);e.hp-=dealt;
     if(e.type==='heitor'&&e.hp>0&&e.hp<=HEITOR_RETREAT){retreat(s);return dealt;}
     if(e.hp<=0){s.enemies=s.enemies.filter(a=>a.id!==e.id);log(s,TROOPS.label(e)+' derrotado em '+e.zone+'.');if(e.type==='heitor')retreat(s);else addAlarm(s,['paris','sarpedon'].includes(e.type)?-3*FLAME_DROP:-FLAME_DROP,TROOPS.label(e)+' caiu');}return dealt;}
@@ -219,6 +234,7 @@
   function interactions(s,h){
     const lostHere=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);
     use(s);const list=[],foes=s.enemies.some(e=>e.zone===h.zone),add=(id,label,detail,available=true)=>list.push({id,label,detail,available:available&&!foes});if(lostHere)add('recover','Recuperar '+lostHere.lost.item,'Devolver a '+heroName(lostHere.id)+' · sem inimigos na peça');
+    if(h.patroclus&&!s.patroclus.engaged&&s.enemies.some(e=>e.type==='heitor'&&e.zone===h.zone))list.push({id:'engage',label:'Enfrentar Heitor',detail:'O duelo de Pátroclo: Heitor luta recuando até as muralhas · 1 ação',available:true});
     if(h.zone==='A1'&&s.plagueActive)add('council','Conselho de guerra','Reunir os reis e decidir de novo sobre Criseida');
     const achilles=s.heroes.find(a=>a.id==='aquiles');
     if(h.zone==='N4'&&achilles&&s.patroclus.status==='active'&&s.embassy<2&&['odisseu','ajax'].includes(h.id))add('embassy','Embaixada a Aquiles ('+s.embassy+'/2)','2 ações em N4, sem inimigos, de Odisseu ou Ájax');
@@ -228,7 +244,7 @@
   function foundPreview(s,zone){return tokenOf(s,zone).found.split('{hero}').join('quem investigar');}
   function tokenDetail(zone){const t=TOKENS[zone];return t?'+'+t.amount+' comida':'';}
   function interaction(s,h){const list=interactions(s,h);return list.find(x=>x.available)||list[0]||{id:null,label:'Explorar',detail:'Nada para resolver aqui',available:false};}
-  function resolveToken(s,h,def){const t=tokenOf(s,h.zone);s.tokens[h.zone].resolved=true;const zone=h.zone;const message='explorou '+t.name+': '+eat(s,h,t.amount);s.lastFind={zone,title:t.hint,text:t.found.split('{hero}').join(def.name)};addAlarm(s,1,'o barulho da busca em '+zone+' chama atenção');return message;}
+  function resolveToken(s,h,def){const t=tokenOf(s,h.zone);s.tokens[h.zone].resolved=true;const zone=h.zone;const message='explorou '+t.name+': '+eat(s,h,t.amount);s.lastFind={zone,title:t.hint,text:t.found.split('{hero}').join(def.name)};if(s.lastMeal){s.lastFind.text+=' '+s.lastMeal.charAt(0).toUpperCase()+s.lastMeal.slice(1)+'.';s.lastMeal=null;}addAlarm(s,1,'o barulho da busca em '+zone+' chama atenção');return message;}
   // Eventos nexo: um herói perde o equipamento, e as cartas que dependem dele ficam viradas até alguém recuperá-lo.
   // Ájax perde duas (as duas precisam do escudo); os outros, uma. O objeto não recuperado segue perdido na missão seguinte.
   const NEXUS={
@@ -251,10 +267,11 @@
     if(h.hp<=0||(h.ap<=0&&action!=='rescue'))return fail('Escolha um herói de pé com ações disponíveis.');
     s.lastReveals=[];s.lastFeats=[];s.lastLearn=null;s.lastFind=null;
     const def=HEROES.find(d=>d.id===h.id),foes=()=>s.enemies.filter(e=>e.zone===h.zone),visible=e=>e&&isRevealed(s,e.zone);let message='';
-    if(action==='move'){if(!ACTIVE[h.zone].links.includes(target))return fail('Escolha uma região conectada.');const origin=h.zone,known=isRevealed(s,target);message=moveHero(s,h,target)?(known?'moveu para '+target:'avançou para o desconhecido e revelou '+target):'tentou fugir de '+origin+', mas caiu antes de sair';}
+    if(action==='move'){if(h.patroclus&&s.patroclus.engaged)return fail('Pátroclo está em duelo com Heitor: ele segue Heitor sozinho, na fase de Troia.');if(!ACTIVE[h.zone].links.includes(target))return fail('Escolha uma região conectada.');const origin=h.zone,known=isRevealed(s,target);message=moveHero(s,h,target)?(known?'moveu para '+target:'avançou para o desconhecido e revelou '+target):'tentou fugir de '+origin+', mas caiu antes de sair';}
     else if(action==='attack'){const e=s.enemies.find(e=>e.id===target&&visible(e)&&distance(h.zone,e.zone)<=HEROES.stats(h).range);if(!e)return fail('Escolha um inimigo no alcance básico.');strike(s,h,e,HEROES.stats(h).attack,{ranged:h.id==='odisseu'||e.zone!==h.zone});message='atacou: '+HEROES.stats(h).attack+' de dano';}
     else if(action==='interact'){
       const options=interactions(s,h),choice=target?options.find(x=>x.id===target):options.find(x=>x.available);
+      if(choice?.id==='engage'){s.patroclus.engaged=true;s.patroclus.struck=s.patroclus.struck||false;h.ap--;h.lastAction='interact';s.lastFind={zone:h.zone,title:'O duelo de Pátroclo',text:'Pátroclo, na armadura de Aquiles, desafia Heitor. A partir de agora os dois lutam juntos: a cada fase de Troia, Heitor golpeia Pátroclo e recua uma peça em direção ao portão, e Pátroclo o segue. Diante das muralhas (P4, P7, M4 ou B5), Apolo intervém. O dano que Pátroclo deixar em Heitor fica com ele. Os outros heróis seguem jogando: podem ferir Heitor ou ficar na peça para onde ele recuaria e prendê-lo ali mais uma rodada.'};log(s,'Pátroclo desafiou Heitor.');return {ok:true,state:s,message:'Pátroclo desafiou Heitor'};}
       if(choice?.id==='recover'&&choice.available){const owner=s.heroes.find(o=>o.lost&&o.lost.zone===h.zone);recoverItem(s,h,owner);h.ap--;h.lastAction='interact';return {ok:true,state:s,message:heroName(h.id)+' recuperou '+NEXUS[owner.id].item};}
       if(foes().length)return fail('Elimine os inimigos nesta peça antes de interagir.');
       if(!choice||!choice.available)return fail('Não há nada para resolver aqui.');
@@ -286,7 +303,7 @@
       else if(c.type==='grantAction'){if(!a||a.id===h.id||a.zone!==h.zone||a.hp<=0)return fail('Escolha outro herói de pé nesta área.');a.ap++;a.bonusActions++;}
       else if(c.type==='taunt'){h.tauntRound=s.round;}
       else if(c.type==='refresh'){if(!a||a.id===h.id||a.zone!==h.zone||a.hp===0||!a.used.length)return fail('Escolha outro herói de pé com habilidades esgotadas nesta peça.');a.used=[];}
-      else if(c.type==='intimidate'){const zone=e&&e.zone===h.zone?intimidationZone(s,e):null;if(!zone)return fail('Escolha um inimigo nesta área que possa recuar.');const origin=e.zone;kill(s,e,c.value);if(s.enemies.includes(e)){if(e.hold&&!e.post)e.post=origin;e.zone=zone;e.intimidated=true;reveal(s,zone,'troia');log(s,TROOPS.label(e)+' sofreu '+c.value+' de dano, recuou de '+origin+' para '+zone+' e não poderá atacar na próxima resposta.');}}
+      else if(c.type==='intimidate'){const zone=e&&e.zone===h.zone?intimidationZone(s,e):null;if(!zone)return fail('Escolha um inimigo nesta área que possa recuar.');const origin=e.zone;kill(s,e,c.value,true);if(s.enemies.includes(e)){if(e.hold&&!e.post)e.post=origin;e.zone=zone;e.intimidated=true;reveal(s,zone,'troia');log(s,TROOPS.label(e)+' sofreu '+c.value+' de dano, recuou de '+origin+' para '+zone+' e não poderá atacar na próxima resposta.');}}
       else return fail('Habilidade desconhecida.');
       if(c.once)h.onceUsed.push(n);else h.used.push(n);message='usou '+c.name;
     }else return fail('Ação desconhecida.');
@@ -345,6 +362,7 @@
     log(s,'Troia responde na rodada '+s.round+'.');
     for(const e of [...s.enemies]){
       if(!s.enemies.some(a=>a.id===e.id))continue;
+      if(e.type==='heitor'&&s.patroclus.engaged){patroclusDuel(s,e);defeat(s);if(s.result)return s;continue;}
       if(e.stunned){e.stunned=false;log(s,TROOPS.label(e)+' perdeu a ativação por Atordoamento.');continue;}
       const intimidated=!!e.intimidated;e.intimidated=false;
       const lure=HEROES.taunt(s,e,distance,false);
@@ -352,7 +370,8 @@
       const guard=s.guards[e.zone]||0,ranged=intimidated?null:rangedTarget(s,e);
       // A flecha entrega de onde veio: atirar de uma peça fora da mesa revela a peça.
       if(ranged&&!isRevealed(s,e.zone))reveal(s,e.zone,'troia');
-      const h=intimidated?null:ranged||lure||s.heroes.filter(h=>h.zone===e.zone&&up(h)).sort((a,b)=>b.hp-a.hp)[0];
+      const reach=lure&&(lure.zone===e.zone||((TROOPS.types[e.type]?.range||0)>0&&troyDistance(e.zone,lure.zone)<=TROOPS.types[e.type].range))?lure:null;
+      const h=intimidated?null:ranged||reach||s.heroes.filter(h=>h.zone===e.zone&&up(h)).sort((a,b)=>b.hp-a.hp)[0];
       if(h){const hp0=h.hp,damage=HEROES.damage(s,h,h.zone!==e.zone?Math.ceil((e.attack??2)/2):(e.attack??2),log,{distance});s.lastAttacks.push({enemy:e.id,hero:h.id,damage:hp0-h.hp,ranged:h.zone!==e.zone});log(s,heroName(h.id)+' sofreu '+damage+' de dano'+(h.zone!==e.zone?' à distância':'')+'.');if(h.hp>0&&(TROOPS.types[e.type]?.range||0)===0&&h.id!=='odisseu'&&e.zone===h.zone){const rebound=Math.floor(HEROES.stats(h).attack/2),ehp=e.hp;kill(s,e,rebound);{const hit=s.lastAttacks[s.lastAttacks.length-1];if(hit&&hit.enemy===e.id){hit.rebound=Math.max(0,ehp-Math.max(0,e.hp));hit.killed=!s.enemies.includes(e);}}log(s,'Rebote grego corpo a corpo: '+rebound+' de dano em '+TROOPS.label(e)+'.');if(s.commanderDown){victory(s);return s;}}if(h.hp>0&&h.id==='ajax'&&['A1','A2'].includes(h.zone))feat(s,'ajax');if(!h.hp)h.ap=0;}
       else if(e.zone==='A1'){if(guard){s.guards.A1--;log(s,'A proteção absorveu o ataque às tendas.');}else{s.campDamage++;log(s,'Ataque às tendas: '+s.campDamage+'/'+TENTS+' danos.');addAlarm(s,1,'o fogo nas tendas anima Troia');}}
       else{e.zone=nextStep(e.zone,huntGoal(s,e));reveal(s,e.zone,'troia');log(s,TROOPS.label(e)+' avançou para '+e.zone+'.');}

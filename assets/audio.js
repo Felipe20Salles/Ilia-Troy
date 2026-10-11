@@ -92,7 +92,8 @@
   if(['guard','protect'].includes(type))return play('escudo');
   return effect('ability');
  }
- function trojan(step){if(!step)return;const intent=(step.intent||'').toLocaleLowerCase('pt-BR');if(intent.includes('atirar')||(intent.includes('atacar')&&['arqueiro','paris'].includes(step.type)))cue('flecha');else if(intent.includes('atacar'))cue('espada');else if(intent.includes('sabotar'))cue('escudo');else cue('marcha');}
+ // Cada tropa troiana, quando o aviso dela aparece: o som da arma e, se ela feriu um herói, o grito do ferido logo depois.
+ function trojan(step){if(!step)return;const intent=(step.intent||'').toLocaleLowerCase('pt-BR'),hit=(step.hits||[]).some(h=>h.damage>0);if(intent.includes('atirar')||(intent.includes('atacar')&&['arqueiro','paris'].includes(step.type)))cue('flecha');else if(intent.includes('atacar')||hit)cue(['arqueiro','paris'].includes(step.type)?'flecha':'espada');else if(intent.includes('sabotar'))cue('escudo');else cue('marcha');if(hit)setTimeout(()=>cue('ferido'),450);}
  function mount(){
   const header=document.querySelector('header'),host=header||document.body;if(!host.querySelector('[data-audio-toggle]')){const button=document.createElement('button');button.type='button';button.className='audio-control'+(header?'':' audio-control-floating');button.dataset.audioToggle='';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggle();});const rules=header?.querySelector('#rules-button');header?header.insertBefore(button,rules||null):host.appendChild(button);}
   syncButton();
@@ -110,11 +111,11 @@
  // (acima de 1 amplifica) e "max" corta com fade os sons longos demais para um momento.
  const LEVELS={mar:{gain:1.3},'tambores-longe':{gain:.3},'tambores-guerra':{gain:.32},batimento:{gain:.2},
   caixa:{gain:1,max:1.5},marcha:{gain:1,max:1.5},espada:{gain:.9,max:1.5},lanca:{gain:1,max:1.5},escudo:{gain:1.2,max:1.5},flecha:{gain:1.3,max:2},troianos:{gain:.58,max:4},acampamento:{gain:.8,max:3},revelar:{gain:.52,max:5},descoberta:{gain:2.5},encontro:{gain:.7},cronica:{gain:1.8},feito:{gain:1.45},queda:{gain:.8,max:8},
-  corneta:{gain:.3,max:5.5},// Secundários (05/10/2026): nivelados um pouco abaixo dos sons principais, por serem consequência deles.
+  corneta:{gain:.3,max:5.5},luto:{gain:.38},'trilha-troia':{gain:.3},// Secundários (05/10/2026): nivelados um pouco abaixo dos sons principais, por serem consequência deles.
   'tropa-cai':{gain:1.16,max:2.5},ferido:{gain:.76},cura:{gain:2,max:3},favor:{gain:2.85,max:4.5},retirada:{gain:10,max:6},peste:{gain:.8,max:5},comando:{gain:.95},vitoria:{gain:.52,max:8},
   'transicao-missao':{gain:.76},provocacao:{gain:.69,max:3},'deus-atena':{gain:3.4},'deus-poseidon':{gain:2.1},'deus-zeus':{gain:1.7,max:6}};
  const CUE_FALLBACK={caixa:'explore',marcha:'move',espada:'attack',lanca:'attack',escudo:'shield',flecha:'arrow',troianos:'march',acampamento:'ui',revelar:'reveal',descoberta:'explore',encontro:'ability',cronica:'reveal',feito:'ability',queda:'death','deus-atena':'reveal','deus-poseidon':'move','deus-zeus':'attack','transicao-missao':'fanfare',provocacao:'shield','tropa-cai':'fall',ferido:'hurt',cura:'recover',favor:'chime',vitoria:'fanfare',derrota:'death',retirada:'retreat',peste:'plague',comando:'attack'};
- const sfxURL=name=>new URL('audio/sfx/'+name+'.mp3',script.src).href,clips={};
+ const FILES={luto:'queda','trilha-troia':'transicao-missao'},sfxURL=name=>new URL('audio/sfx/'+(FILES[name]||name)+'.mp3',script.src).href,clips={};
  function clip(name,loop=false){
   if(clips[name])return clips[name];
   const el=new Audio(sfxURL(name));el.preload='auto';el.loop=loop;
@@ -128,10 +129,18 @@
   if(entry.gain){const g=entry.gain.gain,now=context.currentTime;g.cancelScheduledValues(now);g.setValueAtTime(g.value,now);if(seconds)g.linearRampToValueAtTime(value,now+seconds);else g.setValueAtTime(value,now);}
   else entry.el.volume=Math.max(0,Math.min(1,value));
  }
+ // Fila (07/10/2026): os sons de momento tocam um depois do outro, nunca juntos. Os gestos (golpes, flechas, marcha)
+ // tocam na hora, porque respondem ao toque do jogador.
+ const GESTURES=new Set(['marcha','espada','lanca','escudo','flecha','caixa']);let busyUntil=0;
  function cue(name){
   if(!enabled)return;unlocked=true;
+  if(GESTURES.has(name))return play(name);
+  const now=performance.now(),start=Math.max(now,busyUntil),slot=Math.min(LEVELS[name]?.max||1.6,2.4)*1000;busyUntil=start+slot;
+  if(start>now)setTimeout(()=>play(name),start-now);else play(name);
+ }
+ function play(name){
   // A trombeta dos alertas: sem o arquivo, tocam os tambores de guerra dos troianos.
-  const fallback=()=>name==='corneta'?cue('troianos'):effect(CUE_FALLBACK[name]||'ui');
+  const fallback=()=>name==='corneta'?play('troianos'):effect(CUE_FALLBACK[name]||'ui');
   const entry=clip(name);if(!entry.ok){fallback();return;}
   const level=LEVELS[name]||{gain:1};entry.onError=fallback;clearTimeout(entry.timer);
   setLevel(entry,level.gain);try{entry.el.currentTime=0;}catch(_){}entry.el.play().catch(()=>{});
@@ -156,13 +165,17 @@
  // Vitória: a fanfarra e, enquanto ela se apaga, a transição para a missão seguinte.
  function victory(){cue('vitoria');setTimeout(()=>cue('transicao-missao'),7500);}
  // Ambiente da missão: mar sempre; tambores entram conforme a tensão (o Alarme); batimento com herói em perigo.
- const LAYERS=['mar','tambores-longe','tambores-guerra'];let tension=-1,heartbeatOn=false;
+ // O mar só toca onde a missão é na praia (O Desembarque): a página marca isso com data-sea no <script> do áudio.
+ // Nas outras (10/10/2026), os tambores ao longe tocam desde o começo, para a campanha não cair no silêncio entre uma
+ // missão e outra; com o Alarme, entram os tambores de guerra por cima.
+ // Cada missão pode trocar a primeira camada por um fundo próprio com data-ambient (O Paládio: a trilha da cidade).
+ const SEA=script.dataset.sea==='true',BASE=script.dataset.ambient||(SEA?'mar':null),LAYERS=BASE?[BASE,'tambores-longe','tambores-guerra']:['tambores-longe','tambores-guerra','tambores-guerra'];let tension=-1,heartbeatOn=false;
  function ambient(name,want){
   const entry=clip(name,true);if(!entry.ok)return;clearTimeout(entry.timer);
   if(want){if(entry.el.paused)entry.el.play().catch(()=>{});setLevel(entry,LEVELS[name]?.gain??.5,2.5);}
   else{setLevel(entry,0,1.5);entry.timer=setTimeout(()=>entry.el.pause(),1600);}
  }
- function setTension(level){tension=level;LAYERS.forEach((name,i)=>{const want=enabled&&!document.hidden&&level>=0&&i<=level;if(want||clips[name])ambient(name,want);});}
+ function setTension(level){tension=level;const want=new Map();LAYERS.forEach((name,i)=>{want.set(name,(want.get(name)||false)||(enabled&&!document.hidden&&level>=0&&i<=level&&(name!=='mar'||SEA)));});for(const [name,on] of want)if(on||clips[name])ambient(name,on);}
  function setHeartbeat(on){heartbeatOn=on;const want=on&&enabled&&!document.hidden;if(want||clips.batimento)ambient('batimento',want);}
  function pauseAmbience(){for(const name of [...LAYERS,'batimento'])if(clips[name])ambient(name,false);}
  function resumeAmbience(){if(tension>=0)setTension(tension);if(heartbeatOn)setHeartbeat(true);}

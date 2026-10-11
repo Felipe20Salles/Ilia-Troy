@@ -127,6 +127,7 @@ function findHTML(){
 }
 function detectStory(before){
   if(!before.built&&state.built)storyAlert={art:'cena-acampamento-erguido',eyebrow:'O acampamento',title:'As tendas se erguem',text:'Mal as estacas são fincadas, trombetas soam nas colinas. Troia viu as tendas.',order:campOrder()};
+  else if(!state.built&&state.required>G.CAMP_MIN&&before.delivered<G.CAMP_MIN&&state.delivered===G.CAMP_MIN)storyAlert={eyebrow:'A carga',title:'Há carga para as tendas',text:'Duas caixas já estão na clareira. Dá para erguer o acampamento; o resto da carga ainda está nas praias.',order:'Ergam o acampamento em A1 quando quiserem (1 ação, sem inimigos na clareira), ou busquem mais caixas antes.'};
   else if(before.delivered<before.required&&state.delivered===state.required)storyAlert={eyebrow:'A carga',title:'Toda a carga está na clareira',text:'Os últimos fardos são empilhados junto à fogueira apagada. Os soldados, exaustos, esperam a ordem do rei.',order:'Ergam o acampamento em A1 (1 ação, sem inimigos na clareira).'};
   if(state.lastFind)findAlert=state.lastFind;
 }
@@ -138,7 +139,7 @@ const ALARM_MARKS={4:'Batedores',7:'Reforços',11:'Lanceiros',15:'Enéias',18:'E
 function alarmTrack(){const max=G.alarmMax(state);return `<div class="alarm-track" role="img" aria-label="Alarme ${state.alarm} de ${max}"><div class="alarm-fill" style="width:${state.alarm/max*100}%"></div>${Object.entries(ALARM_MARKS).map(([n,label])=>`<span class="alarm-mark ${state.alarm>=n?'fired':''} ${n==15?'hero':''}" style="left:${n/max*100}%"><b>${n}</b><small>${n==15?(state.eneiasDown?'Lanceiros':state.alarmFired.includes(15)?label:'?'):label}</small></span>`).join('')}</div>`;}
 // Ficha de progresso: o que falta para vencer e o que vem do Alarme, a cada crônica.
 function progressHTML(){
-  return `<div class="round-progress" aria-label="Progresso da missão"><span><b>${state.delivered}/${state.required}</b>caixas em A1</span><span><b>${state.built?'Erguido':'Por erguer'}</b>acampamento</span><span class="${state.campDamage>=2?'urgent':''}"><b>${3-state.campDamage}/3</b>resistência das tendas</span></div>${alarmTrack()}`;}
+  return `<div class="round-progress" aria-label="Progresso da missão"><span><b>${state.delivered}/${Math.min(G.CAMP_MIN,state.required)}</b>caixas em A1${state.required>Math.min(G.CAMP_MIN,state.required)?` (de ${state.required})`:''}</span><span><b>${state.built?'Erguido':'Por erguer'}</b>acampamento</span><span class="${state.campDamage>=2?'urgent':''}"><b>${3-state.campDamage}/3</b>resistência das tendas</span></div>${alarmTrack()}`;}
 // Ordens do comandante: lembram o que cada patamar do Alarme traz.
 const COMMAND_WARNINGS=[null,
   {title:'Enéias está a caminho',text:'Se o Alarme chegar a 15, Enéias desce com a sua guarda, e só a queda dele fará Troia recuar. Ergam as tendas e afastem as tropas antes disso.'},
@@ -147,7 +148,7 @@ const COMMAND_WARNINGS=[null,
 let commandWarned=0;
 function commandLevel(){if(!state||state.result||state.eneiasDown)return 0;return state.alarm>=18?3:state.alarmFired.includes(15)?2:0;}
 function commandHTML(){
-  const level=commandLevel();if(level<=commandWarned||busy()||chronicleDue()||state.encounter||findAlert||storyAlert||featAlert.length)return '';
+  const level=commandLevel();if(level<=commandWarned||busy()||chronicleDue()||(state.encounter&&state.encounter.id!=='scales')||findAlert||storyAlert||featAlert.length)return '';
   const w=COMMAND_WARNINGS[level],owner=state.heroes.find(h=>h.id==='agamemnon')?.owner;
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="command-title"><section class="arrival-card command-card"><p class="eyebrow">Ordem do comandante${state.players>1&&owner?' · '+esc(playerName(owner,state)):''}</p><article><span class="mesa-avatar hero-agamemnon" aria-hidden="true"></span><div><h2 id="command-title">${w.title}</h2><p class="encounter-text">${w.text}</p></div></article>${button('Às ordens','dismiss-command','',false,'button')}</section></div>`;
 }
@@ -159,7 +160,7 @@ function chronicleHTML(){
 }
 function featHTML(){
   if(!featAlert.length||busy(true))return '';
-  return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="feat-title"><section class="arrival-card feat-card"><p class="eyebrow">Feito pessoal</p>${featAlert.map(id=>{const p=G.PERSONAL[id];return `<article><span class="mesa-avatar hero-${id}" aria-hidden="true"></span><div><h2 id="feat-title">${esc(G.HEROES.find(h=>h.id===id).name)}: ${esc(p.name)}</h2><p>${esc(p.text)}</p><b>${esc(p.reward)}</b></div></article>`;}).join('')}${button('Continuar','dismiss-feat','',false,'button')}</section></div>`;
+  return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="feat-title"><section class="arrival-card feat-card"><p class="eyebrow">Feito pessoal</p>${featAlert.map(id=>{const p=G.PERSONAL[id];return `<article><span class="mesa-avatar hero-${id}" aria-hidden="true"></span><div><h2 id="feat-title">${esc(G.HEROES.find(h=>h.id===id).name)}: ${esc(p.name)}</h2><p>${esc(p.text)}</p><b>${esc(state.featNote?.[id]||p.reward)}</b></div></article>`;}).join('')}${button('Continuar','dismiss-feat','',false,'button')}</section></div>`;
 }
 function encounterHTML(){
   if(!state?.encounter||busy(true)||featAlert.length||findAlert)return '';
@@ -268,22 +269,22 @@ function mesaMap(byZone){
     if(!onTable(id)){if(!frontier(id))return '';return `<button class="board-counters zone-anchor unknown-zone ${zoneCls[id]}" data-command="zone" data-zone="${id}" data-zone-anchor="${id}" style="left:${r.x}%;top:${r.y}%" aria-label="Território desconhecido"><span class="unknown-mark" aria-hidden="true">?</span></button>`;}
     const allies=state.heroes.filter(a=>a.zone===id),enemies=state.enemies.filter(e=>e.zone===id),options=byZone[id]||[];
     const crates=state.supplies[id]||0,token=(state.tokens[id]&&!state.tokens[id].resolved)||hiddenEncounter(id);
-    const chips=[id==='A1'?`<small>${state.built?'Acampamento instalado':state.post?.status==='taken'?'Clareira · acampamento':'Posto troiano'}</small>`:'',crates?`<small class="crate-chip">${M.ICONS.crate}${crates}</small>`:'',token?`<small class="token-chip" title="Ficha de exploração">${M.ICONS.explore}</small>`:'',...state.heroes.filter(h=>h.lost?.zone===id).map(h=>`<small class="story-chip lost-chip" title="Recuperem aqui: sem inimigos na peça, 1 ação">${M.ICONS.explore}${esc(h.lost.item.charAt(0).toUpperCase()+h.lost.item.slice(1))}</small>`),state.castaways.zone===id&&state.castaways.status==='met'?`<small class="story-chip">Náufragos ${state.castaways.progress}/2</small>`:'',state.beggar.zone===id&&['met','waiting'].includes(state.beggar.status)?'<small class="story-chip">O velho</small>':'',chronicleMark(id)].join('');
+    const chips=[id==='A1'?`<small>${state.built?'Acampamento instalado':state.post?.status==='taken'?'Clareira · acampamento':'Posto troiano'}</small>`:'',crates?`<small class="token-chip crate-chip" title="Caixas da frota: levem para A1">${M.ICONS.explore}${M.ICONS.crate}${crates}</small>`:'',token?`<small class="token-chip" title="Ficha de exploração">${M.ICONS.explore}</small>`:'',...state.heroes.filter(h=>h.lost?.zone===id).map(h=>`<small class="story-chip lost-chip" title="Recuperem aqui: sem inimigos na peça, 1 ação">${M.ICONS.explore}${esc(h.lost.item.charAt(0).toUpperCase()+h.lost.item.slice(1))}</small>`),state.castaways.zone===id&&state.castaways.status==='met'?`<small class="story-chip">Náufragos ${state.castaways.progress}/2</small>`:'',state.beggar.zone===id&&['met','waiting'].includes(state.beggar.status)?'<small class="story-chip">O velho</small>':'',chronicleMark(id)].join('');
     return `<button class="board-counters zone-anchor ${zoneCls[id]}" data-command="zone" data-zone="${id}" data-zone-anchor="${id}" style="left:${r.x}%;top:${r.y}%" aria-label="${G.ZONES[id].name}${options.length?`, ${options.length} opções`:''}">${chips?`<span class="zone-chips">${chips}</span>`:''}<span class="zone-beacon" aria-hidden="true"></span><span class="territory-tokens">${allies.map(a=>`<span class="unit-token greek-unit mesa-avatar hero-${a.id} ${a.id===selected?'selected':''} ${a.hp===0?'down':''}" data-hero="${a.id}" title="${G.HEROES.find(d=>d.id===a.id).name} · ${a.hp} de vida"><b>${a.hp}</b></span>`).join('')}${enemies.map(e=>`<span class="unit-token troop-art enemy-miniature ${e.type} ${G.TROOPS.types[e.type]?.hero?'trojan-hero-unit':'trojan-unit'} ${focusEnemy===e.id?'focused':''}" title="${G.TROOPS.label(e)} · ${e.hp} de vida"><span aria-hidden="true"></span><b>${e.hp}</b></span>`).join('')}</span>${state.guards[id]?`<small>🛡 ${state.guards[id]}</small>`:''}</button>`;
   }).join('');
   return `<div class="natural-map mesa-natural camera-map" style="${camera?`transform:translate(${camera.tx}px,${camera.ty}px) scale(${camera.k});--zoom:${camera.k}`:''}">${landscape(state.revealed.filter(onTable),'map','Território do Desembarque: '+state.revealed.length+' peças reveladas')}<svg class="territory-overlay route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g class="territory-routes">${edges.join('')}</g></svg><svg class="zone-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${shapes}</svg>${counters}${state.built?'<div class="camp-miniatures" style="left:9%;top:62%" role="img" aria-label="Acampamento instalado"><span>⛺</span><span>⛺</span><span>⛺</span></div>':''}</div>`;
 }
 function missionHTML(){
   const camp=known('A1');
-  const objective=state.built?campOrder():state.delivered===state.required?'Toda a carga está na clareira. Ergam o acampamento em A1.':camp?'Reúnam em A1 a carga perdida pelas praias. Quem carrega só se move uma vez por rodada.':'A frota precisa de terra firme. Explorem a costa e encontrem um lugar para o acampamento.';
+  const objective=state.built?campOrder():state.delivered>=Math.min(G.CAMP_MIN,state.required)?`Já há carga para as tendas (${state.delivered} de ${state.required} caixas em A1). Ergam o acampamento em A1, ou tragam mais caixas antes.`:state.post?.status==='taken'?`Tragam ao menos ${Math.min(G.CAMP_MIN,state.required)} caixas para A1. As caixas estão marcadas no mapa; quem carrega só se move uma vez por rodada.`:'A frota precisa de terra firme. Explorem a costa e tomem o posto troiano: ali será o acampamento.';
   const optional=[state.castaways.status==='met'?{label:`Náufragos ${state.castaways.progress}/2`,current:true}:state.castaways.status==='rescued'?{label:'Náufragos salvos',done:true}:null,
     state.beggar.status==='met'?{label:'O velho pede pão',current:true}:['waiting','escort'].includes(state.beggar.status)?{label:'Escoltar o velho até A1',current:true}:state.beggar.status==='zeus'?{label:'Bênção de Zeus',done:true}:null,
     state.chronicle?.status==='open'?{label:'Crônica: '+G.CHRONICLE[state.chronicle.id].title,current:true}:null].filter(Boolean);
   const foes=state.enemies.filter(e=>known(e.zone)).length;
   return M.missionBlock({number:1,title:'O Desembarque',phase:state.result?'':trojanPhase?'Fase de Troia':'Fase dos heróis · rodada '+state.round,objective,open:missionOpen,featsOpen,feats:featList(),troyOpen,resourcesExtra:state.result?'':godsMenu(),
-    steps:[camp?{label:`Carga ${state.delivered}/${state.required}`,done:state.delivered===state.required,current:state.delivered<state.required}:{label:'Explorar a costa',current:true},state.delivered===state.required?{label:state.built?'Acampamento erguido':'Erguer o acampamento',done:state.built,current:!state.built}:null,state.built?{label:state.enemies.some(e=>e.type==='eneias')?'Derrotar Enéias':'Afastar Troia das tendas',current:true}:null,...optional].filter(Boolean),
+    steps:[state.post?.status==='taken'?{label:`Carga ${state.delivered}/${Math.min(G.CAMP_MIN,state.required)}`,done:state.delivered>=Math.min(G.CAMP_MIN,state.required),current:state.delivered<Math.min(G.CAMP_MIN,state.required)}:{label:'Encontrar o lugar do acampamento',current:true},state.delivered>=Math.min(G.CAMP_MIN,state.required)?{label:state.built?'Acampamento erguido':'Erguer o acampamento',done:state.built,current:!state.built}:null,state.built?{label:state.enemies.some(e=>e.type==='eneias')?'Derrotar Enéias':'Afastar Troia das tendas',current:true}:null,...optional].filter(Boolean),
     alarm:{value:state.alarm,max:G.alarmMax(state),next:(()=>{const n=G.nextAlarm(state);return n.at>state.alarm&&n.at<G.alarmMax(state)?'próximo em '+n.at:n.at===G.alarmMax(state)&&state.alarm<n.at?'em peso no '+n.at:'';})()},resourcesOpen,
-    resources:[{label:'Favor dos deuses',value:`${state.favor}<small>/${G.FAVOR_MAX}</small>`},...(camp?[{label:'Carga em A1',value:`${state.delivered}<small>/${state.required}</small>`}]:[]),...(camp?[{label:'Tendas',value:`${3-state.campDamage}<small>/3</small>`,alert:state.campDamage>=2}]:[]),{label:'Armazém (comida)',value:state.campFood}]});
+    resources:[{label:'Favor dos deuses',value:`${state.favor}<small>/${G.FAVOR_MAX}</small>`},...(camp?[{label:'Carga em A1',value:`${state.delivered}<small>/${Math.min(G.CAMP_MIN,state.required)} mín.</small>`}]:[]),...(camp?[{label:'Tendas',value:`${3-state.campDamage}<small>/3</small>`,alert:state.campDamage>=2}]:[]),{label:'Armazém (comida)',value:state.campFood}]});
 }
 function resultHTML(){if(!state.result)return '';const extras=state.result==='victory'?[state.outcome.castaways?'os náufragos foram salvos':'',state.outcome.blessing?'Zeus abençoou a expedição':''].filter(Boolean):[];return `<section class="result mesa-result ${state.result}" role="status"><h2>${state.result==='victory'?'Uma base em terra firme.':'O desembarque foi interrompido.'}</h2><p>${esc(state.reason)}</p>${state.result==='victory'?`<p>Preparação para a próxima fase: ${state.outcome.supplies} caixa${state.outcome.supplies===1?'':'s'} de suprimentos${state.outcome.burned?` (${state.outcome.burned} queimada${state.outcome.burned>1?'s':''} por Troia)`:''}${extras.length?'; '+extras.join(' e '):''}.</p>`:''}<div class="actions-row">${state.result==='defeat'?'<button class="button" type="button" data-command="restart">Recomeçar a missão</button>':''}${state.result==='victory'?'<a class="button" href="reconhecimento.html">Seguir para Diante das muralhas</a>':'<a class="button" href="./">Voltar ao início da campanha</a>'}</div></section>`;}
 function troyHTML(){
@@ -348,20 +349,28 @@ function cueSnapshot(){return {prev:state,zeus:state.beggar?.status==='zeus',bui
 let featCued=false,trojanPhase=false,resourcesOpen=false;
 // Selo da fase de Troia nos avisos que ela abre, sempre na mesma ordem.
 const TROY_STEPS={move:'Fase de Troia · 1 de 3 · Movimento e ataques',reinforce:'Fase de Troia · 2 de 3 · Reforços',chronicle:'Fase de Troia · 3 de 3 · Crônica'};
-function featSound(){if(featAlert.length&&!featCued&&!busy()){featCued=true;window.TroyAudio?.cue?.('feito');}}
+// Som de cada aviso (07/10/2026): toca quando o aviso aparece na tela, um de cada vez, e não no momento da ação.
+let lastDialog='',lastDialogKind='';
+// Espera o aviso firmar na tela: o primeiro desenho depois de uma ação às vezes mostra por um instante um aviso que logo dá lugar a outro.
+let dialogTimer=0;
+function featSound(){clearTimeout(dialogTimer);dialogTimer=setTimeout(dialogSound,200);}
+function dialogSound(){const A=window.TroyAudio;const all=app.querySelectorAll('.order-backdrop > section,.arrival-backdrop > section'),d=all[all.length-1];const eyebrow=d?.querySelector('.eyebrow,.order-step')?.textContent||'',key=d?d.className+'|'+eyebrow+'|'+(d.querySelector('h2')?.textContent||''):'';if(key===lastDialog)return;const prevDialog=lastDialog;lastDialog=key;if(!d||!A?.cue){lastDialogKind='';return;}
+  const c=d.classList,kind=[...c].find(x=>/-card$|^order-[a-z]+$/.test(x)&&x!=='order-card'&&x!=='arrival-card')||'';let name=null;
+  if(c.contains('death-card'))name='queda';else if(c.contains('feat-card'))name='feito';
+  else if(c.contains('encounter-card'))name=/aprendizado/i.test(eyebrow)?null:'encontro';
+  else if(c.contains('cris-card'))name=lastDialogKind==='cris-card'?null:'encontro';
+  else if(c.contains('chronicle-card'))name=/crônica/i.test(eyebrow)?(['trompas','portao'].includes(state?.chronicle?.id)?'corneta':'cronica'):'descoberta';
+  else if(c.contains('order-troop'))name=/reforço/i.test(eyebrow)&&!/reforço/i.test(prevDialog)?'corneta':null;
+  else if(c.contains('order-piece'))name=lastDialogKind==='order-piece'?null:'revelar';
+  lastDialogKind=kind;if(name)A.cue(name);}
 function soundCues(b){
-  const A=window.TroyAudio;if(!A?.cue)return;A.changes?.(b.prev,state);
-  // O som do feito toca quando o aviso do feito aparece na tela (featSound), não junto com os outros.
+  M.storeToast?.(b.prev,state);
+  const A=window.TroyAudio;if(!A?.cue)return;if(!trojanPhase||(state.result&&!b.prev?.result))A.changes?.(b.prev,state);
+  // Os sons dos avisos (queda, encontro, tropas, descoberta, peça nova, crônica, feito) tocam quando o aviso aparece: ver featSound.
   const arrival=troopArrival&&troopArrival!==b.arrival;
   // O velho era Zeus: o trovão em céu limpo.
   if(state.beggar?.status==='zeus'&&!b.zeus)A.cue('deus-zeus');
-  else if(deathAlert&&deathAlert!==b.death)A.cue('queda');
   else if(state.built&&!b.built){A.cue('acampamento');setTimeout(()=>A.cue('corneta'),1600);}
-  else if(state.encounter&&!b.encounter&&state.encounter.id!=='ability')A.cue('encontro');
-  else if(arrival)A.cue('corneta');
-  else if(findAlert&&findAlert!==b.find)A.cue('descoberta');
-  else if(revealAlert.length>b.reveal)A.cue('revelar');
-  else if(state.round>b.round&&state.chronicle?.round===state.round)A.cue(['trompas','portao'].includes(state.chronicle.id)?'corneta':'cronica');
 }
 function ambience(){const A=window.TroyAudio;if(!A?.setTension)return;if(!state||state.result){A.setTension(-1);A.setHeartbeat(false);return;}A.setTension(state.alarm>=12?2:state.alarm>=6?1:0);A.setHeartbeat(state.heroes.some(h=>h.hp>0&&h.hp<=2));}
 function openZone(zone){popZone=popZone===zone?null:zone;pending=null;confirmation=null;render();}

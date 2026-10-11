@@ -133,7 +133,7 @@ function detectStory(before){
 const RESULT_TEXT={estacas:{success:'As estacas seguraram a primeira carga: Alarme −1.',fail:'Os troianos arrancaram as estacas: Alarme +1.'},batedores:{success:'Nenhum batedor mede a linha: Alarme −1.',fail:'Os batedores continuam a medir a linha.'},navios:{success:'A tocha foi apagada antes dos navios.',fail:'O fogo pegou numa tenda.'}};
 // O que falta para vencer, de acordo com o Alarme.
 function heitor(){return state.enemies.find(e=>e.type==='heitor');}
-function holdOrder(){const away=state.heroes.some(h=>h.away),h=heitor();let o=`Apaguem a chama de Troia até ${G.FLAME_GOAL}: cada tropa derrubada apaga 2; Páris e Sarpédon, 6.`+(state.heitorOut&&h?` Heitor está na planície: com mais ${Math.max(0,h.hp-G.HEITOR_RETREAT)} de dano, ele recua ferido e a chama cai ${G.HEITOR_DROP}.`:state.commanderDown?' Heitor já recuou ferido.':' Quando a chama baixar de 15, Heitor sai pelo portão.')+' Mantenham alguém de pé nas tendas (A1).';if(away)o+=' Pátroclo caiu: Aquiles volta à guerra na próxima rodada, nos navios negros.';if(state.plagueActive)o+=' A peste continua: o Conselho de guerra, em A1, pode mudar a decisão.';return o;}
+function holdOrder(){const away=state.heroes.some(h=>h.away),h=heitor();let o=`Apaguem a chama de Troia até ${G.FLAME_GOAL}: cada tropa derrubada apaga 2; Páris e Sarpédon, 6.`+(state.heitorOut&&h?` Heitor está na planície: com mais ${Math.max(0,h.hp-G.HEITOR_RETREAT)} de dano, ele recua ferido e a chama cai ${G.HEITOR_DROP}.`:state.commanderDown?' Heitor já recuou ferido.':' Quando a chama baixar de 15, Heitor sai pelo portão.')+' Mantenham alguém de pé nas tendas (A1).';if(state.patroclus?.engaged)o+=' Duelo de Pátroclo: a cada fase de Troia, Heitor golpeia Pátroclo e recua uma peça para o portão, e Pátroclo o segue. Diante das muralhas, Apolo intervém. Ataquem Heitor para deixar mais dano nele, ou fiquem na peça para onde ele recuaria para prendê-lo.';else if(state.patroclus?.status==='active'&&state.heitorOut&&heitor())o+=' Pátroclo pode enfrentar Heitor na mesma peça.';if(away)o+=' Pátroclo caiu: Aquiles volta à guerra na próxima rodada, nos navios negros.';if(state.plagueActive)o+=' A peste continua: o Conselho de guerra, em A1, pode mudar a decisão.';return o;}
 const reconOrder=holdOrder;
 const campOrder=reconOrder;
 // Trilha do Alarme com os patamares de reforço marcados.
@@ -150,7 +150,7 @@ const COMMAND_WARNINGS=[null,
 let commandWarned=0;
 function commandLevel(){if(!state||state.result)return 0;return state.heitorOut&&heitor()?2:1;}
 function commandHTML(){
-  const level=commandLevel();if(level<=commandWarned||busy()||(state.chronicle?.round===state.round&&chronicleSeen<state.round)||state.encounter||findAlert||storyAlert||featAlert.length)return '';
+  const level=commandLevel();if(level<=commandWarned||busy()||(state.chronicle?.round===state.round&&chronicleSeen<state.round)||(state.encounter&&state.encounter.id!=='scales')||findAlert||storyAlert||featAlert.length)return '';
   const w=COMMAND_WARNINGS[level],owner=state.heroes.find(h=>h.id==='agamemnon')?.owner;
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="command-title"><section class="arrival-card command-card"><p class="eyebrow">Ordem do comandante${state.players>1&&owner?' · '+esc(playerName(owner,state)):''}</p><article><span class="mesa-avatar hero-agamemnon" aria-hidden="true"></span><div><h2 id="command-title">${w.title}</h2><p class="encounter-text">${w.text}</p></div></article>${button('Às ordens','dismiss-command','',false,'button')}</section></div>`;
 }
@@ -177,7 +177,7 @@ function crisesHTML(){const council=state.encounter.council,av=id=>`<span class=
   `<p class="order-step">A1 · O conselho de guerra</p><h2 id="order-title">Briseida</h2>${voice('agamemnon','Agamêmnon','"Pois que volte. Mas eu comando esta frota e não fico sem a minha parte. Tragam Briseida das tendas de Aquiles."')}${voice('aquiles','Aquiles','"Leve. Mas não erguerei mais a lança por você. Quando Heitor estiver nos navios, vai lembrar deste dia."')}${button('Continuar','crises-next','',false,'button')}`]:[
   `${sceneArt(SCENE_ART.crises)}<p class="order-step">A1 · A praia dos navios</p><h2 id="order-title">O resgate de Crises</h2><p class="order-tale">Um velho de túnica branca desce até a praia com as fitas de Apolo nas mãos e um resgate de ouro. É Crises, o sacerdote. Ajoelha-se diante dos reis e pede a filha de volta.</p>${button('Continuar','crises-next','',false,'button')}`,
   `<p class="order-step">A1 · A praia dos navios</p><h2 id="order-title">Crises pede a filha</h2>${voice('','Crises','"Que os deuses vos deem Troia e o caminho de casa. Mas me devolvam a minha filha, e respeitem Apolo, o arqueiro."')}${voice('agamemnon','Agamêmnon','"Velho, não quero te ver de novo perto dos meus navios. Ela é minha, e envelhecerá em Micenas."')}${voice('aquiles','Aquiles','"O velho traz ouro e as fitas do deus. Ninguém aqui ganha nada brigando com Apolo."')}${button('Continuar','crises-next','',false,'button')}`];
- beats.push(`<p class="order-step">A decisão é de Agamêmnon</p><h2 id="order-title">O que faz o rei?</h2>${group('Aceitar a devolução',['sacrifice','briseida'])}${group('Recusar a devolução',['refuse','intercede'])}`);
+ beats.push(`<p class="order-step">A decisão é de Agamêmnon</p><h2 id="order-title">O que faz o rei?</h2><div class="cris-groups">${group('Aceitar a devolução',['sacrifice','briseida'])}${group('Recusar a devolução',['refuse','intercede'])}</div>`);
  return `<div class="order-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="order-title"><section class="order-card cris-card">${beats[Math.min(crisesBeat,beats.length-1)]}</section></div>`;}
 function encounterHTML(){
   if(!state?.encounter||busy(true)||featAlert.length||findAlert||(state.encounter.id==='scales'&&(storyAlert||commandLevel()>commandWarned)))return '';
@@ -192,7 +192,7 @@ let onboardingStep=0;
 
 
 
-function freshExpedition(){commandWarned=0;return G.newGame({campaign:!!campaign,players:setup.players,playerNames:setup.playerNames,heroes:setup.heroes,owners:setup.owners,levels:setup.levels,abilities:campaign?undefined:setup.abilities,known:campaign?.team?.known,life:campaign?.team?.life,campFood:storeFromCampaign(),scrolls:campaign?.scrolls,legacy:campaign?.legacy,revealedZones:campaign?.revealedZones});}
+function freshExpedition(){commandWarned=0;return G.newGame({favor:campaign?.resources?.favor,campaign:!!campaign,players:setup.players,playerNames:setup.playerNames,heroes:setup.heroes,owners:setup.owners,levels:setup.levels,abilities:campaign?undefined:setup.abilities,known:campaign?.team?.known,life:campaign?.team?.life,campFood:storeFromCampaign(),scrolls:campaign?.scrolls,legacy:campaign?.legacy,revealedZones:campaign?.revealedZones});}
 function playerName(owner,source=setup){return source.playerNames?.[owner-1]||`Jogador ${owner}`;}
 // Preparação, no padrão das missões 1 e 2: sem campanha, três escolhas simples; com campanha, a equipe já vem pronta.
 // Depois, pop-ups: o tabuleiro de cada herói, a história (que pode ser pulada), o título, o feito de cada herói e a mesa.
@@ -372,18 +372,26 @@ function cueSnapshot(){return {prev:state,built:state.built,reveal:revealAlert.l
 let featCued=false,trojanPhase=false,resourcesOpen=false;
 // Selo da fase de Troia nos avisos que ela abre, sempre na mesma ordem.
 const TROY_STEPS={move:'Fase de Troia · 1 de 3 · Movimento e ataques',reinforce:'Fase de Troia · 2 de 3 · Reforços',chronicle:'Fase de Troia · 3 de 3 · Crônica'};
-function featSound(){if(featAlert.length&&!featCued&&!busy()){featCued=true;window.TroyAudio?.cue?.('feito');}}
+// Som de cada aviso (07/10/2026): toca quando o aviso aparece na tela, um de cada vez, e não no momento da ação.
+let lastDialog='',lastDialogKind='';
+// Espera o aviso firmar na tela: o primeiro desenho depois de uma ação às vezes mostra por um instante um aviso que logo dá lugar a outro.
+let dialogTimer=0;
+function featSound(){clearTimeout(dialogTimer);dialogTimer=setTimeout(dialogSound,200);}
+function dialogSound(){const A=window.TroyAudio;const all=app.querySelectorAll('.order-backdrop > section,.arrival-backdrop > section'),d=all[all.length-1];const eyebrow=d?.querySelector('.eyebrow,.order-step')?.textContent||'',key=d?d.className+'|'+eyebrow+'|'+(d.querySelector('h2')?.textContent||''):'';if(key===lastDialog)return;const prevDialog=lastDialog;lastDialog=key;if(!d||!A?.cue){lastDialogKind='';return;}
+  const c=d.classList,kind=[...c].find(x=>/-card$|^order-[a-z]+$/.test(x)&&x!=='order-card'&&x!=='arrival-card')||'';let name=null;
+  if(c.contains('death-card'))name='queda';else if(c.contains('feat-card'))name='feito';
+  else if(c.contains('encounter-card'))name=/aprendizado/i.test(eyebrow)?null:'encontro';
+  else if(c.contains('cris-card'))name=lastDialogKind==='cris-card'?null:'encontro';
+  else if(c.contains('chronicle-card'))name=/crônica/i.test(eyebrow)?(['trompas','portao'].includes(state?.chronicle?.id)?'corneta':'cronica'):'descoberta';
+  else if(c.contains('order-troop'))name=/reforço/i.test(eyebrow)&&!/reforço/i.test(prevDialog)?'corneta':null;
+  else if(c.contains('order-piece'))name=lastDialogKind==='order-piece'?null:'revelar';
+  lastDialogKind=kind;if(name)A.cue(name);}
 function soundCues(b){
-  const A=window.TroyAudio;if(!A?.cue)return;A.changes?.(b.prev,state);
-  // O som do feito toca quando o aviso do feito aparece na tela (featSound), não junto com os outros.
+  M.storeToast?.(b.prev,state);
+  const A=window.TroyAudio;if(!A?.cue)return;if(!trojanPhase||(state.result&&!b.prev?.result))A.changes?.(b.prev,state);
+  // Os sons dos avisos (queda, encontro, tropas, descoberta, peça nova, crônica, feito) tocam quando o aviso aparece: ver featSound.
   const arrival=troopArrival&&troopArrival!==b.arrival;
-  if(deathAlert&&deathAlert!==b.death)A.cue('queda');
-  else if(state.built&&!b.built){A.cue('acampamento');setTimeout(()=>A.cue('corneta'),1600);}
-  else if(state.encounter&&!b.encounter&&state.encounter.id!=='ability')A.cue('encontro');
-  else if(arrival)A.cue('corneta');
-  else if(findAlert&&findAlert!==b.find)A.cue('descoberta');
-  else if(revealAlert.length>b.reveal)A.cue('revelar');
-  else if(state.round>b.round&&state.chronicle?.round===state.round)A.cue(['trompas','portao'].includes(state.chronicle.id)?'corneta':'cronica');
+  if(state.built&&!b.built){A.cue('acampamento');setTimeout(()=>A.cue('corneta'),1600);}
 }
 function ambience(){const A=window.TroyAudio;if(!A?.setTension)return;if(!state||state.result){A.setTension(-1);A.setHeartbeat(false);return;}A.setTension(state.alarm>=12?2:state.alarm>=6?1:0);A.setHeartbeat(state.heroes.some(h=>h.hp>0&&h.hp<=2));}
 function openZone(zone){popZone=popZone===zone?null:zone;pending=null;confirmation=null;render();}

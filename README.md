@@ -14,12 +14,12 @@ Jogo de tabuleiro **físico** (miniaturas, peças de mapa, tabuleiros de herói,
 | 1. O Desembarque | `cooperativo/index.html` | `landing.js` | jogável |
 | 2. Diante das muralhas | `cooperativo/reconhecimento.html` | `reconhecimento.js` | jogável |
 | 3. Segurar a linha | `cooperativo/segurar.html` | `segurar.js` | jogável |
-| 4. A ira de Aquiles | — | — | em desenho |
-| 5. O Paládio | — | — | em desenho |
-| 6. Construir o cavalo | — | — | planejada |
-| 7. A noite do cavalo | — | — | planejada |
+| 4. A ira de Aquiles | `cooperativo/ira.html` | `ira.js` | jogável |
+| 5. O Paládio | `cooperativo/paladio.html` | `paladio.js` | em teste |
+| 6. Construir o cavalo | `cooperativo/cavalo.html` | `cavalo.js` | em teste |
+| 7. A noite do cavalo | `cooperativo/noite.html` | `noite.js` | em reescrita |
 
-Regras que valem em todas: 1–5 jogadores, Odisseu e Agamêmnon obrigatórios; rodada em **fase dos heróis** e **fase de Troia**; o **Alarme de Troia** traz reforços em patamares; **vida é comida** (o armazém só repõe vida entre missões); decisões com efeito escondido até a escolha (`docs/DILEMAS.md`); pergaminhos que atravessam missões (`docs/MECANICA-PERGAMINHOS.md`). O resultado de cada missão passa para a seguinte em `ilia-campanha-v1` (`campaign-state.js`).
+Regras que valem em todas: 1–5 jogadores; **Odisseu e Agamêmnon são obrigatórios** (numa equipe de três, a terceira vaga é Aquiles, Ájax ou Menelau; com mais jogadores, entram os outros); cada missão tem as próprias condições de vitória e derrota, descritas no manual da missão (botão ? na tela) e no `docs/CENARIO-MISSAO-N.md`; rodada em **fase dos heróis** e **fase de Troia**; o **Alarme de Troia** traz reforços em patamares; **vida é comida** (o armazém só repõe vida entre missões); decisões com efeito escondido até a escolha (`docs/DILEMAS.md`); pergaminhos que atravessam missões (`docs/MECANICA-PERGAMINHOS.md`). O resultado de cada missão passa para a seguinte em `ilia-campanha-v1` (`campaign-state.js`).
 
 Interface compartilhada: `mesa.js` e `mesa.css` (mapa, diálogos, heróis, painel de Troia); `heroes.js` e `troops.js` (personagens); `territory.js` (peças do mapa). Páginas antigas mantidas só como referência: `muralhas.html`, `defesa.html` e `exploracao.html`.
 

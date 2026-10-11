@@ -1,0 +1,29 @@
+/* Missão 7 · A noite do cavalo: o mapa da cidade ao lado da mesa (o mesmo do Paládio) e a troca de vista. */
+.enemy-miniature.vigia{background-image:url('assets/tropas/explorador.webp')}
+.mesa-map-wrap.city-view{overflow:auto;display:grid;place-items:center;padding:12px}
+.city-view .city-scroll{width:min(100%,980px)}
+.city{position:relative;border:1px solid var(--graphite-line,#3a3b40);border-radius:12px;overflow:hidden;background:#111}
+.city img{display:block;width:100%;height:auto}
+.city-zone{position:absolute;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:3px;min-width:64px;padding:4px 6px;border:1px solid #0000;border-radius:10px;background:#0000;color:var(--ink,#eee);cursor:pointer}
+.city-zone .zid{font:700 12px/1 'DM Sans',sans-serif;padding:3px 6px;border-radius:5px;background:#141517d9;border:1px solid #4a4b50}
+.city-zone.reach .zid{background:#3a2e17;border-color:var(--gold,#e0b96c);color:var(--gold,#e0b96c);box-shadow:0 0 0 3px #e0b96c55}
+.city-zone.here .zid{background:var(--gold,#e0b96c);color:#1a1006;border-color:var(--gold,#e0b96c)}
+.city-zone.actionable .zid{box-shadow:0 0 0 3px #e0b96c99}
+.city-zone:focus-visible{outline:2px solid var(--gold,#e0b96c);outline-offset:2px}
+.city-zone .units{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:150px}
+.city .city-zone .mesa-avatar{width:40px;height:40px;border-radius:50%;box-shadow:0 0 0 2px #120c09,0 0 0 4px var(--gold,#e0b96c),0 4px 10px #000c}
+.city .city-zone .enemy-miniature{width:34px;height:34px;border:0!important;border-radius:50%!important;background-color:#2a1a12!important;background-size:78%!important;background-position:center 60%!important;background-repeat:no-repeat!important;box-shadow:0 0 0 2px #120c09,0 0 0 4px #c45a3c,0 4px 10px #000c!important}
+.city-zone .story-chip{font-size:10px}
+.view-chip{position:absolute;left:12px;top:12px;z-index:5;padding:8px 12px;border-radius:999px;border:1px solid var(--gold,#e0b96c);background:#141517e6;color:var(--gold,#e0b96c);font:600 13px/1 'DM Sans',sans-serif;cursor:pointer}
+.discovery-pick select{margin-left:6px}
+@media (max-width:760px){.city-view .city-scroll{overflow-x:auto;overscroll-behavior-x:contain}.city{min-width:640px}.city-zone{min-width:52px}.city .city-zone .mesa-avatar{width:30px;height:30px}.city .city-zone .enemy-miniature{width:26px;height:26px}}
+.city-view .camera-controls,.city-view .route-chip{display:none}
+/* Epílogo da campanha */
+.epi-card{width:min(560px,100%)}
+.epi-card .scene-art{width:100%;height:auto;max-height:240px;object-fit:cover;border-radius:10px}
+.epi-card .prep-tale{font-size:18px;line-height:1.5}
+.epi-card .prep-minis{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+/* A vida de cada tropa na cidade (10/10/2026). */
+.city-zone .foe-unit{position:relative;display:inline-block}
+.city-zone .foe-unit b{position:absolute;right:-4px;bottom:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#7d1f16;color:#fff;font:700 11px/18px 'DM Sans',sans-serif;text-align:center;box-shadow:0 0 0 2px #120c09}

@@ -3,11 +3,12 @@ const assert=require('node:assert/strict');
 const G=require('../cooperativo/landing.js');
 const defaultHeroes=['aquiles','odisseu','agamemnon'];
 const ALL=Object.keys(G.ZONES);
-function ready(s){return s;}
+// A maioria dos testes começa com as caixas já à vista (como depois de tomar o posto de A1).
+function ready(s){s.supplies={...s.cratePlan};s.cratePlan={};return s;}
 const setup=(options={})=>ready(G.newGame({heroes:defaultHeroes,...options}));
 const hero=(s,id)=>s.heroes.find(h=>h.id===id);
 function act(s,id,action,target){const r=G.act(s,id,action,target);assert.ok(r.ok,r.error);assert.ok(G.validSave(r.state),'estado inválido após '+action);return r.state;}
-function play(ids,players=ids.length,route='A',abilities){let s=ready(G.newGame({heroes:ids,players,route,abilities}));
+function play(ids,players=ids.length,route='A',abilities){let s=G.newGame({heroes:ids,players,route,abilities});
  const doAct=(id,action,target)=>{const r=G.act(s,id,action,target);if(!r.ok)throw Error(id+' '+action+' '+target+': '+r.error);s=r.state;if(!G.validSave(s))throw Error('Invalid state after '+action);};
  for(let turn=0;turn<40&&!s.result;turn++){
   for(const id of ids)for(let i=0;i<3;i++){
@@ -42,7 +43,7 @@ function play(ids,players=ids.length,route='A',abilities){let s=ready(G.newGame(
 
 test('the bot wins most legal rosters of 3, 4 or 5 heroes on both routes',()=>{let wins=0,games=0;
  const ids=G.HEROES.map(h=>h.id);
- for(const route of ['A','B'])for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];const s=play(team,team.length,route);games++;if(s.result!=='victory')continue;wins++;assert.equal(s.delivered,team.length);assert.equal(s.outcome.next,'Diante das muralhas');assert.equal(s.outcome.supplies,s.delivered-s.burned);assert.ok(s.outcome.revealedZones.includes('A1'));}
+ for(const route of ['A','B'])for(let mask=0;mask<32;mask++){const picked=ids.filter((_,i)=>mask&(1<<i));if(picked.length<3||!picked.includes('odisseu')||!picked.includes('agamemnon'))continue;const team=['odisseu','agamemnon',...picked.filter(id=>!['odisseu','agamemnon'].includes(id))];const s=play(team,team.length,route);games++;if(s.result!=='victory')continue;wins++;assert.ok(s.delivered>=G.CAMP_MIN);assert.equal(s.outcome.next,'Diante das muralhas');assert.equal(s.outcome.supplies,s.delivered-s.burned);assert.ok(s.outcome.revealedZones.includes('A1'));}
  // Com o posto de A1 e a exploração por indícios (03/10/2026), a missão ficou mais difícil de propósito: o teste de mesa a achou fácil.
  // Desde 04/10/2026 a queda de Enéias não limpa o mapa (só a guarda dele recua): mais difícil ainda.
  // Meta do Felipe (05/10/2026): no máximo 6 vitórias em 14 (43%). O robô ignora os pedidos da crônica, que agora trazem tropas.
@@ -57,10 +58,11 @@ test('player names persist with the expedition and remain valid in saved games',
  assert.deepEqual(s.playerNames,['Felipe','Ana']);assert.ok(G.validSave(s));
  const invalid=structuredClone(s);invalid.playerNames=['Felipe',''];assert.equal(G.validSave(invalid),false);
 });
-test('the expedition starts with only N1, every hero there and the cargo spread along the beaches',()=>{
+test('the expedition starts with only N1, every hero there; the cargo along the beaches only shows up once the camp post is found',()=>{
+ const raw=G.newGame({heroes:defaultHeroes});assert.deepEqual(raw.supplies,{},'as caixas ainda não estão no mapa');assert.deepEqual(raw.cratePlan,{N1:1,N3:1,N4:1});
  const s=setup();assert.deepEqual(s.revealed,['N1']);assert.ok(s.heroes.every(h=>h.zone==='N1'));assert.deepEqual(s.supplies,{N1:1,N3:1,N4:1});assert.equal(s.enemies.length,1,'o mirante de P1 começa vazio');assert.equal(s.enemies[0].zone,'A1');assert.ok(s.enemies[0].hold&&s.enemies[0].watch,'a vigia fica parada em A1');assert.equal(G.isRevealed(s,'A1'),false);assert.equal(s.post.status,'hidden');
  assert.deepEqual(setup({route:'B'}).supplies,{N1:1,N2:1,N4:1});
- const five=G.newGame({players:5,heroes:G.HEROES.map(h=>h.id)});assert.deepEqual(five.supplies,{N1:2,N2:1,N3:1,N4:1});for(const zone of Object.keys(five.supplies))assert.ok(G.BEACHES.includes(zone));
+ const five=G.newGame({players:5,heroes:G.HEROES.map(h=>h.id)});assert.deepEqual(five.cratePlan,{N1:2,N2:1,N3:1,N4:1});for(const zone of Object.keys(five.cratePlan))assert.ok(G.BEACHES.includes(zone));
 });
 test('failed actions neither mutate state nor spend actions',()=>{
  const s=setup(),before=JSON.stringify(s);assert.equal(G.act(s,'aquiles','move','P2').ok,false);assert.equal(G.act(s,'aquiles','attack','e1').ok,false);assert.equal(G.act(s,'aquiles','card:2').ok,false);assert.equal(JSON.stringify(s),before);
@@ -87,10 +89,10 @@ test('the alarm rises with time, scouts and the ship, and its steps bring reinfo
 test('castaways need two actions before the alarm limit, reward food and reveal the cargo beaches',()=>{
  let s=setup();s.revealed.push('N2','N3');s.visited.push('N2');hero(s,'aquiles').zone='N2';s=act(s,'aquiles','move','N3');assert.equal(s.encounter.id,'castaways');assert.equal(G.act(s,'odisseu','move','A1').ok,false,'o encontro pausa a partida');
  s=G.choose(s,'rescue').state;s.enemies=[];const food=s.campFood;s=act(s,'aquiles','interact','castaways');assert.equal(s.castaways.progress,1);hero(s,'odisseu').zone='N3';s=act(s,'odisseu','interact','castaways');assert.equal(s.castaways.status,'rescued');assert.equal(s.campFood,food+1);assert.ok(G.isRevealed(s,'N4'));
- let lost=setup();lost.enemies=[];lost.alarm=G.CASTAWAY_LIMIT-1;lost=G.trojanTurn(lost);assert.equal(lost.castaways.status,'lost');
+ let lost=setup();lost.enemies=[];lost.alarm=G.CASTAWAY_LIMIT-1;let unseen=G.trojanTurn(lost);assert.equal(unseen.castaways.status,'unseen','ninguém os viu: não se perdem nem pesam');lost.castaways.status='met';lost=G.trojanTurn(lost);assert.equal(lost.castaways.status,'lost');
 });
 test('the beggar is Zeus: giving him bread earns 2 Favor and calms the alarm at once; refusing makes him a spy',()=>{
- const atC1=()=>{let s=setup();s.revealed.push('A1','A2','P2','C1');s.visited.push('A1','A2','P2');s.enemies=[];hero(s,'odisseu').zone='P2';s=act(s,'odisseu','move','C1');assert.equal(s.encounter.id,'beggar');return s;};
+ const atC1=()=>{let s=setup();s.revealed.push('A1','A2','P2','C1');s.visited.push('A1','A2','P2');s.enemies=[];hero(s,'odisseu').zone='P2';s=act(act(s,'odisseu','move','C1'),'odisseu','interact','meet-beggar');assert.equal(s.encounter.id,'beggar');return s;};
  let refused=G.choose(atC1(),'refuse').state;assert.equal(refused.beggar.status,'spy');assert.equal(refused.alarm,2);assert.ok(refused.enemies.some(e=>e.zone==='C1'&&e.type==='lanceiro'));
  let s=atC1();s.alarm=4;s.favor=1;s.campFood=2;const hp=hero(s,'odisseu').hp;s=G.choose(s,'accept').state;
  assert.equal(s.beggar.status,'zeus','sem escolta: ele recebe o pão e some');assert.equal(s.favor,3,'+2 de Favor');assert.equal(s.alarm,3,'Alarme −1');assert.equal(hero(s,'odisseu').hp,hp,'a vida não muda');assert.equal(s.campFood,1,'o pão sai do armazém');assert.match(s.lastFind.text,/Zeus/);
@@ -111,9 +113,9 @@ test('falling drops cargo; rescue costs no action and transfers 1 life from the 
  hero(s,'odisseu').hp=1;hero(s,'aquiles').hp=0;assert.equal(G.act(s,'odisseu','rescue','aquiles').ok,false,'com 1 de vida não há o que transferir');
  let r=setup();r.heroes.forEach(h=>h.hp=4);r.heroes[0].used=[0];assert.equal(G.act(r,r.heroes[1].id,'rest').ok,false,'recuperar não cura');r=act(r,r.heroes[0].id,'rest');assert.equal(r.heroes[0].hp,4);assert.deepEqual(r.heroes[0].used,[]);
 });
-test('installation requires all boxes and brings no extra counterattack',()=>{
+test('installation needs only two boxes and brings no extra counterattack',()=>{
  const rosters={3:['odisseu','agamemnon','aquiles'],4:['odisseu','agamemnon','aquiles','ajax'],5:['odisseu','agamemnon','aquiles','ajax','menelau']};
- for(const count of [3,4,5]){let s=ready(G.newGame({players:count,heroes:rosters[count]}));s.revealed.push('A1');s.heroes[0].zone='A1';assert.equal(G.act(s,s.heroes[0].id,'interact','install').ok,false);s.delivered=count;s.supplies={};s.enemies=[];s.enemies=[G.TROOPS.create('e90','P1','lanceiro')];s.nextEnemy=91;s=act(s,s.heroes[0].id,'interact','install');assert.ok(s.built);assert.equal(s.enemies.length,1);assert.equal(s.result,null,'há tropa perto do acampamento');}
+ for(const count of [3,4,5]){let s=ready(G.newGame({players:count,heroes:rosters[count]}));s.revealed.push('A1');s.heroes[0].zone='A1';s.delivered=1;s.supplies={N1:count-1};assert.equal(G.act(s,s.heroes[0].id,'interact','install').ok,false,'1 caixa não basta');s.delivered=2;s.supplies={N1:count-2};s.enemies=[];s.enemies=[G.TROOPS.create('e90','P1','lanceiro')];s.nextEnemy=91;s=act(s,s.heroes[0].id,'interact','install');assert.ok(s.built);assert.equal(s.enemies.length,1);assert.equal(s.result,null,'há tropa perto do acampamento');}
 });
 test('the Greeks win by clearing the camp surroundings, or by killing Aeneas once he has come',()=>{
  let s=setup();s.revealed.push('A1','A2','P1');s.delivered=s.required;s.supplies={};s.heroes[0].zone='A1';s.enemies=[G.TROOPS.create('e90','P6','lanceiro')];s.nextEnemy=91;
@@ -182,7 +184,7 @@ test('favor rises with honor, falls with impiety and pays for one divine invocat
  assert.equal(G.invoke(s,'hera','aquiles').ok,false,'Hera não existe mais');s.favor=6;assert.equal(G.invoke(s,'poseidon').ok,false,'uma invocação por rodada');
  s=G.trojanTurn(s);s.enemies=[];s.alarm=5;const fav=s.favor;s=G.invoke(s,'poseidon').state;assert.equal(s.alarm,3);assert.equal(s.favor,fav-2);
  s.chronicleQueue.push('sinal');s=G.trojanTurn(s);s.enemies=[];assert.equal(s.chronicle.id,'sinal');s=G.invoke(s,'zeus').state;assert.equal(s.chronicle.favored,true);const calm=s.alarm;s=G.trojanTurn(s);assert.equal(s.chronicleResult.status,'success');assert.equal(s.alarm,calm+1,'só o tempo: o sinal foi abafado pelo presságio');assert.ok(G.validSave(s));
- let refused=setup();refused.revealed.push('A1','A2','P2','C1');refused.visited.push('A1','A2','P2');refused.enemies=[];hero(refused,'odisseu').zone='P2';refused=act(refused,'odisseu','move','C1');refused=G.choose(refused,'refuse').state;assert.equal(refused.favor,0);
+ let refused=setup();refused.revealed.push('A1','A2','P2','C1');refused.visited.push('A1','A2','P2');refused.enemies=[];hero(refused,'odisseu').zone='P2';refused=act(act(refused,'odisseu','move','C1'),'odisseu','interact','meet-beggar');refused=G.choose(refused,'refuse').state;assert.equal(refused.favor,0);
 });
 test('route B hides danger behind the same clues: a snake in the wreckage and an ambush on the trail',()=>{
  let s=setup({route:'B'});s.revealed=[...ALL];s.visited=[...ALL];s.enemies=[];
@@ -222,7 +224,7 @@ test('charge and the two-area dash still work after a hero carrying a crate has 
 });
 
 test('feeding the old man takes bread from the camp store, never the life of the heroes',()=>{
- let w=setup();w.revealed.push('A1','A2','P2','C1');w.visited.push('A1','A2','P2');w.enemies=[];hero(w,'odisseu').zone='P2';w=act(w,'odisseu','move','C1');w.campFood=0;assert.equal(G.choose(w,'accept').ok,false,'sem comida no armazém, não há pão');
+ let w=setup();w.revealed.push('A1','A2','P2','C1');w.visited.push('A1','A2','P2');w.enemies=[];hero(w,'odisseu').zone='P2';w=act(act(w,'odisseu','move','C1'),'odisseu','interact','meet-beggar');w.campFood=0;assert.equal(G.choose(w,'accept').ok,false,'sem comida no armazém, não há pão');
 });
 
 test('archers neither strike back nor suffer the Greek rebound; Odysseus, an archer, gives none either',()=>{

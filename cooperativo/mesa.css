@@ -793,3 +793,36 @@ dialog#rules .dialog-head h2{font:400 28px/1.15 'Marcellus',Georgia,serif;color:
 @media (max-width:640px){.how-actions,.how-legend{grid-template-columns:1fr}.how-step{grid-template-columns:28px 1fr}.how-visual{display:none}}
 .cris-voice.solo{grid-template-columns:1fr;padding-left:14px}
 .cris-group{width:100%;display:grid;gap:8px;margin-top:6px}.cris-group h3{margin:0;font:400 15px 'Marcellus',Georgia,serif;color:var(--gold);text-align:left}
+.store-toast{position:fixed;left:50%;top:76px;z-index:60;display:flex;align-items:center;gap:10px;padding:9px 16px;border-radius:999px;border:1px solid var(--gold);background:var(--graphite-1);color:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.45);transform:translate(-50%,-12px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}.store-toast.show{opacity:1;transform:translate(-50%,0)}.store-toast.loss{border-color:#b9614f}.store-toast .icon{color:var(--gold)}.store-toast span{display:grid;font-size:13px;color:var(--muted)}.store-toast b{font-size:15px;color:var(--ink)}@media (prefers-reduced-motion:reduce){.store-toast{transition:none}}
+
+/* Diálogos que não cabem na tela (07/10/2026): o cartão rola por dentro, em vez de esconder as opções. */
+.order-card{max-height:calc(100dvh - 20px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.order-backdrop{padding:10px}
+.cris-groups{width:100%;display:grid;gap:10px}
+.cris-card:has(.cris-groups){width:min(620px,100%)}
+/* Telas baixas: cartão compacto, com a ilustração mais baixa (nunca escondida). */
+@media (max-height:700px){.order-card{padding:12px 14px 14px;gap:6px}.order-card h2{font-size:20px;margin:0}.cris-card .scene-art{height:96px;object-position:center 40%}.cris-choice{padding:9px 10px;gap:4px}.cris-choice b{font-size:16px}.cris-choice ul{font-size:12.5px;gap:2px}.cris-choice small{font-size:12px}.cris-voice p{font-size:14px}.order-tale{font-size:15px;line-height:1.3}}
+.cris-groups{align-items:start}.cris-group{align-content:start}
+/* Todas as caixas de diálogo com o mesmo tamanho e no mesmo lugar (07/10/2026): centradas, mesma largura; a altura acompanha o texto
+   até o limite da tela, e daí a caixa rola por dentro. */
+.order-backdrop,.arrival-backdrop,.arrival-backdrop:has(>.story-review),.arrival-backdrop:has(>.food-allocation){place-items:center;padding:10px}
+.order-backdrop>.order-card,.arrival-backdrop>.arrival-card,.arrival-backdrop>.arrival-card:has(>.scene-art),.arrival-backdrop>.story-review,.order-backdrop>.cris-card,.order-backdrop>.cris-card:has(.cris-groups){width:min(640px,100%);max-width:640px;max-height:calc(100dvh - 20px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;margin:0}
+.order-backdrop>.order-card,.arrival-backdrop>.arrival-card,.arrival-backdrop>.arrival-card:has(>.scene-art),.arrival-backdrop>.story-review,.order-backdrop>.cris-card,.order-backdrop>.cris-card:has(.cris-groups){width:min(640px,calc(100vw - 20px));min-height:min(340px,calc(100dvh - 20px));align-content:center}
+.cris-groups,.cris-group,.cris-choices,.cris-choices>*{min-width:0}
+/* Celular em pé (08/10/2026): nada passa da largura da tela. A barra da missão quebra em duas linhas (título e ordem em cima,
+   chama, recursos e feitos embaixo, só com ícones) e a faixa dos heróis rola para o lado, com cartões compactos. */
+html,body{max-width:100%;overflow-x:hidden}
+@media (max-width:600px){
+  .mission-card{flex-wrap:wrap;row-gap:6px;max-width:100%;box-sizing:border-box}
+  .mission-title{flex:1 1 100%;min-width:0}
+  .mission-title b{flex:none}
+  .mission-title em{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .mission-hud{margin-left:0;width:100%;justify-content:flex-end;flex-wrap:wrap}
+  .phase-seal,.res-label,.res-toggle .res-label{display:none}
+  .mesa-heroes{overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none}
+  .mesa-heroes::-webkit-scrollbar{display:none}
+  .mesa-hero{flex:0 0 auto;scroll-snap-align:start;grid-template-columns:36px auto;gap:6px;padding:3px 10px 3px 3px}
+  .mesa-hero .mesa-hero-stats{grid-column:2}
+  .mesa-hero .mesa-hero-id small,.mesa-hero .feat-line{display:none}
+  .mesa-end{position:sticky;right:0;background:inherit}
+}

@@ -90,5 +90,9 @@
   return `<section class="mission-card ${open?'open':''}" aria-label="Missão ${number}"><button class="mission-title" data-command="toggle-mission" aria-expanded="${open}"><b>${esc(title)}</b>${phase?`<span class="phase-seal">${esc(phase)}</span>`:''}${current?`<em>${esc(current.label)}</em>`:''}<i aria-hidden="true">${open?'▴':'▾'}</i></button>${alarm?hud:`<dl class="mission-stats">${(stats||[]).map(st=>`<div class="${st.alert?'alert':''}"><dt>${esc(st.label)}</dt><dd>${st.value}</dd></div>`).join('')}</dl>`}${extra}${open?`<div class="mission-drop"><p class="mission-goal">${esc(objective)}</p>${track}<button class="quiet review-story" data-command="review-story">Rever a história e as regras</button></div>`:''}</section>`;
  }
 
- window.TroyMesa={ICONS,esc,zoneOf,zoneOptions,popoverHTML,placePopover,heroStrip,enemyPanel,missionBlock};
+ // Armazém do acampamento: toda mudança de comida aparece num aviso curto, com o total.
+ let storeTimer;
+ function storeToast(before,after){if(!before||!after||before.foodSetup||after.foodSetup||!Number.isInteger(before.campFood)||before.campFood===after.campFood)return;const d=after.campFood-before.campFood;let el=document.querySelector('.store-toast');if(!el){el=document.createElement('div');el.className='store-toast';el.setAttribute('role','status');document.body.appendChild(el);}
+  el.innerHTML=`${ICONS.food}<span><b>Armazém ${d>0?'+':'−'}${Math.abs(d)} comida</b>agora ${after.campFood}</span>`;el.classList.toggle('loss',d<0);el.classList.add('show');clearTimeout(storeTimer);storeTimer=setTimeout(()=>el.classList.remove('show'),5000);}
+ window.TroyMesa={ICONS,esc,zoneOf,zoneOptions,popoverHTML,placePopover,heroStrip,enemyPanel,missionBlock,storeToast};
 })();

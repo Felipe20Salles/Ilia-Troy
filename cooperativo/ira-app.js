@@ -28,7 +28,8 @@ function detectArrivals(before,after,reason){const prior=new Set(before.map(e=>e
 function detectReveals(){if(state.lastReveals?.length)revealAlert=[...new Set([...revealAlert,...state.lastReveals])];if(state.lastFeats?.length)featAlert=[...new Set([...featAlert,...state.lastFeats])];}
 
 // Resposta de Troia: só tropas que estavam ou passam a estar à vista na mesa.
-function prepareTrojanResponse(before,after){responseQueue=before.enemies.filter(enemy=>{const moved=after.enemies.find(e=>e.id===enemy.id);return G.isRevealed(before,enemy.zone)||(moved&&G.isRevealed(after,moved.zone));}).map(enemy=>{const moved=after.enemies.find(e=>e.id===enemy.id),intent=G.intent(enemy,before),seen=G.isRevealed(before,enemy.zone);return {id:enemy.id,hits:(after.lastAttacks||[]).filter(a=>a.enemy===enemy.id),type:enemy.type,label:G.TROOPS.label(enemy),from:seen?enemy.zone:null,to:moved?.zone||null,intent:enemy.type==='heitor'?(moved&&moved.zone!==enemy.zone?(before.chase?.status==='waiting'?'Aquiles se aproximou: Heitor foge em volta das muralhas.':'Foge em volta das muralhas.'):after.chase?.status==='stopped'?'Parou: espera Aquiles.':'Espera diante das portas Ceias.'):seen?intent:/^Atirar/.test(intent)?'A flecha veio de lá. '+intent+'.':'Surgiu de território desconhecido'};});responseIndex=0;}
+const duelStrike=s=>['A lança','A espada'].includes(s?.lastFind?.title);
+function prepareTrojanResponse(before,after){responseQueue=before.enemies.filter(enemy=>{const moved=after.enemies.find(e=>e.id===enemy.id);return G.isRevealed(before,enemy.zone)||(moved&&G.isRevealed(after,moved.zone));}).map(enemy=>{const moved=after.enemies.find(e=>e.id===enemy.id),intent=G.intent(enemy,before),seen=G.isRevealed(before,enemy.zone);return {id:enemy.id,hits:(after.lastAttacks||[]).filter(a=>a.enemy===enemy.id),type:enemy.type,label:G.TROOPS.label(enemy),from:seen?enemy.zone:null,to:moved?.zone||null,...(enemy.type==='heitor'&&duelStrike(after)?{tale:after.lastFind.text,title:after.lastFind.title}:{}),intent:enemy.type==='heitor'?(before.chase?.status==='duel'?(duelStrike(after)?'':'Ergue o escudo e só se defende.'):moved&&moved.zone!==enemy.zone?(before.chase?.status==='waiting'?'Aquiles se aproximou: Heitor foge em volta das muralhas.':'Foge em volta das muralhas.'):after.chase?.status==='stopped'?'Parou: espera Aquiles.':'Espera diante das portas Ceias.'):seen?intent:/^Atirar/.test(intent)?'A flecha veio de lá. '+intent+'.':'Surgiu de território desconhecido'};});responseIndex=0;}
 function responseHTML(){if(!responseQueue.length||responseIndex>=responseQueue.length)return '';const list=responseOrders(),k=Math.min(responseSub,list.length-1),o={...list[k],eyebrow:`${TROY_STEPS.move} · tropa ${responseIndex+1} de ${responseQueue.length}`};return orderCard(o,0,1,k<list.length-1?'response-sub':'response-next',k===list.length-1).replace('Feito · próximo','Feito');}
 function arrivalHTML(){if(!troopArrival||(revealAlert.length&&!trojanPhase)||responseIndex<responseQueue.length)return '';const list=arrivalOrders(),k=Math.min(arrivalSub,list.length-1);return orderCard({...list[k],done:'Posicionadas'},k,list.length,k<list.length-1?'arrival-sub':'dismiss-arrival',k===list.length-1);}
 function detectFallen(before,after){const old=Object.fromEntries(before.map(h=>[h.id,h.hp]));const fallen=after.filter(h=>(old[h.id]??0)>0&&h.hp===0);if(fallen.length)deathAlert=fallen.map(h=>h.id);}
@@ -73,7 +74,7 @@ let responseSub=0,arrivalSub=0,placeStep=0;
 // O golpe de cada tropa: quanto tirou de quem, e o que fazer com as fichas de comida.
 function hitLines(step){return (step.hits||[]).map(a=>{const name=G.HEROES.find(d=>d.id===a.hero)?.name||a.hero,fell=!state.heroes.find(h=>h.id===a.hero)?.hp;return a.damage>0?`<b>${esc(name)}</b> perdeu ${a.damage} de vida <span class="hit-apples" aria-hidden="true">${M.ICONS.food.repeat(Math.min(a.damage,8))}</span>${a.ranged?' à distância':''}: retirem ${a.damage} ficha${a.damage>1?'s':''} de comida do tabuleiro dele${fell?'. Ele caiu':''}.${a.rebound!==undefined?(a.rebound>0?` No rebote, ${esc(name)} devolveu ${a.rebound} de dano${a.killed?' e derrubou a tropa':''}.`:` No rebote, ${esc(name)} revidou, mas a armadura da tropa segurou.`):''}`:`<b>${esc(name)}</b> aparou o golpe: não perdeu vida.${a.rebound!==undefined?(a.rebound>0?` No rebote, devolveu ${a.rebound} de dano${a.killed?' e derrubou a tropa':''}.`:' No rebote, revidou, mas a armadura da tropa segurou.'):''}`;}).join('<br>');}
 function responseOrders(){const step=responseQueue[responseIndex],moved=step.to&&step.to!==step.from,eyebrow=TROY_STEPS.move;const order=!step.from?`Coloquem ${step.label} em ${step.to}`:moved?`Movam ${step.label} de ${step.from} para ${step.to}`:`${step.label} fica em ${step.from}`;
-  return [...(step.piece?pieceOrders(step.piece,piecesAhead(),eyebrow):[]),{kind:'troop',eyebrow,visual:`<span class="enemy-miniature ${step.type}" aria-hidden="true"></span>`,title:order,detail:step.intent,order:hitLines(step),done:responseIndex===responseQueue.length-1?'Resposta concluída':'Próxima tropa'}];}
+  return [...(step.piece?pieceOrders(step.piece,piecesAhead(),eyebrow):[]),{kind:'troop',eyebrow,visual:`<span class="enemy-miniature ${step.type}" aria-hidden="true"></span>`,title:step.title||order,tale:step.tale,detail:step.intent,order:hitLines(step),done:responseIndex===responseQueue.length-1?'Resposta concluída':'Próxima tropa'}];}
 function arrivalOrders(){const eyebrow=trojanPhase?TROY_STEPS.reinforce:'Novas tropas troianas',groups=troopArrival.groups;return groups.flatMap((g,k)=>[...(g.piece?pieceOrders(g.piece,[...revealAlert,...groups.slice(k+1).map(x=>x.piece).filter(Boolean)],eyebrow):[]),troopOrder(g.type,g.count,g.zone,eyebrow,k===0?troopArrival.reason+'.':'')]);}
 function placeOrders(){const n=revealAlert.length;return revealAlert.flatMap((zone,i)=>{const p=placementOf(zone),eyebrow=n>1?`Nova peça · ${i+1} de ${n}`:'Nova peça';return [...pieceOrders(zone,revealAlert.slice(i+1),eyebrow),...p.troops.map(t=>troopOrder(t.type,t.n,zone,eyebrow,t.note?t.note[0].toUpperCase()+t.note.slice(1)+'.':''))].map(o=>({...o,own:true,ok:'Ok'}));});}
 // Peças reveladas que a mesa ainda não encaixou: ficam fora do mapa digital até o "Ok" do pop-up delas.
@@ -131,13 +132,13 @@ function findHTML(){
 }
 function detectStory(before){
 
-  if(state.lastFind)findAlert=state.lastFind;
+  if(state.lastFind&&!duelStrike(state))findAlert=state.lastFind;
 }
 const RESULT_TEXT={};
 // O que falta para vencer, de acordo com o Alarme.
 function heitor(){return state.enemies.find(e=>e.type==='heitor');}
 const champName=()=>G.HEROES.find(d=>d.id===G.championId(state))?.name||'Aquiles';
-function holdOrder(){const c=state.chase,h=heitor();if(!h)return 'Heitor caiu.';let o=c.status==='waiting'?`Heitor espera diante das portas Ceias. Quando ${champName()} chegar a 2 peças dele, ele foge em volta das muralhas.`:c.status==='stopped'?`Heitor parou. ${champName()}, na mesma peça, pode enfrentá-lo.`:`Heitor foge em volta das muralhas (volta ${c.laps+1} de ${G.LAPS}). Guardem o portão (M1): se ele passar por lá sem um grego de pé, entra em Troia. Quem fecha a peça à frente dele o faz dar meia-volta; cercado, ele para.`;if(state.patroclus?.status==='active')o+=' Pátroclo veste a armadura de Aquiles: se enfrentar Heitor, cairá diante dele.';return o;}
+function holdOrder(){const c=state.chase,h=heitor();if(!h)return 'Heitor caiu.';let o=c.status==='waiting'?(h.zone!=='P4'?'Heitor vai até diante das portas Ceias (P4) e não entra, por orgulho.':`Heitor está parado diante das portas Ceias. Quando ${champName()} chegar a 2 peças dele, ele foge para o bosque.`):c.status==='duel'?'O duelo: só Aquiles ataca Heitor. Heitor ataca duas vezes (a lança, depois a espada) e então só se defende.':c.status==='stopped'?`Heitor parou. ${champName()}, na mesma peça, pode enfrentá-lo nesta rodada; se não, ele retoma o fôlego e volta a correr.`:`Heitor foge pelo bosque (volta ${c.laps+1} de ${G.LAPS}). Fechem a peça à frente dele para fazê-lo voltar; cercado, ele para. Depois da primeira volta, guardem o portão (M1): passando ao lado dele sem um grego de pé ali, ele entra em Troia.`;if(state.patroclus?.status==='active')o+=' Pátroclo veste a armadura de Aquiles: se enfrentar Heitor, cairá diante dele.';return o;}
 const reconOrder=holdOrder;
 const campOrder=reconOrder;
 // Trilha do Alarme com os patamares de reforço marcados.
@@ -145,16 +146,16 @@ const ALARM_MARKS={3:'Lanceiros',6:'Arqueiros',9:'Lanceiros',12:'Guarda',15:'Lan
 function alarmTrack(){const max=G.alarmMax(state);return `<div class="alarm-track" role="img" aria-label="Alarme ${state.alarm} de ${max}"><div class="alarm-fill" style="width:${state.alarm/max*100}%"></div>${Object.entries(ALARM_MARKS).map(([n,label])=>`<span class="alarm-mark ${state.alarm>=n?'fired':''} " style="left:${n/max*100}%"><b>${n}</b><small>${label}</small></span>`).join('')}</div>`;}
 // Ficha de progresso: o que falta para vencer e o que vem do Alarme, a cada crônica.
 function progressHTML(){
-  return `<div class="round-progress" aria-label="Progresso da missão"><span class="${state.chase.status==='running'&&G.chaseNext(state)?.ahead==='M1'?'urgent':''}"><b>${!heitor()?'Caiu':state.chase.status==='stopped'?'Parado':state.chase.status==='waiting'?'Espera':state.chase.laps+'/'+G.LAPS}</b>Heitor em volta das muralhas</span></div>${alarmTrack()}`;}
+  return `<div class="round-progress" aria-label="Progresso da missão"><span class="${state.chase.status==='running'&&G.chaseNext(state)?.ahead==='M1'?'urgent':''}"><b>${!heitor()?'Caiu':state.chase.status==='stopped'?'Parado':state.chase.status==='waiting'?'Espera':state.chase.laps+'/'+G.LAPS}</b>Heitor no bosque</span></div>${alarmTrack()}`;}
 // Ordens do comandante: lembram o que cada patamar do Alarme traz.
 const COMMAND_WARNINGS=[null,
-  {title:'Guardem o portão',text:'Heitor foge em volta das muralhas. A cada passagem pelo portão, os troianos tentam abri-lo: mantenham um grego de pé em M1. Fechem a peça à frente dele para fazê-lo voltar.'},
-  {title:'Ele vai passar pelo portão',text:'Na próxima fase de Troia, Heitor passa por M1. Sem um grego de pé ali, as portas se abrem.'},
+  {title:'Ao bosque',text:'Heitor foge pelo bosque. Fechem a peça à frente dele para fazê-lo voltar, e cerquem-no dos dois lados. Depois da primeira volta, mantenham um grego de pé no portão (M1).'},
+  {title:'Ele vai tentar o portão',text:'Na próxima fase de Troia, Heitor passa ao lado do portão. Sem um grego de pé em M1, o medo vence o orgulho e ele entra.'},
   {title:'Troia em peso',text:'A cidade inteira sai para salvar Heitor.'}];
 let commandWarned=0;
 function commandLevel(){if(!state||state.result||!heitor())return 0;const c=state.chase;return state.alarm>=18?3:c.status==='running'&&G.chaseNext(state)?.ahead==='M1'&&!state.heroes.some(h=>h.hp>0&&!h.away&&h.zone==='M1')?2:c.status==='running'?1:0;}
 function commandHTML(){
-  const level=commandLevel();if(level<=commandWarned||busy()||(state.chronicle?.round===state.round&&chronicleSeen<state.round)||state.encounter||findAlert||storyAlert||featAlert.length)return '';
+  const level=commandLevel();if(level<=commandWarned||busy()||(state.chronicle?.round===state.round&&chronicleSeen<state.round)||(state.encounter&&state.encounter.id!=='scales')||findAlert||storyAlert||featAlert.length)return '';
   const w=COMMAND_WARNINGS[level],owner=state.heroes.find(h=>h.id==='agamemnon')?.owner;
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="command-title"><section class="arrival-card command-card"><p class="eyebrow">Ordem do comandante${state.players>1&&owner?' · '+esc(playerName(owner,state)):''}</p><article><span class="mesa-avatar hero-agamemnon" aria-hidden="true"></span><div><h2 id="command-title">${w.title}</h2><p class="encounter-text">${w.text}</p></div></article>${button('Às ordens','dismiss-command','',false,'button')}</section></div>`;
 }
@@ -168,7 +169,7 @@ function featHTML(){
   return `<div class="arrival-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="feat-title"><section class="arrival-card feat-card"><p class="eyebrow">Feito pessoal</p>${featAlert.map(id=>{const p=G.PERSONAL[id];return `<article><span class="mesa-avatar hero-${id}" aria-hidden="true"></span><div><h2 id="feat-title">${esc(G.HEROES.find(h=>h.id===id).name)}: ${esc(p.name)}</h2><p>${esc(p.text)}</p><b>${esc(p.reward)}</b></div></article>`;}).join('')}${button('Continuar','dismiss-feat','',false,'button')}</section></div>`;
 }
 let duelBeat=0;
-function duelHTML(){if(!state?.duel||duelBeat>2)return '';const t=G.DUEL[state.duel];return `<div class="order-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="order-title"><section class="order-card cris-card"><p class="order-step">${({ira:'A ira de Aquiles',ajax:'Ájax e Heitor',odisseu:'O arco de Ítaca'})[state.duel]||'Dois guerreiros'} · ${duelBeat+1} de 3</p><h2 id="order-title">${(state.duel==='odisseu'?['Diante das portas Ceias','A flecha','Dentro das muralhas']:state.duel==='ajax'?['Diante das portas Ceias','A pedra de Ájax','A brecha no bronze']:['Diante das portas Ceias','A lança de Heitor','A brecha no bronze'])[duelBeat]}</h2><p class="order-tale">${esc(t[duelBeat])}</p>${button(duelBeat<2?'Continuar':'Ok','duel-next','',false,'button')}</section></div>`;}
+function duelHTML(){if(!state?.duel||duelBeat>=G.DUEL[state.duel].length)return '';const t=G.DUEL[state.duel];return `<div class="order-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="order-title"><section class="order-card cris-card"><p class="order-step">${({ira:'A ira de Aquiles',ajax:'Ájax e Heitor',odisseu:'O arco de Ítaca'})[state.duel]||'Dois guerreiros'} · ${duelBeat+1} de ${t.length}</p><h2 id="order-title">${(state.duel==='odisseu'?['Diante das portas Ceias','A flecha','Dentro das muralhas']:state.duel==='ajax'?['Diante das portas Ceias','A pedra de Ájax','A brecha no bronze']:['A brecha no bronze','O pedido de Heitor',state.duel==='ira'?'Aos cães':'O prêmio','A profecia'])[duelBeat]}</h2><p class="order-tale">${esc(t[duelBeat])}</p>${button(duelBeat<t.length-1?'Continuar':'Ok','duel-next','',false,'button')}</section></div>`;}
 function encounterHTML(){
   if(!state?.encounter||busy(true)||featAlert.length||findAlert||(state.encounter.id==='scales'&&(storyAlert||commandLevel()>commandWarned)))return '';
   const e=ENCOUNTERS[state.encounter.id]();
@@ -181,18 +182,17 @@ let onboardingStep=0;
 
 
 
-function freshExpedition(){commandWarned=0;return G.newGame({campaign:!!campaign,players:setup.players,playerNames:setup.playerNames,heroes:setup.heroes,owners:setup.owners,levels:setup.levels,abilities:campaign?undefined:setup.abilities,known:campaign?.team?.known,life:campaign?.team?.life,campFood:storeFromCampaign(),scrolls:campaign?.scrolls,legacy:campaign?.legacy,revealedZones:campaign?.revealedZones});}
+function freshExpedition(){commandWarned=0;return G.newGame({favor:campaign?.resources?.favor,campaign:!!campaign,players:setup.players,playerNames:setup.playerNames,heroes:setup.heroes,owners:setup.owners,levels:setup.levels,abilities:campaign?undefined:setup.abilities,known:campaign?.team?.known,life:campaign?.team?.life,campFood:storeFromCampaign(),scrolls:campaign?.scrolls,legacy:campaign?.legacy,revealedZones:campaign?.revealedZones});}
 function playerName(owner,source=setup){return source.playerNames?.[owner-1]||`Jogador ${owner}`;}
 // Preparação, no padrão das missões 1 e 2: sem campanha, três escolhas simples; com campanha, a equipe já vem pronta.
 // Depois, pop-ups: o tabuleiro de cada herói, a história (que pode ser pulada), o título, o feito de cada herói e a mesa.
 const INTRO=()=>{const l=campaign?.legacy||{};return [
  ['Heitor do lado de fora','A batalha virou. Os troianos correram para dentro das muralhas, mas Heitor ficou do lado de fora.'],
- ['As portas Ceias','Do alto da muralha, Príamo e Hécuba imploram ao filho que entre. Heitor não entra. Ele espera '+(setup.heroes.includes('aquiles')?'Aquiles':'quem vier')+' diante das portas.'],
  setup.heroes.includes('aquiles')&&l.patroclus==='alive'?['A armadura','Pátroclo ainda veste a armadura de Aquiles. Zeus vai pesar de novo o destino dele.']:setup.heroes.includes('aquiles')&&l.patroclus==='dead'?['A ira','Aquiles voltou. Não há armadura que o detenha, nem homem que ele queira mais do que Heitor.']:setup.heroes.includes('aquiles')?['Dois guerreiros','Aquiles e Heitor. Só um sai da planície como o maior guerreiro de Troia.']:setup.heroes.includes('ajax')?['Ájax','Aquiles não está. Ájax, o muro dos aqueus, vai buscar Heitor. Os dois já se mediram uma vez nesta planície, até a noite separá-los.']:['O arco de Ítaca','Aquiles não está, nem Ájax. Odisseu vai buscar Heitor com o arco. Não precisa vencê-lo: basta feri-lo de morte.']];};
 const FEAT_TALES={
  aquiles:{tale:'Aquiles quer Heitor, e só Heitor. O golpe que o derrubar tem de ser dele.',goal:'Dar o golpe que derruba Heitor.'},
  odisseu:{tale:'Odisseu lê o terreno: sabe por onde Heitor vai correr, e chega lá antes.',goal:'Fechar a peça à frente de Heitor e fazê-lo dar meia-volta.'},
- ajax:{tale:'Sob as muralhas, os arqueiros de Troia cobrem a fuga. Ájax planta o escudo e aguenta.',goal:'Aguentar de pé 2 ataques troianos perto das muralhas.'},
+ ajax:{tale:'Os troianos saem para cobrir a fuga do príncipe. Ájax planta o escudo e aguenta.',goal:'Aguentar de pé 2 ataques troianos perto das muralhas.'},
  menelau:{tale:'Menelau não deixa um companheiro caído na planície.',goal:'Socorrer ou curar um aliado.'},
  agamemnon:{tale:'Agamêmnon comanda a coalizão. Já perdeu homens demais nesta guerra: quer Heitor no chão e todos os seus reis de pé.',goal:'Derrubar Heitor sem nenhum herói caído no campo.'}};
 const LEGACY_TITLE='O que ficou de Segurar a linha';
@@ -297,7 +297,7 @@ function missionHTML(){
     alarm:{value:state.alarm,max:G.alarmMax(state),next:(()=>{const n=G.nextAlarm(state);return n.at>state.alarm&&n.at<G.alarmMax(state)?'próximo em '+n.at:n.at===G.alarmMax(state)&&state.alarm<n.at?'em peso no '+n.at:'';})()},resourcesOpen,
     resources:[{label:'Favor dos deuses',value:`${state.favor}<small>/${G.FAVOR_MAX}</small>`},{label:'Armazém (comida)',value:state.campFood}]});
 }
-function resultHTML(){if(!state.result||(state.duel&&duelBeat<3))return '';return `<section class="result mesa-result ${state.result}" role="status"><h2>${state.result==='victory'?'Heitor caiu.':'Heitor escapou.'}</h2><p>${esc(state.reason)}</p><p>${state.result==='victory'?'Príamo virá pedir o corpo, e a trégua do velório abre o caminho para o que vem depois.':'Sem velório não há trégua: Heitor vivo vai vigiar a cidade nas próximas missões.'}</p><div class="actions-row">${state.result==='defeat'?'<button class="button" type="button" data-command="restart">Recomeçar a missão</button>':''}<a class="button" href="campanha.html">Ver a campanha</a></div></section>`;}
+function resultHTML(){if(!state.result||(state.duel&&duelBeat<G.DUEL[state.duel].length))return '';return `<section class="result mesa-result ${state.result}" role="status"><h2>${state.result==='victory'?'Heitor caiu.':'Heitor escapou.'}</h2><p>${esc(state.reason)}</p><p>${state.result==='victory'?'Príamo virá pedir o corpo, e a trégua do velório abre o caminho para o que vem depois.':'Sem velório não há trégua: Heitor vivo vai vigiar a cidade nas próximas missões.'}</p><div class="actions-row">${state.result==='defeat'?'<button class="button" type="button" data-command="restart">Recomeçar a missão</button>':''}<a class="button" href="paladio.html">Seguir para O Paládio</a><a class="quiet" href="campanha.html">Ver a campanha</a></div></section>`;}
 function troyHTML(){
   const step=G.nextAlarm(state),next=state.result?'':step.entries.length?`No Alarme ${step.at}, chegam reforços: ${Object.values(step.entries.reduce((all,[zone,type])=>{const key=type+zone;(all[key]??={zone,type,n:0}).n++;return all;},{})).map(g=>(g.n>1?g.n+'× ':'')+G.TROOPS.types[g.type].short+' em '+g.zone).join(', ')}.`:'';
   const seen={...state,enemies:state.enemies.filter(e=>known(e.zone))};
@@ -350,7 +350,7 @@ function applyCamera(map=app.querySelector('.camera-map')){if(!map||!camera)retu
 function zoomAt(px,py,factor){if(!camera)return;const k=Math.max(.6,Math.min(4,camera.k*factor)),f=k/camera.k;camera={k,tx:px-(px-camera.tx)*f,ty:py-(py-camera.ty)*f};cameraManual=true;popZone=null;app.querySelector('.mesa-pop')?.remove();applyCamera();}
 function refocus(){cameraManual=false;zoomBias=1;}
 function perform(action,target){const beforeCue=cueSnapshot(),beforeStory={heitorOut:state.heitorOut},actor=state.heroes.find(h=>h.id===selected),card=action.startsWith('card:')?G.HEROES.find(h=>h.id===selected).cards[Number(action.slice(5))]:null,before=state.enemies,beforeHeroes=state.heroes,god=action.startsWith('god:')?action.slice(4):null,result=god?G.invoke(state,god,target,selected):G.act(state,selected,action,target);if(!result.ok){notice(result.error);return;}state=result.state;detectReveals();detectStory(beforeStory);detectArrivals(before,state.enemies,'O movimento grego atraiu reforços');detectRemovals(before,state.enemies);detectMoves(before,state.enemies);detectFallen(beforeHeroes,state.heroes);if(god)window.TroyAudio?.cue?.('deus-'+god);else if(action==='interact'&&['pickup','deliver'].includes(target))window.TroyAudio?.cue?.('caixa');else window.TroyAudio?.action(action,actor?.id,card);soundCues(beforeCue);refocus();pending=null;confirmation=null;persist();render();const life=lifeOrders(beforeHeroes,state.heroes);if(state.result){notice(state.reason);window.scrollTo({top:0,behavior:'smooth'});}else if(life){detectLife(beforeHeroes,state.heroes);render();}}
-function endRound(){trojanPhase=true;const beforeHeitor=state.heitorOut,beforeCue=cueSnapshot(),beforeState=JSON.parse(JSON.stringify(state)),before=state.enemies,beforeHeroes=state.heroes;state=G.trojanTurn(state);prepareTrojanResponse(beforeState,state);if(state.lastFind)findAlert=state.lastFind;if(!beforeHeitor&&state.heitorOut)storyAlert={eyebrow:'O portão',title:'Heitor sai pelo portão',text:'O portão se abre e um homem vem à frente de todos, de elmo de crina, sem pressa. Heitor marcha direto para as tendas.',order:holdOrder()};detectReveals();detectArrivals(before,state.enemies,state.escalation||'Reforços chegaram ao campo');detectRemovals(before,state.enemies);claimTroyPieces();detectFallen(beforeHeroes,state.heroes);if(responseQueue.length)window.TroyAudio?.trojan(responseQueue[0]);soundCues(beforeCue);refocus();refocus();pending=null;confirmation=null;persist();render();notice(state.result?state.reason:['Troia respondeu. Rodada '+state.round+' iniciada.',lifeOrders(beforeHeroes,state.heroes)].filter(Boolean).join(' '));if(state.result)window.scrollTo({top:0,behavior:'smooth'});}
+function endRound(){trojanPhase=true;const beforeHeitor=state.heitorOut,beforeCue=cueSnapshot(),beforeState=JSON.parse(JSON.stringify(state)),before=state.enemies,beforeHeroes=state.heroes;state=G.trojanTurn(state);prepareTrojanResponse(beforeState,state);if(state.lastFind&&!duelStrike(state))findAlert=state.lastFind;if(!beforeHeitor&&state.heitorOut)storyAlert={eyebrow:'O portão',title:'Heitor sai pelo portão',text:'O portão se abre e um homem vem à frente de todos, de elmo de crina, sem pressa. Heitor marcha direto para as tendas.',order:holdOrder()};detectReveals();detectArrivals(before,state.enemies,state.escalation||'Reforços chegaram ao campo');detectRemovals(before,state.enemies);claimTroyPieces();detectFallen(beforeHeroes,state.heroes);if(responseQueue.length)window.TroyAudio?.trojan(responseQueue[0]);soundCues(beforeCue);refocus();refocus();pending=null;confirmation=null;persist();render();notice(state.result?state.reason:['Troia respondeu. Rodada '+state.round+' iniciada.',lifeOrders(beforeHeroes,state.heroes)].filter(Boolean).join(' '));if(state.result)window.scrollTo({top:0,behavior:'smooth'});}
 function chooseEncounter(choice){const beforeCue=cueSnapshot(),beforeHeroes=state.heroes,before=state.enemies,result=G.choose(state,choice);if(!result.ok){notice(result.error);return;}state=result.state;learnStory();if(state.lastFind)findAlert=state.lastFind;detectReveals();detectArrivals(before,state.enemies,'O espião chamou reforços');detectRemovals(before,state.enemies);detectMoves(before,state.enemies);soundCues(beforeCue);persist();render();const life=lifeOrders(beforeHeroes,state.heroes);if(life){detectLife(beforeHeroes,state.heroes);render();}}
 function learnStory(){const l=state.lastLearn;if(!l)return;const d=G.HEROES.find(h=>h.id===l.hero);
   if(l.kind==='ability'){const c=d.cards[l.card];storyAlert={eyebrow:'Habilidade aprendida',title:d.name+' aprendeu '+c.name,text:'O que a habilidade faz está escrito na carta.',order:'Virem para cima a carta "'+c.name+'" no tabuleiro de '+d.name+'. A partir de agora ela aparece nas ações do herói.'};}
@@ -360,18 +360,26 @@ function cueSnapshot(){return {prev:state,built:state.built,reveal:revealAlert.l
 let featCued=false,trojanPhase=false,resourcesOpen=false;
 // Selo da fase de Troia nos avisos que ela abre, sempre na mesma ordem.
 const TROY_STEPS={move:'Fase de Troia · 1 de 3 · Movimento e ataques',reinforce:'Fase de Troia · 2 de 3 · Reforços',chronicle:'Fase de Troia · 3 de 3 · Crônica'};
-function featSound(){if(featAlert.length&&!featCued&&!busy()){featCued=true;window.TroyAudio?.cue?.('feito');}}
+// Som de cada aviso (07/10/2026): toca quando o aviso aparece na tela, um de cada vez, e não no momento da ação.
+let lastDialog='',lastDialogKind='';
+// Espera o aviso firmar na tela: o primeiro desenho depois de uma ação às vezes mostra por um instante um aviso que logo dá lugar a outro.
+let dialogTimer=0;
+function featSound(){clearTimeout(dialogTimer);dialogTimer=setTimeout(dialogSound,200);}
+function dialogSound(){const A=window.TroyAudio;const all=app.querySelectorAll('.order-backdrop > section,.arrival-backdrop > section'),d=all[all.length-1];const eyebrow=d?.querySelector('.eyebrow,.order-step')?.textContent||'',key=d?d.className+'|'+eyebrow+'|'+(d.querySelector('h2')?.textContent||''):'';if(key===lastDialog)return;const prevDialog=lastDialog;lastDialog=key;if(!d||!A?.cue){lastDialogKind='';return;}
+  const c=d.classList,kind=[...c].find(x=>/-card$|^order-[a-z]+$/.test(x)&&x!=='order-card'&&x!=='arrival-card')||'';let name=null;
+  if(c.contains('death-card'))name='queda';else if(c.contains('feat-card'))name='feito';
+  else if(c.contains('encounter-card'))name=/aprendizado/i.test(eyebrow)?null:'encontro';
+  else if(c.contains('cris-card'))name=lastDialogKind==='cris-card'?null:'encontro';
+  else if(c.contains('chronicle-card'))name=/crônica/i.test(eyebrow)?(['trompas','portao'].includes(state?.chronicle?.id)?'corneta':'cronica'):'descoberta';
+  else if(c.contains('order-troop'))name=/reforço/i.test(eyebrow)&&!/reforço/i.test(prevDialog)?'corneta':null;
+  else if(c.contains('order-piece'))name=lastDialogKind==='order-piece'?null:'revelar';
+  lastDialogKind=kind;if(name)A.cue(name);}
 function soundCues(b){
-  const A=window.TroyAudio;if(!A?.cue)return;A.changes?.(b.prev,state);
-  // O som do feito toca quando o aviso do feito aparece na tela (featSound), não junto com os outros.
+  M.storeToast?.(b.prev,state);
+  const A=window.TroyAudio;if(!A?.cue)return;if(!trojanPhase||(state.result&&!b.prev?.result))A.changes?.(b.prev,state);
+  // Os sons dos avisos (queda, encontro, tropas, descoberta, peça nova, crônica, feito) tocam quando o aviso aparece: ver featSound.
   const arrival=troopArrival&&troopArrival!==b.arrival;
-  if(deathAlert&&deathAlert!==b.death)A.cue('queda');
-  else if(state.built&&!b.built){A.cue('acampamento');setTimeout(()=>A.cue('corneta'),1600);}
-  else if(state.encounter&&!b.encounter&&state.encounter.id!=='ability')A.cue('encontro');
-  else if(arrival)A.cue('corneta');
-  else if(findAlert&&findAlert!==b.find)A.cue('descoberta');
-  else if(revealAlert.length>b.reveal)A.cue('revelar');
-  else if(state.round>b.round&&state.chronicle?.round===state.round)A.cue(['trompas','portao'].includes(state.chronicle.id)?'corneta':'cronica');
+  if(state.built&&!b.built){A.cue('acampamento');setTimeout(()=>A.cue('corneta'),1600);}
 }
 function ambience(){const A=window.TroyAudio;if(!A?.setTension)return;if(!state||state.result){A.setTension(-1);A.setHeartbeat(false);return;}A.setTension(state.alarm>=12?2:state.alarm>=6?1:0);A.setHeartbeat(state.heroes.some(h=>h.hp>0&&h.hp<=2));}
 function openZone(zone){popZone=popZone===zone?null:zone;pending=null;confirmation=null;render();}
@@ -394,7 +402,7 @@ app.addEventListener('click',event=>{
   if(c==='place-sub'){placeStep++;render();return;}
   if(c==='response-sub'){responseSub++;render();return;}
   if(c==='arrival-sub'){arrivalSub++;render();return;}
-  if(c==='duel-next'){duelBeat++;if(duelBeat===3&&state.result==='victory')window.TroyAudio?.victory?.();render();return;}
+  if(c==='duel-next'){duelBeat++;if(duelBeat===G.DUEL[state.duel].length&&state.result==='victory')window.TroyAudio?.victory?.();render();return;}
   if(c==='dismiss-reveal'){placeStep=0;arrivalNote={};revealAlert=[];revealPhase='story';render();return;}
   if(c==='check-table'){showTable=!showTable;clearTimeout(showTableTimer);if(showTable)showTableTimer=setTimeout(()=>{showTable=false;render();},6000);render();return;}
   if(c==='toggle-feats'){featsOpen=!featsOpen;if(featsOpen){resourcesOpen=false;closeTroy();}render();return;}

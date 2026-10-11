@@ -24,12 +24,12 @@ Fechadas em 02/10/2026. A missão 1 já segue estas regras; as missões 2 e 3 se
 - **Não existe dividir comida** entre heróis.
 - **Socorro:** não gasta ação; quem socorre transfere 1 da própria vida, e o caído volta com 1.
 - **Preparar habilidades** (antes "Recuperar") custa 1 ação e só desvira as cartas usadas; não cura.
-- Hospitalidade e sacrifícios custam vida: dar pão ao velho tira 1 de vida de quem dá.
+- Hospitalidade e sacrifícios custam comida do armazém do acampamento, não vida: dar pão ao velho ou dividir com os pastores custa 1 comida do armazém.
 
 ## O que fica no app e o que fica na mesa
 
-- **App:** posições dos heróis (mover é um toque), a IA de Troia, a revelação do mapa, encontros, decisões e contas, o Alarme.
-- **Mesa:** miniaturas, peças do mapa, caixas, fichas de exploração e as fichas de comida (vida). O app dá as ordens: "Retirem 2 fichas de Aquiles", "Coloquem uma companhia de lanceiros em P2".
+- **App:** posições dos heróis (mover é um toque), a IA de Troia, a revelação do mapa, encontros, decisões e contas, o Alarme, e as caixas de carga (onde estão e quem carrega: não há caixa física).
+- **Mesa:** miniaturas, peças do mapa, fichas de exploração e as fichas de comida (vida). O app dá as ordens: "Retirem 2 fichas de Aquiles", "Coloquem uma companhia de lanceiros em P2".
 - O comandante (o jogador de Agamêmnon) é um papel de mesa: não aparece no app.
 
 ## Missão 1: como se vence e como se perde
@@ -55,3 +55,43 @@ Fechadas em 02/10/2026. A missão 1 já segue estas regras; as missões 2 e 3 se
 ## Decisões, Favor e consequências
 
 Ver `DILEMAS.md` (efeitos escondidos até a escolha, Favor só dos feitos, o que uma missão deixa para a seguinte) e `MECANICA-PERGAMINHOS.md`.
+
+## Decisões de 03/10/2026 (aprovadas, não programadas)
+
+### Exploração por missão
+
+Substitui "revelar ao mover" (`CENARIO-MISSAO-1.md`, regra 1), no estilo de *Jornadas na Terra-média*.
+
+- **Mover só entre peças já reveladas.** Andar até a borda não revela nada.
+- Uma peça aparece por três gatilhos:
+  1. **Investigar um indício:** 1 ação na peça, sem inimigos. O indício é a lupa atual, e o app diz o que ela é.
+  2. **Avanço da história:** cumprir uma etapa do objetivo faz o app colocar as próximas peças.
+  3. **Troia revela:** uma tropa que surge traz a peça de onde veio, como hoje.
+- O Caminho Seguro de Odisseu volta a alcançar só peças reveladas.
+- Prioridade de aplicação: missões 1, 2 e 5. Na missão 3, o mapa já é conhecido e quase nada muda. **Programada nas missões 1 e 2** (03/10/2026); seguir uma pista sem achado não faz barulho.
+
+### Feitos a partir da missão 3
+
+Cada herói tem 3 habilidades: começa com 1 e aprende as outras nos feitos. Quem cumpre os feitos das missões 1 e 2 já tem todas na missão 3. Por isso, **a partir da missão 3, o feito dá +1 Favor e Glória.**
+
+- **Glória** é só um registro: quem cumpriu qual feito. Não tem efeito de regra; aparece no epílogo da missão 7.
+- Se o herói ainda tiver habilidade a aprender, o feito continua a ensiná-la (como faz o código hoje).
+
+### Heitor, Aquiles e Páris
+
+- Heitor recua ferido nas missões 2 e 3. Na missão 4, **qualquer herói** pode matá-lo; o golpe final de Aquiles é o feito dele. Se ele escapar na missão 4, segue vivo: torna a missão 5 muito mais difícil e defende o portão na missão 7 (`CENARIO-MISSAO-4.md`).
+- Aquiles e Páris seguem vivos até a missão 7. Nenhum herói morre por roteiro.
+- Pátroclo só entra se Agamêmnon tomar Briseida de Aquiles (`CENARIO-MISSAO-3.md`):
+  - joga no lugar de Aquiles, com a força inicial dele e uma habilidade;
+  - quando cai, não há socorro: sai de cena, e só então Aquiles volta, com tudo o que tinha;
+  - se sobreviver, Aquiles nunca volta, e não existe o duelo entre Aquiles e Heitor;
+  - a embaixada de Odisseu ou Ájax para trazer Aquiles sempre falha.
+- Sem Briseida, Pátroclo nunca entra, e o encontro de Aquiles com Heitor na missão 4 é um duelo de egos.
+
+### Suspeita
+
+Na missão 5, o Alarme se chama **Suspeita**: mesma trilha, mesma mecânica.
+
+### Falhar o objetivo
+
+Na missão 4, falhar não repete a missão: torna a seguinte muito mais difícil, como em *Jornadas na Terra-média*. Se isso vale para outras missões ainda não foi decidido.

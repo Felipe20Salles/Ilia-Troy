@@ -51,6 +51,8 @@ O castigo cresce 1 a cada ciclo, até a expedição escolher A, B ou D. A narra�
 
 ### A ira de Aquiles (opção B)
 
+> **Superado em 03/10/2026:** a embaixada (itens 2 a 4) **sempre falha** e dá lugar a Pátroclo. O jogador de Aquiles joga Pátroclo, com a força inicial de Aquiles e uma só habilidade. Aquiles só volta, com tudo o que tinha, quando Pátroclo morre (sem socorro). Se Pátroclo sobreviver, Aquiles nunca volta. Regra completa em `CENARIO-MISSAO-3.md`.
+
 1. **Aquiles sai do mapa.** A miniatura é retirada da mesa e o jogador de Aquiles fica fora até o retorno. Ele não age, não é atacado e não conta como herói em campo.
 2. **Missão interna: o retorno do grande guerreiro.** Os Mirmidões acampam nos navios negros (N4, na enseada). Uma embaixada precisa ir até lá: **Odisseu ou Ájax** (como na Ilíada) gasta **2 ações em N4**, sem inimigos na peça. Odisseu está sempre na equipe, então a embaixada é sempre possível.
 3. **O retorno.** Cumprida a embaixada, Aquiles volta em N4, com a vida cheia, e entra na próxima rodada. O app narra a volta.

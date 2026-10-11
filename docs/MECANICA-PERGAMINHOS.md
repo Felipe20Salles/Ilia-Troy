@@ -32,7 +32,7 @@ O que muda no jogo: hoje toda busca paga na hora (comida, Alarme). Com os pergam
 | **Segredos de Troia** | Relato do espião (o velho, se descoberto): revela a intenção oculta de um comandante | Planta das muralhas: o portão fraco de Troia | Senha da guarda: a infiltração da missão 6 começa sem alerta |
 | **Favor dos pastores** | Esconderijo da trilha (P6): +1 comida no início da próxima missão | Aliança com os pastores: eles escondem a madeira do cavalo | Guia nativo: revela o atalho final |
 
-A linha "Rotas da costa", por exemplo, poderia ser a espinha da missão 4, "Outro caminho", que já trata de achar uma alternativa ao cerco.
+(A ideia de usar "Rotas da costa" como espinha da antiga missão 4, "Outro caminho", saiu com a nova estrutura de sete missões.)
 
 ## Decisões (02/10/2026)
 
@@ -46,3 +46,8 @@ A linha "Rotas da costa", por exemplo, poderia ser a espinha da missão 4, "Outr
 - No registro da campanha (`campaign-state.js`), uma lista de pergaminhos conquistados.
 - Na missão 1, 1 ou 2 fichas passam a esconder um pergaminho de nível I.
 - As missões 2 a 6, quando refeitas, leem a lista e aplicam os efeitos e os níveis II e III.
+
+## Decisões de 03/10/2026
+
+- **Os segredos de Odisseu são pergaminhos** da linha Segredos de Troia, não uma trilha separada. Na missão 5 (o Paládio), viraram as quatro descobertas que originam o cavalo (a forma, o motivo, a medida e quem vai desconfiar). Como elas se encaixam nos níveis da linha ainda será ajustado. Ver `CENARIO-MISSAO-5.md`.
+- A campanha agora tem sete missões. A tabela de níveis por missão (I nas missões 1–2, II nas 3–4, III nas 5–6) precisa ser revista.

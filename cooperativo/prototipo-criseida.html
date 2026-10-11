@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Criseida · Ilia</title>
+<style>
+@font-face{font-family:'Marcellus';src:url('../assets/fonts/marcellus.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url('../assets/fonts/cormorant-garamond-italic.woff2') format('woff2');font-weight:300 700;font-style:italic;font-display:swap}
+@font-face{font-family:'DM Sans';src:url('../assets/fonts/dm-sans.woff2') format('woff2');font-weight:400 700;font-display:swap}
+:root{--bg:#141517;--g1:#1d1f22;--g2:#26292d;--line:#383c42;--ink:#f1ecde;--muted:#a9adb3;--gold:#e4bd77;--ochre:#d29a4a;--apollo:#e8c45a;--blood:#c4532f}
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;background:var(--bg);color:var(--ink);font:15px/1.5 'DM Sans',system-ui,sans-serif;overflow:hidden}
+.map{position:fixed;inset:0;background:url('assets/tabuleiro-principal-final.webp') 60% 55%/220% auto no-repeat;filter:brightness(.3)}
+.backdrop{position:fixed;inset:0;display:grid;place-items:center;padding:16px;background:#000a}
+.card{width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:hidden;border:1px solid #6d5a36;border-radius:14px;background:linear-gradient(160deg,#25272b,#18191b);box-shadow:0 24px 70px #000;display:grid}
+.art{height:min(200px,26dvh);background:url('assets/identidade/cena-velho-pedras.webp') center 40%/cover;position:relative}
+.art::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#0000 40%,#1f2124)}
+.body{padding:16px 22px 20px;display:grid;gap:10px;text-align:center;justify-items:center}
+.eyebrow{margin:0;color:var(--ochre);font-size:12px;letter-spacing:.03em}
+h2{margin:0;font:400 26px/1.15 Marcellus,serif}
+.tale{margin:0;font:italic 500 21px/1.45 'Cormorant Garamond',serif;color:#efe6cf}
+.voice{width:100%;display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:center;text-align:left;padding:10px 12px;border-radius:10px;background:var(--g2)}
+.voice span{width:52px;height:52px;border-radius:50%;background-size:cover;box-shadow:0 0 0 2px #111,0 0 0 3px var(--gold)}
+.voice p{margin:0;font:italic 500 19px/1.35 'Cormorant Garamond',serif;color:#efe6cf}.voice b{display:block;font:600 12px 'DM Sans',sans-serif;color:var(--gold);font-style:normal}
+.choices{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice{display:grid;gap:6px;align-content:start;text-align:left;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--g1);color:var(--ink);font:inherit;cursor:pointer}
+.choice:hover{border-color:var(--gold)}
+.choice.tempt{border-color:#8a6a3a;background:linear-gradient(160deg,#2c2519,#1d1f22)}
+.choice h3{margin:0;font:400 19px Marcellus,serif}
+.choice ul{margin:0;padding-left:18px;display:grid;gap:3px;font-size:13.5px;color:#d8d0bf}
+.choice small{color:var(--muted);font-style:italic}
+.ok{min-height:46px;min-width:180px;border:0;border-radius:6px;background:var(--gold);color:#1a1408;font-weight:700;cursor:pointer;font:inherit;font-weight:700}
+.mock{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);padding:6px 12px;border-radius:999px;background:#000c;border:1px solid #fff2;font-size:13px;color:#ccc}
+.mock button{border:0;background:none;color:#ccc;text-decoration:underline;cursor:pointer}
+@media (max-width:640px),(max-height:560px){.choices{grid-template-columns:1fr}.art{height:110px}.tale{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="map"></div>
+<div id="pop"></div>
+<div class="mock"><span id="where"></span> · <button id="restart">Recomeçar</button></div>
+<script>
+const av=id=>`url('assets/identidade/avatar-${id}.webp')`;
+// A cena em quatro tempos: o lugar, as vozes, a escolha e o desfecho.
+const STEPS={
+ scene:{art:true,eyebrow:'C1 · O santuário de Apolo',body:`<h2>A filha do sacerdote</h2><p class="tale">No círculo de pedras, uma jovem acende o fogo do altar de Apolo. Aos pés do deus, taças de ouro e jarros de azeite, as oferendas de um ano inteiro. Ela levanta os olhos e vê os gregos armados entre as pedras.</p>`,next:'voices'},
+ voices:{art:false,eyebrow:'C1 · O santuário de Apolo',body:`<h2>Criseida</h2>
+  <div class="voice"><span style="background-image:${av('agamemnon')}"></span><p><b>Agamêmnon</b>"Olhem para ela. Isso é prêmio de rei. E esse ouro alimenta os meus homens por uma lua inteira."</p></div>
+  <div class="voice"><span style="background-image:${av('odisseu')}"></span><p><b>Odisseu</b>"É a filha de Crises, senhor, o sacerdote de Apolo. O arqueiro dos deuses tem boa memória."</p></div>`,next:'choice'},
+ choice:{art:false,eyebrow:'A decisão é de Agamêmnon',body:`<h2>O que fazem?</h2><div class="choices">
+  <button class="choice tempt" data-go="take"><h3>Levar Criseida e o ouro</h3><ul><li><b>+3 de comida</b> agora</li><li><b>Agamêmnon aprende uma habilidade</b>: os reis aclamam o seu prêmio</li><li>O ouro do altar vale <b>+2 de comida</b> no armazém da próxima missão</li></ul><small>Apolo vê tudo.</small></button>
+  <button class="choice" data-go="respect"><h3>Respeitar o santuário</h3><ul><li><b>+1 de Favor</b></li></ul><small>Os homens voltam de mãos vazias, resmungando.</small></button></div>`},
+ take:{art:true,eyebrow:'Criseida',body:`<h2>O prêmio do rei</h2><p class="tale">Os homens levam a moça e as taças do altar. Agamêmnon ergue o ouro diante dos reis, e o acampamento grita o nome dele. Criseida não chora. Olha para o templo como quem faz uma promessa.</p>`,next:'end'},
+ respect:{art:true,eyebrow:'Criseida',body:`<h2>As lanças abaixadas</h2><p class="tale">Os heróis recuam diante do altar. A moça os observa em silêncio enquanto se afastam. Agamêmnon não diz nada pelo resto do caminho. Ninguém saberá o que poderia ter sido. Mas Apolo viu.</p>`,next:'end'}
+};
+let at='scene';
+function render(){const p=document.getElementById('pop');document.getElementById('where').textContent={scene:'1 · a cena',voices:'2 · as vozes',choice:'3 · a escolha',take:'4 · levar',respect:'4 · respeitar',end:'fim'}[at];
+ if(at==='end'){p.innerHTML='';return;}const s=STEPS[at];
+ p.innerHTML=`<div class="backdrop"><section class="card" role="dialog" aria-modal="true">${s.art?'<div class="art" aria-hidden="true"></div>':''}<div class="body"><p class="eyebrow">${s.eyebrow}</p>${s.body}${s.next?`<button class="ok" data-go="${s.next}">${at==='take'||at==='respect'?'Ok':'Continuar'}</button>`:''}</div></section></div>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){at=b.dataset.go;render();}});
+document.getElementById('restart').onclick=()=>{at='scene';render();};
+render();
+</script>
+</body>
+</html>

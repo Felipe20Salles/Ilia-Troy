@@ -124,7 +124,7 @@
       else if(c.type==='grantAction'){if(!a||a.id===h.id||a.zone!==h.zone||a.hp<=0)return fail('Escolha outro herói de pé nesta área.');a.ap++;a.bonusActions++;}
       else if(c.type==='taunt'){h.tauntRound=s.round;}
       else if(c.type==='refresh'){if(!a||a.id===h.id||a.zone!==h.zone||a.hp===0||!a.used.length)return fail('Escolha outro herói de pé com habilidades esgotadas nesta casa.');a.used=[];}
-      else if(c.type==='intimidate'){const zone=e&&e.zone===h.zone?intimidationZone(s,e):null;if(!zone)return fail('Escolha um inimigo nesta área que possa recuar.');const origin=e.zone;kill(s,e,c.value);if(s.enemies.includes(e)&&e.hp>0){e.zone=zone;e.intimidated=true;log(s,TROOPS.label(e)+' sofreu '+c.value+' de dano, recuou de '+origin+' para '+zone+' e não poderá atacar na próxima resposta.');}}
+      else if(c.type==='intimidate'){const zone=e&&e.zone===h.zone?intimidationZone(s,e):null;if(!zone)return fail('Escolha um inimigo nesta área que possa recuar.');const origin=e.zone;kill(s,e,c.value,true);if(s.enemies.includes(e)&&e.hp>0){e.zone=zone;e.intimidated=true;log(s,TROOPS.label(e)+' sofreu '+c.value+' de dano, recuou de '+origin+' para '+zone+' e não poderá atacar na próxima resposta.');}}
       else return fail('Habilidade desconhecida.');
       if(c.once)h.onceUsed.push(n);else h.used.push(n);message='usou '+c.name;
     }else return fail('Ação desconhecida.');

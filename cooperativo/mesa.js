@@ -96,3 +96,6 @@
   el.innerHTML=`${ICONS.food}<span><b>Armazém ${d>0?'+':'−'}${Math.abs(d)} comida</b>agora ${after.campFood}</span>`;el.classList.toggle('loss',d<0);el.classList.add('show');clearTimeout(storeTimer);storeTimer=setTimeout(()=>el.classList.remove('show'),5000);}
  window.TroyMesa={ICONS,esc,zoneOf,zoneOptions,popoverHTML,placePopover,heroStrip,enemyPanel,missionBlock,storeToast};
 })();
+
+// Ajuda das habilidades (11/10/2026): o "?" mostra ou esconde o que cada habilidade faz.
+document.addEventListener('click',event=>{const b=event.target.closest('[data-ability-help]');if(!b)return;const on=document.body.classList.toggle('ability-help-on');document.querySelectorAll('[data-ability-help]').forEach(x=>x.setAttribute('aria-pressed',String(on)));});

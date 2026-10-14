@@ -826,3 +826,16 @@ html,body{max-width:100%;overflow-x:hidden}
   .mesa-hero .mesa-hero-id small,.mesa-hero .feat-line{display:none}
   .mesa-end{position:sticky;right:0;background:inherit}
 }
+
+/* Mapa leve (11/10/2026): a imagem pronta das peças reveladas estica como o SVG que ela substitui. */
+img.landscape{object-fit:fill;user-select:none;-webkit-user-drag:none}
+
+/* Ajuda das habilidades (11/10/2026). */
+.ability-help{display:inline-flex;align-items:center;gap:8px;margin:0 auto 12px;padding:8px 14px;border-radius:999px;border:1px solid var(--gold,#e0b96c);background:transparent;color:var(--gold,#e0b96c);font:600 14px/1 'DM Sans',sans-serif;cursor:pointer}
+.ability-help span{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--gold,#e0b96c);color:#1a1006;font-weight:700}
+body.ability-help-on .ability-help{background:var(--gold,#e0b96c);color:#1a1006}
+body.ability-help-on .ability-help span{background:#1a1006;color:var(--gold,#e0b96c)}
+.ability-setup{display:grid;justify-items:stretch}.ability-setup>.ability-help{justify-self:center}
+.ability-desc,.ability-pick-list small{display:none}
+body.ability-help-on .ability-desc,body.ability-help-on .ability-pick-list small{display:block;font:400 13px/1.4 'DM Sans',sans-serif;color:var(--muted,#b9a68a);margin-top:4px;text-align:left}
+.ability-pick label{align-content:start}

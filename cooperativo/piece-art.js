@@ -44,7 +44,9 @@
     return out.toDataURL('image/webp',.9);
   }
   // Marca a imagem; o recorte é feito uma vez por peça e preenchido assim que o tabuleiro carrega.
-  function pieceArt(zone){return `<img class="piece-art" data-piece="${zone}" alt="Peça ${zone}" ${cache[zone]?`src="${cache[zone]}"`:''}>`;}
+  // As peças já vêm recortadas em assets/pecas (11/10/2026): recortar no navegador travava notebooks mais fracos.
+  // Se o arquivo faltar, o recorte antigo entra como reserva.
+  function pieceArt(zone){return `<img class="piece-art" data-piece="${zone}" alt="Peça ${zone}" src="${cache[zone]||'assets/pecas/'+zone+'.webp'}" decoding="async" onerror="this.onerror=null;this.removeAttribute('src');window.TroyPieceArt&&TroyPieceArt.hydrate(this.parentNode)">`;}
   function hydrate(scope=document){
     const imgs=[...scope.querySelectorAll('img.piece-art:not([src])')];if(!imgs.length)return;
     loadBoard().then(()=>{for(const im of imgs){const z=im.dataset.piece;if(!(z in cache))cache[z]=cut(z)||'';if(cache[z])im.src=cache[z];}}).catch(()=>{});

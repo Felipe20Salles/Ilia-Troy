@@ -1,0 +1,6 @@
+/* A cidade em grade acima das muralhas (missões 5 e 7). O mapa deixa desenhar acima do tabuleiro. */
+.camera-map{overflow:visible}
+.camera-map svg{overflow:visible}
+.troia-grade{position:absolute;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:2px;padding:2px;border:2px solid #b8853d;border-radius:6px;background:linear-gradient(180deg,#1b1620,#120f15);box-shadow:0 10px 30px #000c;z-index:0}
+.troia-casa{position:relative;border:1px solid #e0b96c55;border-radius:4px;background:radial-gradient(circle at 50% 40%,#3a2c22,#1d1712 75%);display:flex;align-items:flex-end;justify-content:center;padding:2px}
+.troia-casa small{font:600 calc(5px * var(--zoom,1) / var(--zoom,1)) 'DM Sans',sans-serif;font-size:clamp(7px,0.7vw,11px);color:#f3e6c8;background:#141517cc;border-radius:3px;padding:1px 4px;white-space:nowrap}
